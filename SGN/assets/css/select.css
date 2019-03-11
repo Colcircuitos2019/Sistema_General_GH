@@ -1,0 +1,61 @@
+/*
+Make bootstrap-select work with bootstrap 4 see:
+https://github.com/silviomoreto/bootstrap-select/issues/1135
+*/
+.dropdown-toggle.btn-default {
+  color: #292B2C;
+  background-color: #fff;
+  border-color: #ccc;
+  text-align: left;
+  border: none;
+  border-bottom: 1px solid #666B86;
+  border-radius: 0px;
+}
+.dropdown-toggle.btn-default:focus,
+.dropdown-toggle.btn-default:hover{
+  color: #292B2C;
+  background-color: #FFFFFF;
+  border-color: #ccc;
+  text-align: left;
+  border: none;
+  border-bottom: 2px solid #71758F;
+  border-radius: 0px;
+}
+.bootstrap-select.show>.dropdown-menu>.dropdown-menu {
+  display: block;
+}
+
+.bootstrap-select > .dropdown-menu > .dropdown-menu li.hidden{
+  display:none;
+}
+
+.bootstrap-select > .dropdown-menu > .dropdown-menu li a{
+  display: block;
+  width: 100%;
+  padding: 3px 1.5rem;
+  clear: both;
+  font-weight: 400;
+  color: #292B2C;
+  text-align: inherit;
+  white-space: nowrap;
+  background: 0 0;
+  border: 0;
+}
+
+.dropdown-menu > li.active > a {
+  color: #fff !important;
+  background-color: #7E84A5 !important;
+}
+
+.bootstrap-select .check-mark::after {
+  content: "✓";
+}
+.bootstrap-select button {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Make filled out selects be the same size as empty selects */
+.bootstrap-select.btn-group .dropdown-toggle .filter-option {
+  display: inline !important;
+}
