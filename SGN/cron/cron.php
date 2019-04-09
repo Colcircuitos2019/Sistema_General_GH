@@ -83,7 +83,7 @@
 // Funciones...
 // ...
 function conexion(){//Iniciar la conexion con la base de datos
-	$conexion= new mysqli("localhost","root","SaAFjmXlMRvppyqW","sgn") or die('No se pudo conectar: '.mysql_error());
+	$conexion= new mysqli("localhost:33066","root","SaAFjmXlMRvppyqW","sgn") or die('No se pudo conectar: '.mysql_error());
 	/*Verificar conexion*/
 	if ($conexion->connect_errno) {
 		printf("Error al conectar: %s\n",$conexion->connect_error);
@@ -164,18 +164,19 @@ function convertirNumeroAPesos($valor)//no hay necesidad de convertir Strign el 
   $res=0;
   switch (strlen($valor)) {
     case 6:
-      $res=3;//STR de tres digitos
+      	$res=3;//STR de tres digitos
       break;
     case 5:
-      $res=2;//STR de dos digitos
+      	$res=2;//STR de dos digitos
       break;
     case 4:
-      $res=1;//STR de un digitos
+      	$res=1;//STR de un digitos
       break;
     case 3:
-      return '$'.$valor;//Retorna directamente
+      	return '$'.$valor;//Retorna directamente
       break;
   }
+  
   $num1=substr($valor,0,$res);//Primer parte del numero
   return '$'.$num1.'.'.substr($valor,$res);//se arma el numero con el punto de mil y se retorna.
 }

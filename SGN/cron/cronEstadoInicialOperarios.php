@@ -23,7 +23,7 @@ foreach ($operarios as $operario) {
 //Establecer conexion con la base de datos
 function conexion()
 {
-	$con= new mysqli("localhost","root","SaAFjmXlMRvppyqW","sgn") or die("La conexion no se puedo establecer"+ mysql_error());
+	$con= new mysqli("localhost:33066","root","SaAFjmXlMRvppyqW","sgn") or die("La conexion no se puedo establecer"+ mysql_error());
 
 	return $con;
 }

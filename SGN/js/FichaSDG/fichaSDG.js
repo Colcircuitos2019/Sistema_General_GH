@@ -29,6 +29,7 @@ var $saveButton= $('#guardarEstado');
 var $deletButton= $('#deletButtons');
 var $antiguedadE= $('#tiempoAntiguedad');
 var vEstadosEm=[];
+var vEstadosEmpresarialesEliminar=[];
 
 // Variables de la informacion salarial
 var $cbxPromedioSalario = $('#promSalarial');
@@ -139,7 +140,7 @@ $(document).ready(function() {
     });
 
     $exportarXLSX.click(function(event) {
-       window.open(baseurl+'FichaSDG/cFichaE/exportarXLSX1');
+       window.open(baseurl+'FichaSDG/cFichaE/reporteFSDG');
     });
 
     window.onbeforeunload= preguntarAntesDeSalir;
@@ -747,6 +748,7 @@ function consultarInformacionFichaSDG(doc) {
 
 // Consultar estados esmpresariales
 function consultarEstadosEmpresariales(doc) {//Pendiente posicionar informacion en el formulario.
+
     $.post(baseurl+'FichaSDG/cFichaE/consultarInformacionEstadoEmpresarial', 
         {
             documento: doc
@@ -1545,7 +1547,8 @@ function registrarModificarEstadoEmpresarial(IDF) {
     $.post(baseurl+'FichaSDG/cFichaE/registrarModificarEstadoEmpresarial',
      {
         ID: IDF, //ID de la ficha SDG
-        estados: vEstadosEm
+        estados: vEstadosEm,
+        eliminar: vEstadosEmpresarialesEliminar
      }, function(data) {
         // 
         // console.log(data);
@@ -1668,7 +1671,12 @@ function eliminarBotonEstadoEmpresarial() {
             }else{
                 $addButton.attr('disabled', false);
             }
+
+            if(vEstadosEm[indice].idEstadoE != 0){
+                vEstadosEmpresarialesEliminar.push({'idEstadoEmpresarial': vEstadosEm[indice].idEstadoE});
+            }
             vEstadosEm.splice(indice,1);//Esta funcion se encarga de retirarme un indice del vector
+
             // Actualizar texto de cada boton
             $grupoBTN.children('button').each(function(index, item) {
                  // Texto
@@ -1790,6 +1798,7 @@ function limpiarCamposTexto() {//Falta remover los atributos data-.removeAttr('d
     $generarPDF.hide('slow');
     // Informacion de estado empresarial
     vEstadosEm=[];
+    vEstadosEmpresarialesEliminar=[];
     limpiarFormularioEstadoEmpresarial(1);
     // Informacion del empleado
     $CedulaE.val('');

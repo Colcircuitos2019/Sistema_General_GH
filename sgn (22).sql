@@ -1,6 +1,6 @@
 -- phpMyAdmin SQL Dump
 -- version 4.7.4
--- https://www.phpmyadmin.net/
+-- https://www.phpmyadmin.net Hola mundo
 --
 -- Servidor: 127.0.0.1
 -- Tiempo de generación: 13-03-2019 a las 18:51:00

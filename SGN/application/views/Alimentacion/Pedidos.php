@@ -42,7 +42,7 @@
 	<div class="limiter">
 		<div class="container-formulario">
 			<div class="wrap-formulario">
-				<div class="titulo-formulario" style="background-image: url(<?php echo base_url();?>assets/login/images/bg-01.jpg);">
+				<div class="titulo-formulario" style="background-image: url(<?php echo base_url();?>assets/login/images/alimentacion.jpg);">
 					<span class="titulo-formulario-1" id="titulo">
 						Pedidos
 					</span>

@@ -45,7 +45,7 @@
         <div class="limiter">
             <div class="container-login100">
                 <div class="wrap-login100">
-                    <div class="login100-form-title" style="background-image: url(<?php echo base_url();?>assets/login/images/bg-01.jpg); height: 1em;">
+                    <div class="login100-form-title" style="background-image: url(<?php echo base_url();?>assets/login/images/controlacceso.jpg); height: 1em;">
                         <span class="login100-form-title-1">
                             Asistencias
                         </span>

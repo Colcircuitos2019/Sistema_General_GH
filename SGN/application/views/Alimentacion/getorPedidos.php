@@ -128,12 +128,12 @@ body {
 }
 
 .loading {
-  position: absolute;
+  position: relative center;
   top: 50%;
   left: 50%;
   margin: -25px 0 0 -25px;
-  height: 50px;
-  width: 50px;
+  height: 40px;
+  width: 40px;
   border: 6px solid #fafafa;
   border-top-color: #24EA1F;
   border-bottom-color: #24EA1F;
@@ -219,11 +219,11 @@ body {
 	      	   	 <!-- Footer -->
 	      	   	 <div class="modal-footer">
 	      	   	 	<!-- <button type="button" id="cerrar">Cerrar</button> -->
-	      	   	 		<div class="row" style="height: 2em;">
+	      	   	 		<div class="row">
 	      	   	 			<div class="col-sm-11">
 	      	   	 				<div class="loading"></div>
 	      	   	 			</div>
-	      	   	 		</div>
+	      	   	 		</div>	      	   	 		
 	      	   	 </div>
 	      	   </div>
 	      	</div>

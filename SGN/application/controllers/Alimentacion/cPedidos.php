@@ -499,10 +499,10 @@ class cPedidos extends CI_Controller
     $total=0;
     foreach ($datos as $row) {
       // Cuerpo del documento.
-      $objPHPExcel->getActiveSheet()->SetCellValue('A'.($i),$row->documento);
-      $objPHPExcel->getActiveSheet()->SetCellValue('B'.($i),strtoupper($row->nombre1).' '.strtoupper($row->nombre2).' '.strtoupper($row->apellido1).' '.strtoupper($row->apellido2));
-      $objPHPExcel->getActiveSheet()->SetCellValue('C'.($i),$row->nombre);
-      $objPHPExcel->getActiveSheet()->SetCellValue('D'.($i),$row->total);//$row->devengado
+      $objPHPExcel->getActiveSheet()->SetCellValue('A'.($i), $row->documento);
+      $objPHPExcel->getActiveSheet()->SetCellValue('B'.($i), strtoupper($row->nombre1).' '.strtoupper($row->nombre2).' '.strtoupper($row->apellido1).' '.strtoupper($row->apellido2));
+      $objPHPExcel->getActiveSheet()->SetCellValue('C'.($i), $row->nombre);
+      $objPHPExcel->getActiveSheet()->SetCellValue('D'.($i), $row->devengado);//$row->devengado
       $total+=$row->total;
       $i++;
     }

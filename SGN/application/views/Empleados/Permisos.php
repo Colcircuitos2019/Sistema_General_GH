@@ -83,7 +83,8 @@
         <div class="limiter">
             <div class="container-formulario">
                 <div class="wrap-formulario">
-                    <div class="titulo-formulario" style="background-image: url(<?php echo base_url();?>assets/login/images/bg-01.jpg);">
+                    <div class="titulo-formulario" style="background-image: url(<?php echo base_url();?>assets/login/images/permisos.jpg);
+                    background-size: 100% 100%; ">
                         <span class="titulo-formulario-1" id="titulo">
                             Permisos
                         </span>

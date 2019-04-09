@@ -45,6 +45,7 @@ class cFichaE extends CI_Controller
 	{
 		$ID=$this->input->post('ID');//Ide de la ficha SDG
 		$estados=$this->input->post('estados');
+		$eliminarEstado=$this->input->post('eliminar');
 		$i=0;
 		$cont;
 		// Recorrer los estados y registrarlos o modificarlos.
@@ -68,6 +69,18 @@ class cFichaE extends CI_Controller
 			$cont[$i]=$estado['estadoE'];
 			$i++;
 		}
+
+		// Eliminar estados empresariales!!!
+		// echo json_encode($eliminarEstado);
+
+		if($eliminarEstado!= false){
+			foreach ((Array)$eliminarEstado as $estado) {
+				
+				$this->mFichaSDG->eliminarEstadoEmpresarialM($estado['idEstadoEmpresarial']);
+
+			}
+		}
+		// ...
 
 		// Cambiar el estado del empleado a desactivado siempre y cuando todos los estados empresariales sean retirados=1, y si existe a si sea un unico estado que sea vigente entonces automaticamente el estado del empelado va a pasar a activo...
 		$this->load->model('Empleado/mEmpleado');
@@ -421,6 +434,7 @@ class cFichaE extends CI_Controller
 	   // Inicio de la tabla 1
 	  // Se define el formato de fuente: Arial, negritas, tamaño 12
 	  $this->pdf->SetFont('Arial', 'B', 10);
+	  $nombre=""; 
 	  /*
 	   * TITULOS DE COLUMNAS de los productos que se pidieron a ese proveedor
 	   *
@@ -431,8 +445,9 @@ class cFichaE extends CI_Controller
 	  // 
 	  $this->pdf->Ln(7);//salto de linea
 	  foreach ($empleado as $row) {
-	    $this->pdf->Cell(60,7,utf8_decode(' Documento:  '.$row->documento),0,0,'L','0');//Numero de documento
-	    $this->pdf->Cell(100,7,utf8_decode(' Nombre Empleado:  '.$row->nombre1.' '.$row->nombre2.' '.$row->apellido1.' '.$row->apellido2),0,0,'L','0');//Nombre del empleado
+	    $this->pdf->Cell(60,7,utf8_decode(' Documento:  '.$documento),0,0,'L','0');//Numero de documento
+	    $nombre=ucfirst($row->nombre1).' '.ucfirst($row->nombre2).' '.ucfirst($row->apellido1).' '.ucfirst($row->apellido2);
+	    $this->pdf->Cell(100,7,utf8_decode(' Nombre Empleado:  '.$nombre),0,0,'L','0');//Nombre del empleado
 	    $this->pdf->Cell(40,7,utf8_decode(' Sexo:  '.($row->genero==1?'Masculino':'Femenino')),0,0,'L','0');//Genero del empleado
 	    $this->pdf->Ln(9);//salto de linea
 	    $this->pdf->Cell(100,7,utf8_decode('Correo:  '.$row->correo),0,0,'C','0');//Numero de documento
@@ -774,6 +789,11 @@ class cFichaE extends CI_Controller
 	    $this->pdf->Cell(80,7,utf8_decode('¿Ha estado en algun comite de las empresas?'),1,0,'C','1');//
 	    $this->pdf->Cell(35,7,utf8_decode($row->comites==1?'SI':'NO'),1,0,'C','0');//Ha estado en algun comite de las empresas.
 	  }
+
+	  $this->pdf->Ln(30);//Salto de linea
+	  $this->pdf->Cell(80,7,utf8_decode('_________________________________________'),0,0,'L','0');//
+	  $this->pdf->Ln(5);//Salto de linea
+	  $this->pdf->Cell(80,7,utf8_decode($nombre."      ".$documento),0,0,'L','0');//
 	  /*
 	   * Se manda el pdf al navegador
 	   *
@@ -1135,7 +1155,7 @@ class cFichaE extends CI_Controller
 		return $info;
 	}
 
-	public function exportarXLSX1()
+	public function reporteFSDG()
 	{
 					$this->load->model('Empleado/mEmpleado');
 
@@ -1384,9 +1404,9 @@ class cFichaE extends CI_Controller
 				  // Informacion de los estados empresariales
 				  // Esta disponible para colocar 5 estados
 				  $objExcelPHP->getActiveSheet()->setCellValue('DZ1', 'Estados empresariales'); 
-				  $estadoEmpresariales = array('DZ','EA','EB','EC','ED','EE','EF','EG','EH','EI','EJ','EK','EL','EM','EN','EO','EP','EQ','ER','ES','ET','EU','EV','EW','EX','EY','EZ','FA','FB','FC','FD','FE','FF','FG','FH','FI','FJ','FK','FL','FM','FN','FO','FP','FQ','FR','FS','FT','FU','FV','FW','FX','FY','FX','FZ','GA','GB');
+				  $estadoEmpresariales = array('DZ','EA','EB','EC','ED','EE','EF','EG','EH','EI','EJ','EK','EL','EM','EN','EO','EP','EQ','ER','ES','ET','EU','EV','EW','EX','EY','EZ','FA','FB','FC','FD','FE','FF','FG','FH','FI','FJ','FK','FL','FM','FN','FO','FP','FQ','FR','FS','FT','FU','FV','FW','FX','FY','FX','FZ','GA');
 				  $estadosE=-1;
-				  for ($i=0; $i < 5; $i++) {//Pendiente-->
+				  for ($i=0; $i < 5; $i++) {//
 				    $objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].'2', 'Estado Empresarial');
 				    $objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].'2', 'IDC Rotacion');
 				    $objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].'2', 'Motivo');
@@ -1399,6 +1419,14 @@ class cFichaE extends CI_Controller
 				    $objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].'2', 'Antiguedad');
 				    $objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].'2', 'Observación retiro');
 				  }
+
+				  // Dia De nacimiento
+				  $objExcelPHP->getActiveSheet()->setCellValue('GB1', "Nacimiento");
+				  $objExcelPHP->getActiveSheet()->setCellValue('GB2', "Dia");
+				  // Mes de nacimiento
+				  $objExcelPHP->getActiveSheet()->setCellValue('GC2', "Mes");
+				  // Año de nacimiento
+				  $objExcelPHP->getActiveSheet()->setCellValue('GD2', "Año");
 				  // Otra información
 
 // Cuerpo del excel>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<
@@ -1490,6 +1518,14 @@ class cFichaE extends CI_Controller
 				    		$objExcelPHP->getActiveSheet()->setCellValue('AE'.$cont, $segundo->nombre_estado);
 				    		// Fecha de nacimiento
 				    		$objExcelPHP->getActiveSheet()->setCellValue('AF'.$cont, $segundo->fecha_nacimiento);
+
+				    		// Dia De nacimiento
+				    		$objExcelPHP->getActiveSheet()->setCellValue('GB'.$cont, intval(explode('-',$segundo->fecha_nacimiento)[0]));
+				    		// Mes de nacimiento
+				    		$objExcelPHP->getActiveSheet()->setCellValue('GC'.$cont, intval(explode('-',$segundo->fecha_nacimiento)[1]));
+				    		// Año de nacimiento
+				    		$objExcelPHP->getActiveSheet()->setCellValue('GD'.$cont, intval(explode('-',$segundo->fecha_nacimiento)[2]));
+
 				    		// Lugar de nacimiento
 				    		$objExcelPHP->getActiveSheet()->setCellValue('AG'.$cont, $segundo->lugar_nacimiento);
 				    		// Tipo de sangre
@@ -1637,11 +1673,11 @@ class cFichaE extends CI_Controller
 				    		// Vigencia curso de alturas
 				    		$objExcelPHP->getActiveSheet()->setCellValue('DV'.$cont, $otra->vigencia_curso_alturas);
 				    		// Rquiere o tiene el curso de alturas
-				    		$objExcelPHP->getActiveSheet()->setCellValue('DW'.$cont, $otra->brigadas==1?'SI':'NO');
+				    		$objExcelPHP->getActiveSheet()->setCellValue('DW'.$cont, $otra->necesitaCALT==1?'SI':'NO');
 				    		// Ha pertenecido a una brigada de emergencia
-				    		$objExcelPHP->getActiveSheet()->setCellValue('DX'.$cont, $otra->comites==1?'SI':'NO');
+				    		$objExcelPHP->getActiveSheet()->setCellValue('DX'.$cont, $otra->brigadas==1?'SI':'NO');
 				    		// Ha estado en algun comité de las empresas
-				    		$objExcelPHP->getActiveSheet()->setCellValue('DY'.$cont, $otra->necesitaCALT==1?'SI':'NO');
+				    		$objExcelPHP->getActiveSheet()->setCellValue('DY'.$cont, $otra->comites==1?'SI':'NO');
 				    	}
 				    	// Estados empresariales
 				    	// Consulta de estados empresariales
@@ -1695,7 +1731,7 @@ class cFichaE extends CI_Controller
 	}
 
 
-	public function exportarXLSX()
+	public function exportarXLSX() // Este al parecer no se esta utilizando para nada...
 	{	
 			$this->load->model('Empleado/mEmpleado');
 
@@ -1876,11 +1912,12 @@ class cFichaE extends CI_Controller
 		    				    		// $objExcelPHP->getActiveSheet()->setCellValue('T'.($cont+1), $labor->fecha_ingreso);
 		    				    	}//Fin for
 		    				    	$objExcelPHP->getActiveSheet()->getStyle('N'.($cont-1).':T'.($cont+5))->applyFromArray($estilo);
+
 		    				    	//Informacion secundaria basica
 		    				    	$objExcelPHP->getActiveSheet()->mergeCells('U'.($cont-1).':AB'.($cont-1));
 		    				    	$objExcelPHP->getActiveSheet()->setCellValue('U'.($cont-1), 'Información Secundaria basica');
 		    				    	$objExcelPHP->getActiveSheet()->getStyle('U'.($cont-1))->getFont()->setBold(true);
-		    				    	// Consultar información
+
 		    				    	$secundariaB= $this->mFichaSDG->consultarInfoSecundariaBasicaM($empleado->documento);
 		    				    	// ...
 		    				    	foreach ($secundariaB as $segundo) {
@@ -2134,24 +2171,28 @@ class cFichaE extends CI_Controller
 		    				    	    $objExcelPHP->getActiveSheet()->getStyle('BM'.$cont)->getFont()->setBold(true);         
 		    				    	// ...
 		    				    	foreach ($estadosE as $estado) {//Inicio for
+		    				    		$cont= $cont + $k;
 		    				    		// Estado empresarial (Vigente o retirado)
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BF'.($cont+$k), ($estado->estado_e==1?'Retirado':'Vigente'));
+		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BF'.$cont, ($estado->estado_e==1?'Retirado':'Vigente'));
 		    				    		// fecha de ingreso
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BG'.($cont+$k), $estado->fecha_ingreso);
+		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BG'.$cont, $estado->fecha_ingreso);
 		    				    		// Fecha de retiro
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BH'.($cont+$k), ($estado->fecha_retiro=='00-00-0000'?'':$estado->fecha_retiro));
+		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BH'.$cont, ($estado->fecha_retiro=='00-00-0000'?'':$estado->fecha_retiro));
 		    				    		// Motivo de retiro
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BI'.($cont+$k), ($estado->motivo!='NULL'?$estado->motivo:''));
+		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BI'.$cont, ($estado->motivo!='NULL'?$estado->motivo:''));
 		    				    		//	Indicador de rotacion
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BJ'.($cont+$k), ($estado->idIndicador_rotacion==1?'Deseado':'No Deseado'));
+		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BJ'.$cont, ($estado->idIndicador_rotacion==1?'Deseado':'No Deseado'));
 		    				    		//	Empresa
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BK'.($cont+$k), ($estado->nombre));
+		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BK'.$cont, ($estado->nombre));
 		    				    		//	Antiguedad
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BL'.($cont+$k), ($estado->antiguedad));
+		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BL'.$cont, ($estado->antiguedad));
 		    				    		//	Observacion de retiro
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BM'.($cont+$k), ($estado->observacion_retiro));
+		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BM'.$cont, ($estado->observacion_retiro));
+		    				    		// ...
 		    				    		$k++;
-		    				    	}//Fin for
+		    				    	}//
+
+		    				    	// Border
 		    				    	$objExcelPHP->getActiveSheet()->getStyle('BF'.($cont-1).':BM'.($cont+4+($k>5?$k-5:0)))->applyFromArray($estilo);
 		    				    	// $objExcelPHP->getActiveSheet()->getStyle('N'.($cont-1).':T'.($cont+5))->applyFromArray($estilo);
 		    	}

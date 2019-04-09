@@ -82,6 +82,14 @@ class mFichaSDG extends CI_Model
 		}
 	}
 
+	public function eliminarEstadoEmpresarialM($idEstadoEmpresarial)
+	{
+		$query = $this->db->query("CALL PA_EliminarEstadoEmpresarial({$idEstadoEmpresarial});");
+
+		$this->db->close();
+
+	}
+
 	public function consultarEstadosEmpresarialesM($doc)
 	{
 		$query= $this->db->query("CALL SE_PA_ConsultarEstadoEmpresariales('{$doc}')");
