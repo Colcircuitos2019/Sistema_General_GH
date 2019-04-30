@@ -180,7 +180,7 @@ class mPedidos extends CI_model
 	{
 		// mysqli_next_result($this->db->conn_id);
 
-		$query = $this->db->query("CALL SA_PA_ReporteConsumoProveedorDia('{$info['fechaL']}');");
+		$query = $this->db->query("CALL SA_PA_ReporteConsumoProveedorDia('{$info['fechaI']}', '{$info['fechaF']}');");
 
 		$r=$query->result();
 
@@ -244,12 +244,41 @@ class mPedidos extends CI_model
 
 		return json_decode($res);		
 	}	
-	// Se encarga de consultar la informacion total por cada proveedor
-	public function totalInfoPedidoFechaM($info)
-	{
-		mysqli_next_result($this->db->conn_id);//Son necesarios para esta funcion
 
-		$query = $this->db->query("CALL SA_PA_ReporteConsumoProveedorDia('{$info}');");
+	public function liquidarProveedorPedidosRangoFechasM($idProveedor,$fechas)
+	{	
+
+		$query = $this->db->query("CALL SA_PA_LiquidacionPedidoProveedorRangoFecha({$idProveedor}, '{$fechas}');");// Pendiente migrar procedure al servidor
+		// SA_PA_ConsultarTotalLiquidacionPorFechaProveedor// No se esta utilizando...
+		$r=$query->result();
+
+		$res=json_encode($r);
+
+		$this->db->close();
+
+		return json_decode($res);		
+	}	
+
+	public function liquidarValorTotalProveedorRangofechasM($idProveedor,$fechas1, $fecha2)
+	{	
+
+		$query = $this->db->query("CALL SA_PA_RangoFechasLiquidacionProveedor({$idProveedor}, '{$fechas1}', '{$fecha2}');");// Pendiente migrar procedure al servidor
+
+		$r=$query->result();
+
+		$res=json_encode($r);
+
+		$this->db->close();
+
+		return json_decode($res);		
+	}	
+
+	// Se encarga de consultar la informacion total por cada proveedor
+	public function totalInfoPedidoFechaM($fecha)
+	{
+		mysqli_next_result($this->db->conn_id);
+
+		$query = $this->db->query("CALL SA_PA_ReporteConsumoProveedorDia('{$fecha}', '');");
 		
 		$r=$query->result();
 
@@ -257,6 +286,22 @@ class mPedidos extends CI_model
 
 		return json_decode($res);
 	}
+
+	// Se encarga de consultar la informacion total por cada proveedor
+	public function consultarIDProveedores()
+	{
+
+		$query = $this->db->query("SELECT p.idProveedor, p.nombre FROM proveedor p");
+		
+		$r=$query->result();
+
+		$res=json_encode($r);
+
+		$this->db->close();
+
+		return json_decode($res);
+	}
+
 	// Se encarga de consultar todos los correos electronicos de los proveedores
 	public function consultarCorreosProveedoresM()
 	{
@@ -272,6 +317,7 @@ class mPedidos extends CI_model
 
       return json_decode($res);
 	}
+
 	// Consulta el detalle de pedido de cada empleado por proveedor.
 	public function consultarDetallePorProveedorM($idPro,$idP)
     {
@@ -285,6 +331,7 @@ class mPedidos extends CI_model
 
       return json_decode($res);
     }
+
 //Consulta los numero de los pedidos que tiene minimamente un producto del proveedor.
     public function consultarNumeroPedidosPorProveedorM($idP)
     {
@@ -298,6 +345,7 @@ class mPedidos extends CI_model
 
       return json_decode($res);
     }
+
 //Se encarga de registrar el registro de que si se envio satisfactoriamente el correo.
     public function registrarEnvioCorreoProveedor($idP)
     {	
@@ -311,6 +359,7 @@ class mPedidos extends CI_model
 
 		return $r->respuesta;
     }
+
 //Se encarga de validar si el correo fue enviado si o no el dia de hoy al proveedro con los pedidos correspondientes al dia cruzado.
     public function validarEnviosDiariosM($idP)
     {
@@ -324,6 +373,7 @@ class mPedidos extends CI_model
 
 		return $r->respuesta;
     }
+
 //Se encarga de consultar los pedidos del dia cruzado por proveedor y empleado.    
     public function ConsultarPedidosPorEmpeladoProveedor($idP)
     {
@@ -337,6 +387,22 @@ class mPedidos extends CI_model
 
 		return json_decode($res);
     }
+
+    public function ConsolidadoLiquidacionEmpleadosM($fechas)
+    {
+    	
+    	$query = $this->db->query("CALL SA_PA_Formato_Liquidacion_temporal('{$fechas['fechaI']}', '{$fechas['fechaF']}');");
+
+    	$r=$query->result();
+
+    	$res=json_encode($r);
+
+    	$this->db->close();
+
+    	return json_decode($res);
+
+    }
+
     // Se encarga de consultar la cantidad de pedidos pedidos por cada empleado.
     public function cantidadLineasPedidoEmpleadoM($doc)//Esta funcion ya no se esta utilizando---
     {

@@ -170,6 +170,7 @@ class cFichaE extends CI_Controller
 		$info['RquierecursoAlturas']=$this->input->post('RquierecursoAlturas');
 		$info['PBrigadaEmergencia']=$this->input->post('PBrigadaEmergencia');
 		$info['AlgunComite']=$this->input->post('AlgunComite');
+		$info['locker']=$this->input->post('locker');
 		$info['accion']=0;//esta variable me ayuda a saber por que medio van a ser registrado la FSDG por medio de la vista o por medio de un Excel
 
 		$res= $this->mFichaSDG->registrarModificarOtraInformacion($info);
@@ -839,7 +840,6 @@ class cFichaE extends CI_Controller
 				$highestRow = $workSheet->getHighestRow();
 				$highestColumn= $workSheet->getHighestColumn();
 				// ...
-				// $cont++; 
 				// Validacion del formato del excel
 				$ingreso=1;
 				// $dato= $workSheet->getCellByColumnAndRow(1,2)->getValue();
@@ -904,7 +904,6 @@ class cFichaE extends CI_Controller
 									    $estudios['que_estudia']=($workSheet->getCellByColumnAndRow(21,$row)->getValue());
 									    $estudios['Titulo_del_Estudio']=($workSheet->getCellByColumnAndRow(22,$row)->getValue());
 									    $estudios['accion']=1;
-									    // var_dump($estudios);
 									    // Registrar o actualizar estudios
 									    $idFichaSDG['idEstudio']=$this->mFichaSDG->registrarModificarEstudiosM($estudios);
 									    // Informacion laboral
@@ -912,11 +911,6 @@ class cFichaE extends CI_Controller
 									    $laboral['contrato']=$workSheet->getCellByColumnAndRow(24,$row)->getValue();
 									    $laboral['cargo']=$workSheet->getCellByColumnAndRow(25,$row)->getValue();
 									    $laboral['personal_aCargo']=$workSheet->getCellByColumnAndRow(26,$row)->getValue();
-									    //$laboral['fecha_vencimiento_contrato']=($workSheet->getCellByColumnAndRow(27,$row)->getValue()!=''?$this->formatoFecha($workSheet->getCellByColumnAndRow(27,$row)->getValue()):"0000-00-00");
-									    //$laboral['fecha_vencimiento_contrato']=($workSheet->getCellByColumnAndRow(27,$row)->getValue()!=''?date("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($workSheet->getCellByColumnAndRow(27,$row)->getValue())):"0000-00-00");
-									    // $dato=$workSheet->getCellByColumnAndRow(27,$row)->getValue()=="";
-									    // $dato="Hola mundo";
-									    // echo $dato;
 									    //... 
 									    $laboral['fecha_vencimiento_contrato']=($workSheet->getCellByColumnAndRow(27,$row)->getFormattedValue()==''?'':$this->formatoFecha($workSheet->getCellByColumnAndRow(27,$row)->getFormattedValue()));
 									    $laboral['area_trabajo']=$workSheet->getCellByColumnAndRow(28,$row)->getValue();
@@ -927,10 +921,7 @@ class cFichaE extends CI_Controller
 									    $idFichaSDG['idLaboral']=$this->mFichaSDG->registrarModificarInfoLaboralM($laboral);
 									    // Informacion secundaria basica
 									    $secundaria['estadoCivil']=$workSheet->getCellByColumnAndRow(30,$row)->getValue();
-									    //$secundaria['fecha_Nacimiento']=($workSheet->getCellByColumnAndRow(31,$row)->getValue()!=''?$this->formatoFecha($workSheet->getCellByColumnAndRow(31,$row)->getValue()):"0000-00-00");
-									    // var_dump($this->formatoFecha($workSheet->getCellByColumnAndRow(31,$row)->getValue()));
 									    $secundaria['fecha_Nacimiento']=($workSheet->getCellByColumnAndRow(31,$row)->getFormattedValue()==''?'':$this->formatoFecha($workSheet->getCellByColumnAndRow(31,$row)->getFormattedValue()));
-									    //var_dump(date("Y-m-d", PHPExcel_Shared_Date::ExcelToPHP($secundaria['fecha_Nacimiento'])));
 									    $secundaria['lugar_Nacimiento']=$workSheet->getCellByColumnAndRow(32,$row)->getValue();
 									    $secundaria['tipoSangre']=$workSheet->getCellByColumnAndRow(33,$row)->getValue();
 									    $secundaria['telefono_Fijo']=$workSheet->getCellByColumnAndRow(34,$row)->getValue();
@@ -983,7 +974,6 @@ class cFichaE extends CI_Controller
 									    	}
 									    }
 									    // Personas con las que vive
-									    // $documento,$nombre,$idParentezco,$celular,$fechaN,$viveE,$cantidad,$dato,$idPersonal
 									    // Madre
 									    $this->mFichaSDG->registrarModificarPersonasViveM($this->generarContenidoModeloFamiliares($empleado['documento'],'',1,'','','0',1,$workSheet->getCellByColumnAndRow(67,$row)->getValue(),$accion['idPersonal']));
 									    // Padre
@@ -1057,6 +1047,7 @@ class cFichaE extends CI_Controller
 									    $otraInfo['RequiereCursoA']=$workSheet->getCellByColumnAndRow(126,$row)->getValue()=='SI'?1:0;
 									    $otraInfo['perteneceCurso']=$workSheet->getCellByColumnAndRow(127,$row)->getValue()=='SI'?1:0;
 									    $otraInfo['comites']=$workSheet->getCellByColumnAndRow(128,$row)->getValue()=='SI'?1:0;
+									    $otraInfo['locker']=$workSheet->getCellByColumnAndRow(189,$row)->getValue();
 									    $otraInfo['documento']=$empleado['documento'];
 									    $otraInfo['accion']=1;//esta variable me ayuda a saber por que medio van a ser registrado la FSDG por medio de la vista o por medio de un Excel
 									    // Registrar o modificar otra informacion del empleado
@@ -1186,7 +1177,7 @@ class cFichaE extends CI_Controller
 				    // 
 				    $cont=2;
 				    // ...
-				    $objExcelPHP->getActiveSheet()->getStyle('B1:GB2')->getFont()->setBold(true);
+				    $objExcelPHP->getActiveSheet()->getStyle('B1:GH2')->getFont()->setBold(true);// Letter Bold
 				    // Empleado
 				    $objExcelPHP->getActiveSheet()->setCellValue('B1', 'Empleados');
 				    // $objExcelPHP->getActiveSheet()->mergeCells('B1:G1');
@@ -1202,7 +1193,6 @@ class cFichaE extends CI_Controller
 				    $objExcelPHP->getActiveSheet()->setCellValue('F2', '*Empresa:');
 				    // Estado
 				    $objExcelPHP->getActiveSheet()->setCellValue('G2', 'Estado:');
-				    // $objExcelPHP->getActiveSheet()->getStyle('B1:G2')->applyFromArray($estilo);
 
 				    // Informacion salarial
 				    $objExcelPHP->getActiveSheet()->setCellValue('H1', 'Información Salarial');
@@ -1215,11 +1205,9 @@ class cFichaE extends CI_Controller
 					$objExcelPHP->getActiveSheet()->setCellValue('J2', '*Salario Basico:');
 				    // Total
 					$objExcelPHP->getActiveSheet()->setCellValue('K2', 'Total:');
-					// $objExcelPHP->getActiveSheet()->getStyle('H1:K2')->applyFromArray($estilo);
 				    // Auxilios
 				    $this->load->model('Empleado/FichaSDG/mConfiguracionFicha');
 				    $objExcelPHP->getActiveSheet()->setCellValue('L1', 'Auxilios');
-				    // $objExcelPHP->getActiveSheet()->mergeCells('L1:Q1');
 				    // Consultar auxilios
 				    $tiposAuxilio= $this->mConfiguracionFicha->consultarInformacionM(1,3);
 				    // 
@@ -1233,10 +1221,8 @@ class cFichaE extends CI_Controller
 				    	$v1[$tipo->auxilio]=$v[$indice];
 				    	$indice++;
 				    }
-				    // $objExcelPHP->getActiveSheet()->getStyle('L1:Q2')->applyFromArray($estilo);
 				    // Estudios
 				    $objExcelPHP->getActiveSheet()->setCellValue('R1', 'Información Estudios');
-				    // $objExcelPHP->getActiveSheet()->mergeCells('R1:W1');
 				    // Grado de escolaridad...
 				    $objExcelPHP->getActiveSheet()->setCellValue('R2', '*Grado de escolaridad:');
 				    // Titulo profecional
@@ -1249,11 +1235,9 @@ class cFichaE extends CI_Controller
 				    $objExcelPHP->getActiveSheet()->setCellValue('V2', '¿Qué estudia?');
 				    // Nombre de la carrera
 				    $objExcelPHP->getActiveSheet()->setCellValue('W2', 'nombre de la carrera');
-				    // $objExcelPHP->getActiveSheet()->getStyle('R1:W2')->applyFromArray($estilo);
 				    // ...
 				    // Información Laboral
 				    $objExcelPHP->getActiveSheet()->setCellValue('X1', 'Información Laboral');
-				    // $objExcelPHP->getActiveSheet()->mergeCells('HX:AD1');
 				   // Horario de trabajo
 				   $objExcelPHP->getActiveSheet()->setCellValue('X2', '*Horario de trabajo:');
 				   // Tipo de contrato 
@@ -1268,10 +1252,8 @@ class cFichaE extends CI_Controller
 				   $objExcelPHP->getActiveSheet()->setCellValue('AC2', '*Área de trabajo:');
 				   // Clasificación contable
 				   $objExcelPHP->getActiveSheet()->setCellValue('AD2', '*Clasificacion contable:');
-				   // $objExcelPHP->getActiveSheet()->getStyle('X1:AD2')->applyFromArray($estilo);
 				   // Información secundaria basica
 				   $objExcelPHP->getActiveSheet()->setCellValue('AE1', 'Información Secundaria Basica');
-				    // $objExcelPHP->getActiveSheet()->mergeCells('AE1:AN1');
 				   // Estado civil
 				   $objExcelPHP->getActiveSheet()->setCellValue('AE2', '*Estado civil');
 				   // Fecha de nacimiento
@@ -1292,20 +1274,16 @@ class cFichaE extends CI_Controller
 				   $objExcelPHP->getActiveSheet()->setCellValue('AM2', 'Talla:');
 				   // Peso del empleado
 				   $objExcelPHP->getActiveSheet()->setCellValue('AN2', 'Peso:');
-				   // $objExcelPHP->getActiveSheet()->getStyle('AE1:AN2')->applyFromArray($estilo);
 				   // Salud
 				   $objExcelPHP->getActiveSheet()->setCellValue('AO1', 'Información de Salud');
-				   // $objExcelPHP->getActiveSheet()->mergeCells('AO1:AQ1');
 				   // Consumo de cigarrillos por día
 				   $objExcelPHP->getActiveSheet()->setCellValue('AO2', '# cigarrillos día:');
 				   // Frecuencia con la que consume alcohol
 				   $objExcelPHP->getActiveSheet()->setCellValue('AP2', 'Frecuencia toma de alcohol');
 				   // ANTE UNA EMERGENCIA, EN CASO DE REQUERIR SER ATENDIDO POR LA BRIGADA O UNA EPS TIENE ALGUNA CONDICION ESPECIAL?
 				   $objExcelPHP->getActiveSheet()->setCellValue('AQ2', 'ANTE UNA EMERGENCIA, EN CASO DE REQUERIR SER ATENDIDO POR LA BRIGADA O UNA EPS TIENE ALGUNA CONDICION ESPECIAL?');
-				   // $objExcelPHP->getActiveSheet()->getStyle('AO1:AQ2')->applyFromArray($estilo);
 				   // Informacion personal
 				   $objExcelPHP->getActiveSheet()->setCellValue('AR1', 'Información Personal');
-				   // $objExcelPHP->getActiveSheet()->mergeCells('AR1:BA1');
 				   // Direecion de la casa donde vive
 				   $objExcelPHP->getActiveSheet()->setCellValue('AR2', 'Dirección');
 				   // Barrio
@@ -1326,10 +1304,8 @@ class cFichaE extends CI_Controller
 				   $objExcelPHP->getActiveSheet()->setCellValue('AZ2', '*Tipo de vivienda');
 				   // Otras actividades que realiza en el tiempo libre
 				   $objExcelPHP->getActiveSheet()->setCellValue('BA2', 'Otras actividades que realiza');
-				   // $objExcelPHP->getActiveSheet()->getStyle('AR1:BA2')->applyFromArray($estilo);
 				   // ...
 				   $objExcelPHP->getActiveSheet()->setCellValue('BB1', 'Actividades en tiempos libres');
-				   // $objExcelPHP->getActiveSheet()->mergeCells('BB1:BO1');
 				   // Consulta las actividade de tiempo libre
 				   $tipoActividades= $this->mConfiguracionFicha->consultarInformacionM(1,12);
 				   // 
@@ -1343,10 +1319,8 @@ class cFichaE extends CI_Controller
 				     	$k1[$tipo->nombre]=$k[$indice];
 				   	    $indice++;
 				   }
-				   // $objExcelPHP->getActiveSheet()->getStyle('BB1:BO2')->applyFromArray($estilo);
 				   //...
 				   $objExcelPHP->getActiveSheet()->setCellValue('BP1', 'Personas con las que vive');
-				   // $objExcelPHP->getActiveSheet()->mergeCells('BP1:BV1');
 				   //ConsultarPersonas con las que vive (Madre, Padre, Acompañante, Abuelos, Tios, Hermanos,Otros) Los hijos 
 				   $parent= array("Madre"=>"BP","Padre"=>"BQ","Comprometido/a"=>"BR","Abuelos"=>"BS","Tios"=>"BT","Hermanos"=>"BU","Otros"=>"BV");
 				   // Madre
@@ -1364,7 +1338,6 @@ class cFichaE extends CI_Controller
 				   // Otros
 				   $objExcelPHP->getActiveSheet()->setCellValue('BV2', 'Otros');
 				   // 
-				   // $objExcelPHP->getActiveSheet()->getStyle('BP1:BV2')->applyFromArray($estilo);
 				   // Esta disponible para colocar 6 hijos
 				  $objExcelPHP->getActiveSheet()->setCellValue('BW1', 'Hijos');
 				  $hijos = array('BW','BX','BY','BZ','CA','CB','CC','CD','CE','CF','CG','CH','CI','CJ','CK','CL','CM','CN','CO','CP','CQ','CR','CS','CT');
@@ -1427,15 +1400,23 @@ class cFichaE extends CI_Controller
 				  $objExcelPHP->getActiveSheet()->setCellValue('GC2', "Mes");
 				  // Año de nacimiento
 				  $objExcelPHP->getActiveSheet()->setCellValue('GD2', "Año");
-				  // Otra información
 
-// Cuerpo del excel>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>><<<<<
+				  // Fecha del primer estado laboral
+				  $objExcelPHP->getActiveSheet()->setCellValue('GE1', "Ingreso Laboral");
+				  $objExcelPHP->getActiveSheet()->setCellValue('GE2', "Dia");
+				  // Mes del estado laboral
+				  $objExcelPHP->getActiveSheet()->setCellValue('GF2', "Mes");
+				  // Año del estado laboral
+				  $objExcelPHP->getActiveSheet()->setCellValue('GG2', "Año");
+
+				  //Parte de la otra información
+				  $objExcelPHP->getActiveSheet()->setCellValue('GH2', "Locker");
+// Cuerpo del excel...
 				    $cont++;
 				    foreach ($empleados as $empleado) {
 				    	// Numero de Documentos...
 				    	$objExcelPHP->getActiveSheet()->setCellValue('B'.$cont, $empleado->documento);
 				    	// Nombre del empleado
-				    	// var_dump(($empleado->nombre1!=''?ucwords(strtolower($empleado->nombre1)):'').' '.($empleado->nombre2!=''?ucwords(strtolower($empleado->nombre2)):'').' '.($empleado->apellido1!=''?ucwords(strtolower($empleado->apellido1)):'').' '.($empleado->apellido2!=''?ucwords(strtolower($empleado->apellido2)):''));
 				    	// ...
 				    	$objExcelPHP->getActiveSheet()->setCellValue('C'.$cont, ($empleado->nombre1!=''?ucwords(($empleado->nombre1)):'').' '.($empleado->nombre2!=''?ucwords(($empleado->nombre2)):'').' '.($empleado->apellido1!=''?ucwords(($empleado->apellido1)):'').' '.($empleado->apellido2!=''?ucwords(($empleado->apellido2)):''));
 				    	// Sexo
@@ -1493,7 +1474,7 @@ class cFichaE extends CI_Controller
 				    	// Consultar informacionlaboral
 				    	$laboral=$this->mFichaSDG->consultarInfoLaboralM($empleado->documento);
 				    	// ...
-				    	foreach ($laboral as $labor) {//Inicio for
+				    	foreach ($laboral as $labor) {
 				    		// Horario de trabajo
 				    		$objExcelPHP->getActiveSheet()->setCellValue('X'.$cont, $labor->horario);
 				    		// Tipo de contrato
@@ -1678,6 +1659,8 @@ class cFichaE extends CI_Controller
 				    		$objExcelPHP->getActiveSheet()->setCellValue('DX'.$cont, $otra->brigadas==1?'SI':'NO');
 				    		// Ha estado en algun comité de las empresas
 				    		$objExcelPHP->getActiveSheet()->setCellValue('DY'.$cont, $otra->comites==1?'SI':'NO');
+				    		//Locker
+				    		$objExcelPHP->getActiveSheet()->setCellValue('GH'.$cont, $otra->locker);
 				    	}
 				    	// Estados empresariales
 				    	// Consulta de estados empresariales
@@ -1685,6 +1668,7 @@ class cFichaE extends CI_Controller
 				    	// 
 				    	$estadoEmpresariales = array('DZ','EA','EB','EC','ED','EE','EF','EG','EH','EI','EJ','EK','EL','EM','EN','EO','EP','EQ','ER','ES','ET','EU','EV','EW','EX','EY','EZ','FA','FB','FC','FD','FE','FF','FG','FH','FI','FJ','FK','FL','FM','FN','FO','FP','FQ','FR','FS','FT','FU','FV','FW','FX','FY','FX','FZ','GA','GB');
 				    $estadosE=-1;
+				    $primera_interaccion=0;
 				    foreach ($empresariales as $esta) {
 				  	    $objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].$cont, $esta->estado_e==1?'Retirado':'Vigente');
 				  	  	$objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].$cont, $esta->idIndicador_rotacion==1?'Deseada':($esta->idIndicador_rotacion==2?'No deseado':($esta->idIndicador_rotacion==3?'N/A':'')));
@@ -1710,12 +1694,28 @@ class cFichaE extends CI_Controller
 				  	  	for ($i=0; $i <=1; $i++) { 
 				  	  		++$estadosE;
 				  	  	}
+
 				  	  	$objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].$cont, $esta->nombre);
 				  	  	$objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].$cont, $esta->fecha_ingreso);
 				  	  	$objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].$cont, $esta->fecha_retiro);
 				  	  	$objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].$cont, $esta->antiguedad);
 				  	  	$objExcelPHP->getActiveSheet()->setCellValue($estadoEmpresariales[(++$estadosE)].$cont, $esta->observacion_retiro);
+				  	  	// ...
+				  	  	if($primera_interaccion==0){
+				  	  		// Fecha desglosada de ingreso
+				  	  		$objExcelPHP->getActiveSheet()->setCellValue("GE".$cont, $esta->dia);//Dia
+				  	  		$objExcelPHP->getActiveSheet()->setCellValue("GF".$cont, $esta->mes);//Mes
+				  	  		$objExcelPHP->getActiveSheet()->setCellValue("GG".$cont, $esta->año);//Año
+				  	  		$primera_interaccion++;
+				  	  	}
+
 				    }
+				    	if($primera_interaccion == 0){
+				    		$objExcelPHP->getActiveSheet()->setCellValue("GE".$cont, 0);//Dia
+				    		$objExcelPHP->getActiveSheet()->setCellValue("GF".$cont, 0);//Mes
+				    		$objExcelPHP->getActiveSheet()->setCellValue("GG".$cont, 0);//Año
+				    	}
+
 				    	$cont++;
 				    }
 
@@ -1728,489 +1728,6 @@ class cFichaE extends CI_Controller
 
 				    $write= PHPExcel_IOFactory::createWriter($objExcelPHP,'Excel2007');
 				    $write->save('php://output');
-	}
-
-
-	public function exportarXLSX() // Este al parecer no se esta utilizando para nada...
-	{	
-			$this->load->model('Empleado/mEmpleado');
-
-            require(APPPATH.'third_party/PHPExcel-1.8/Classes/PHPExcel.php');
-		    require(APPPATH.'third_party/PHPExcel-1.8/Classes/PHPExcel/Writer/Excel2007.php');
-
-		    $objExcelPHP= new PHPExcel();
-
-		    $objExcelPHP->getProperties()->setCreator("");
-		    $objExcelPHP->getProperties()->setLastModifiedBy("");
-		    $objExcelPHP->getProperties()->setTitle("");
-		    $objExcelPHP->getProperties()->setSubject("");
-		    $objExcelPHP->getProperties()->setDescription("");
-
-		    $objExcelPHP->setActiveSheetIndex(0);
-
-		    $empleados= $this->mEmpleado->consultarEmpleadosM('');
-
-		    $estilo = array( 
-		      'borders' => array(
-		        'outline' => array(
-		          'style' => PHPExcel_Style_Border::BORDER_THIN
-		        )
-		      )
-		    );
-
-		    $cont=2;
-
-		    foreach ($empleados as $empleado) {
-		    	$i=0;
-		    	$j=1;
-		    	$k=1;
-		    	// Numero de Documentos...
-		    	$objExcelPHP->getActiveSheet()->setCellValue('B'.$cont, 'Documento:');
-		    	$objExcelPHP->getActiveSheet()->setCellValue('C'.$cont, $empleado->documento);
-		    	// Nombre del empleado
-		    	$objExcelPHP->getActiveSheet()->setCellValue('B'.($cont+1), 'Nombre completo:');
-		    	$objExcelPHP->getActiveSheet()->setCellValue('C'.($cont+1), $empleado->nombre1.' '.$empleado->nombre2.' '.$empleado->apellido1.' '.$empleado->apellido2);
-		    	// Sexo
-		    	$objExcelPHP->getActiveSheet()->setCellValue('B'.($cont+2), 'Sexo:');
-		    	$objExcelPHP->getActiveSheet()->setCellValue('C'.($cont+2), ($empleado->genero==1?'Masculino':'Femenino'));
-		    	// Correo
-		    	$objExcelPHP->getActiveSheet()->setCellValue('B'.($cont+3), 'Correo:');
-		    	$objExcelPHP->getActiveSheet()->setCellValue('C'.($cont+3), $empleado->correo);
-		    	// Piso de ubicación
-		    	$objExcelPHP->getActiveSheet()->setCellValue('B'.($cont+4), 'Empresa:');
-		    	$objExcelPHP->getActiveSheet()->setCellValue('C'.($cont+4), $empleado->nombre);
-		    	// Estado
-		    	$objExcelPHP->getActiveSheet()->setCellValue('B'.($cont+5), 'Estado:');
-		    	$objExcelPHP->getActiveSheet()->setCellValue('C'.($cont+5), ($empleado->estado==1?'Activo':'Desactivado'));
-		    	$objExcelPHP->getActiveSheet()->getStyle('B'.$cont.':C'.($cont+5))->applyFromArray($estilo);
-		    	// ...
-		    	if($empleado->FichaSDG==1){//Tiene una ficha SDG Previamente registrada
-		    		// Informacion Salarial
-		    		$objExcelPHP->getActiveSheet()->mergeCells('D'.($cont-1).':G'.($cont-1));
-		    		$objExcelPHP->getActiveSheet()->setCellValue('D'.($cont-1), 'Información Salarial');
-		    		$objExcelPHP->getActiveSheet()->getStyle('D'.($cont-1))->getFont()->setBold(true);
-		    		// ...
-		    				    	// Consulta de la informacion salarial del empleado.
-		    				    	$estadoSalarial=$this->mFichaSDG->consultarInfoSalarialM($empleado->documento);
-		    				    	// ...
-		    		                foreach ($estadoSalarial as $salaria){
-		    				    	   // Promedio salarial
-		    				    	   $objExcelPHP->getActiveSheet()->setCellValue('D'.$cont, 'Promedio Salarial');
-		    				    	   $objExcelPHP->getActiveSheet()->setCellValue('D'.($cont+1), $salaria->nombre);
-		    				    	   $objExcelPHP->getActiveSheet()->getStyle('D'.$cont)->getFont()->setBold(true);
-		    				    	   // Clasificacion Mega
-		    				    	   $objExcelPHP->getActiveSheet()->setCellValue('E'.$cont, 'CL.Mega');
-		    				    	   $objExcelPHP->getActiveSheet()->setCellValue('E'.($cont+1), $salaria->clasificacion);
-		    				    	   $objExcelPHP->getActiveSheet()->getStyle('E'.$cont)->getFont()->setBold(true);
-		    				    	   // Salario Basico
-		    				    	   $objExcelPHP->getActiveSheet()->setCellValue('F'.$cont, 'Salario basico');
-		    				    	   $objExcelPHP->getActiveSheet()->setCellValue('F'.($cont+1), $salaria->salario_baseico_formato);
-		    				    	   $objExcelPHP->getActiveSheet()->getStyle('F'.$cont)->getFont()->setBold(true);
-		    				    	   // Salario Total
-		    				    	   $objExcelPHP->getActiveSheet()->setCellValue('G'.$cont, 'Salario Total');
-		    				    	   $objExcelPHP->getActiveSheet()->setCellValue('G'.($cont+1), $salaria->totalFormato);
-		    				    	   $objExcelPHP->getActiveSheet()->getStyle('G'.$cont)->getFont()->setBold(true);	
-		    				    	}
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('D'.($cont-1).':G'.($cont+5))->applyFromArray($estilo);
-		    				    	// ...
-		    				    	// Informacion de los auxilios
-		    				    	$objExcelPHP->getActiveSheet()->mergeCells('H'.($cont-1).':J'.($cont-1));
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('H'.($cont-1), 'Información de auxilios');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('H'.($cont-1))->getFont()->setBold(true);
-		    				    	// Consulta de los auxilios del empleado.
-		    				    	$Auxilios= $this->mFichaSDG->consultarAuxiliosM($empleado->documento);
-		    				    	//...
-		    				    	foreach ($Auxilios as $auxilio) {
-		    				    		// Nombre del auxilio
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('H'.$cont, 'Nombre');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('H'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('H'.($cont+1), $auxilio->auxilio);
-		    				    		// Monto del auxilio
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('I'.$cont, 'Monto');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('I'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('I'.($cont+1), $auxilio->mondoFormato);
-		    				    		// Estado del auxilio
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('J'.$cont, 'Estado');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('J'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('J'.($cont+1), ($auxilio->estado==1?'Vigente':'No vigente'));
-		    				    	}
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('H'.($cont-1).':J'.($cont+5))->applyFromArray($estilo);
-		    				    	// ...
-		    				    	// Informacion de los estudios
-		    				    	$objExcelPHP->getActiveSheet()->mergeCells('K'.($cont-1).':M'.($cont-1));
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('K'.($cont-1), 'Información Estudios');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('K'.($cont-1))->getFont()->setBold(true);
-		    				    	// Consultar estudios empleado
-		    				    	$estudios= $this->mFichaSDG->consultarInfoEstudiosM($empleado->documento);
-		    				    	// ...
-		    				    	foreach ($estudios as $estudio) {
-		    				    		// Estudios alcanzados
-		    				    		// Grado maximo de escolaridad alcanzada
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('K'.$cont, 'Estudios');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('K'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('K'.($cont+1), $estudio->grado);
-		    				    		// Titulo profesional
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('L'.$cont, 'Titulo');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('L'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('L'.($cont+1), $estudio->titulo_profecional);
-		    				    		// Titulo de especializacion
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('M'.$cont, 'Especializacion');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('M'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('M'.($cont+1), $estudio->titulo_especializacion);
-		    				    		// Estudios actuales
-		    				    		// ...
-		    				    		// Estudia actualmente
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('K'.($cont+3), '¿Estudia actualmente?');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('K'.($cont+3))->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('K'.($cont+4), ($estudio->titulo_estudios_actuales==0?'NO':'SI'));
-		    				    		// Que estudia actualmente
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('L'.($cont+3), '¿Que estudia?');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('L'.($cont+3))->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('L'.($cont+4), $estudio->estudios_actuales);
-		    				    		// Nombre de la carrera que estudia actualmente
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('M'.($cont+3), 'Nombre de la carrera');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('M'.($cont+3))->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('M'.($cont+4), $estudio->nombre_carrera);
-		    				    	}
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('K'.($cont-1).':M'.($cont+5))->applyFromArray($estilo);
-		    				    	// ...
-		    				    	// Información Laboral
-		    				    	$objExcelPHP->getActiveSheet()->mergeCells('N'.($cont-1).':T'.($cont-1));
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('N'.($cont-1), 'Información Laboral');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('N'.($cont-1))->getFont()->setBold(true);
-		    				    	// Consultar informacion laboral
-		    				    	$laboral=$this->mFichaSDG->consultarInfoLaboralM($empleado->documento);
-		    				    	// ...
-		    				    	foreach ($laboral as $labor) {//Inicio for
-		    				    		// Horario de trabajo
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('N'.$cont, 'Horario');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('N'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('N'.($cont+1), $labor->horario);
-		    				    		// área de trabajo
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('O'.$cont, 'Área trabajo');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('O'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('O'.($cont+1), $labor->area);
-		    				    		// Cargo
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('P'.$cont, 'Cargo');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('P'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('P'.($cont+1), $labor->cargo);
-		    				    		//	Tiene personal a cargo
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('Q'.$cont, 'Personal a cargo');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('Q'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('Q'.($cont+1), ($labor->recurso_humano==1?'SI':'NO'));
-		    				    		// Tipo de contrato
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('R'.$cont, 'Tipo de contrato');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('R'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('R'.($cont+1), $labor->contrato);
-		    				    		// Fecha vencimiento del contrato
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('S'.$cont, 'Fecha fin contrato');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('S'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('S'.($cont+1), $labor->fecha_vencimiento_contrato);
-		    				    		// Fecha de ingreso
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('T'.$cont, 'Fecha de ingreso');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('T'.$cont)->getFont()->setBold(true);
-		    				    		// $objExcelPHP->getActiveSheet()->setCellValue('T'.($cont+1), $labor->fecha_ingreso);
-		    				    	}//Fin for
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('N'.($cont-1).':T'.($cont+5))->applyFromArray($estilo);
-
-		    				    	//Informacion secundaria basica
-		    				    	$objExcelPHP->getActiveSheet()->mergeCells('U'.($cont-1).':AB'.($cont-1));
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('U'.($cont-1), 'Información Secundaria basica');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('U'.($cont-1))->getFont()->setBold(true);
-
-		    				    	$secundariaB= $this->mFichaSDG->consultarInfoSecundariaBasicaM($empleado->documento);
-		    				    	// ...
-		    				    	foreach ($secundariaB as $segundo) {
-		    				    		// Estado civil
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('U'.$cont, 'Estado Civil');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('U'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('U'.($cont+1), $segundo->nombre_estado);
-		    				    		// Fecha de nacimiento
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('V'.$cont, 'Fecha de nacimiento');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('V'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('V'.($cont+1), $segundo->fecha_nacimiento);
-		    				    		// Lugar de nacimiento
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('W'.$cont, 'Lugar de nacimiento');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('W'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('W'.($cont+1), $segundo->lugar_nacimiento);
-		    				    		// Telefono fijo
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('X'.$cont, 'Telefono fijo');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('X'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('X'.($cont+1), $segundo->tel_fijo);
-		    				    		// Celular
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('Y'.$cont, 'Celular');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('Y'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('Y'.($cont+1), $segundo->celular);
-		    				    		// Tipo de sangre
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('Z'.$cont, 'Tipo de sangre');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('Z'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('Z'.($cont+1), $segundo->sangre);
-		    				    		// EPS
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AA'.$cont, 'EPS');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AA'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AA'.($cont+1), $segundo->eps);
-		    				    		// AFP
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AB'.$cont, 'AFV');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AB'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AB'.($cont+1), $segundo->afp);
-		    				    	}
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('U'.($cont-1).':AB'.($cont+5))->applyFromArray($estilo);
-		    				    	// ...
-		    				    	// Información de salud
-		    				    	$objExcelPHP->getActiveSheet()->mergeCells('AC'.($cont-1).':AF'.($cont-1));
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('AC'.($cont-1), 'Información salud');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AC'.($cont-1))->getFont()->setBold(true);
-		    				    	// Consultar informacion de salud
-		    				    	$saludes= $this->mFichaSDG->consultarInfoSaludM($empleado->documento);
-		    				    	// ...
-		    				    	foreach ($saludes as $salud) {
-		    				    		// Fuma?
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AC'.$cont, 'Fuma?');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AC'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AC'.($cont+1), ($salud->fuma>0?'SI':'NO'));
-		    				    		// Numero de cigarrillos fumados por dia
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AD'.$cont, '# cigarrillos consumo día?');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AD'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AD'.($cont+1), ($salud->fuma>0?$salud->fuma:'0'));
-		    				    		// Consumo de Bevidas alcoholicas
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AE'.$cont, 'Consume alcohol?');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AE'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AE'.($cont+1), $salud->alcohol);
-		    				    		// Descripcion en caso de emergencia
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AF'.$cont, 'En caso de emergencia');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AF'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AF'.($cont+1), $salud->descripccion_emergencia);
-		    				    	}
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AC'.($cont-1).':AF'.($cont+5))->applyFromArray($estilo);
-		    				    	// Información Personal
-		    				    	$objExcelPHP->getActiveSheet()->mergeCells('AG'.($cont-1).':AQ'.($cont-1));
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('AG'.($cont-1), 'Información Personal');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AG'.($cont-1))->getFont()->setBold(true);
-		    				    	// Consultar informacion personal
-		    				    	$personal= $this->mFichaSDG->consultarInfoPersonalM($empleado->documento);
-		    				    	// ...
-		    				    	$idPersona=0;
-		    				    	foreach ($personal as $persona) {
-		    				    		// IDPErsonal
-		    				    		$idPersona=$persona->idPersonal;
-		    				    		// Direccion
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AG'.$cont, 'Direccion');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AG'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AG'.($cont+1), $persona->direc);
-		    				    		// Barrio
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AH'.$cont, 'Barrio');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AH'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AH'.($cont+1), $persona->barrio);
-		    				    		// Comuna
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AI'.$cont, 'Comuna');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AI'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AI'.($cont+1), $persona->comuna);
-		    				    		// Municipio
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AJ'.$cont, 'Municipio');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AJ'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AJ'.($cont+1), $persona->municipio);
-		    				    		// Estrato
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AK'.$cont, 'Estrato');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AK'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AK'.($cont+1), $persona->estrato);
-		    				    		// Persona en caso de emergencia
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AL'.$cont, 'Persona en caso de emergencia');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AL'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AL'.($cont+1), $persona->caso_emergencia);
-		    				    		// Parentezco
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AM'.$cont, 'Parentezco');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AM'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AM'.($cont+1), $persona->parentezco);
-		    				    		// Telefono
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AN'.$cont, 'Telefono');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AN'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AN'.($cont+1), $persona->tel);
-		    				    		// Tipo de vivienda
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AO'.$cont, 'Tipo de vivienda');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AO'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AO'.($cont+1), $persona->vivienda);
-		    				    		// Altura
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AP'.$cont, 'Altura (mts)');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AP'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AP'.($cont+1), $persona->altura.' mts');
-		    				    		// Peso
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AQ'.$cont, 'Peso (Kg)');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AQ'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AQ'.($cont+1), $persona->peso.' Kg');
-		    				    	}
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AG'.($cont-1).':AQ'.($cont+5))->applyFromArray($estilo);
-		    				    	// Información Personal>Actividades
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('AR'.($cont-1), 'Actividades realizadas en tiempo libre');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AR'.($cont-1))->getFont()->setBold(true);
-		    				    	// Consultar Actividades
-		    				    	$actividades= $this->mFichaSDG->consultarActividadesInfoPersonalM($idPersona);
-		    				    	// ...
-		    				    	$op=1;
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('AR'.$cont, 'Acividad');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AR'.$cont)->getFont()->setBold(true);
-		    				    	foreach ($actividades as $actividad) {
-		    				    		// Nombre de la actividad realizada
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AR'.($cont+$op++), $actividad->nombre);
-		    				    		$i++;
-		    				    	}
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AR'.($cont-1).':AR'.($cont+5+($i>5?$i-5:0)))->applyFromArray($estilo);
-		    				    	// 
-		    				    	// Información De las personas con las que vive
-		    				    	$objExcelPHP->getActiveSheet()->mergeCells('AS'.($cont-1).':AX'.($cont-1));
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('AS'.($cont-1), 'Personas con las que vive');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AS'.($cont-1))->getFont()->setBold(true);
-		    				    	// ...
-		    				    	// Consultar Personas con las que vive
-		    				    	$personasVives=$this->mFichaSDG->consultarPersonasViveInfoPersonalM($idPersona);
-		    				    	// ...
-		    				    	// Parentezco
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AS'.$cont, 'Parentezco');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AS'.$cont)->getFont()->setBold(true);
-		    				    	// Nombre
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AT'.$cont, 'Nombre');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AT'.$cont)->getFont()->setBold(true);
-		    				    	// Fecha de nacimiento
-		    				    	    $objExcelPHP->getActiveSheet()->setCellValue('AU'.$cont, 'Fecha de nacimiento');
-		    				    	    $objExcelPHP->getActiveSheet()->getStyle('AU'.$cont)->getFont()->setBold(true);
-		    				    	// Celular
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AV'.$cont, 'Celular');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AV'.$cont)->getFont()->setBold(true);
-		    				    	//	Vive con el empleado
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AW'.$cont, 'Vive con el empleado?');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AW'.$cont)->getFont()->setBold(true);
-		    				    	//	Cantidad
-		    				    	    $objExcelPHP->getActiveSheet()->setCellValue('AX'.$cont, 'Cantidad');
-		    				    	    $objExcelPHP->getActiveSheet()->getStyle('AX'.$cont)->getFont()->setBold(true);
-		    				    	// ...
-		    				    	foreach ($personasVives as $persona) {//Inicio for
-		    				    		// Parentezco
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AS'.($cont+$j), $persona->nombre);
-		    				    		// Nombre
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AT'.($cont+$j), $persona->nombreC);
-		    				    		// Fecha de nacimiento
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AU'.($cont+$j), ($persona->fecha_nacimiento=='00-00-0000'?'':$persona->fecha_nacimiento));
-		    				    		// Celular
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AV'.($cont+$j), $persona->celular);
-		    				    		//	Vive con el empleado
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AW'.($cont+$j), ($persona->idParentezco==8?($persona->vive_empleado==1?'SI':'NO'):''));
-		    				    		//	Cantidad
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AX'.($cont+$j), ($persona->cantidad));
-		    				    		$j++;
-		    				    	}//Fin for
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AS'.($cont-1).':AX'.($cont+4+($j>5?$j-5:0)))->applyFromArray($estilo);
-		    				    	// Otra información
-		    				    	$objExcelPHP->getActiveSheet()->mergeCells('AY'.($cont-1).':BE'.($cont-1));
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('AY'.($cont-1), 'Otra información');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AY'.($cont-1))->getFont()->setBold(true);
-		    				    	// Consultar informacion personal
-		    				    	$otraInformacion= $this->mFichaSDG->consultarOtraInformacionM($empleado->documento);
-		    				    	// ...
-		    				    	foreach ($otraInformacion as $otra) {
-		    				    		// Talla de la camida
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AY'.$cont, 'Talla de camisa');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AY'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AY'.($cont+1), $otra->talla_camisa);
-		    				    		// Talla de pantalon
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AZ'.$cont, 'Talla de pantalon');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('AZ'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('AZ'.($cont+1), $otra->talla_pantalon);
-		    				    		// Talla de zapatos
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BA'.$cont, 'Comuna');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('BA'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BA'.($cont+1), $otra->talla_zapatos);
-		    				    		// Vigencia curso de alturas
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BB'.$cont, 'Vigencia curso de alturas');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('BB'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BB'.($cont+1), $otra->vigencia_curso_alturas);
-		    				    		// Brigadas?
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BC'.$cont, 'Brigadas');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('BC'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BC'.($cont+1), ($otra->brigadas==1?'SI':'NO'));
-		    				    		// Comites
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BD'.$cont, 'Comite');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('BD'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BD'.($cont+1), ($otra->comites==1?'SI':'NO'));
-		    				    		// Necesita C.ALT
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BE'.$cont, 'Necesita C.ALT');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('BE'.$cont)->getFont()->setBold(true);
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BE'.($cont+1), ($otra->necesitaCALT==1?'SI':'NO'));
-		    				    	}
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('AY'.($cont-1).':BE'.($cont+5))->applyFromArray($estilo);
-		    				    	// ...
-		    				    	// Información del estado empresarial
-		    				    	$objExcelPHP->getActiveSheet()->mergeCells('BF'.($cont-1).':BM'.($cont-1));
-		    				    	$objExcelPHP->getActiveSheet()->setCellValue('BF'.($cont-1), 'Estados Empresariales');
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('BF'.($cont-1))->getFont()->setBold(true);
-		    				    	// ...
-		    				    	// Consultar de los estado empresariales
-		    				    	$estadosE=$this->mFichaSDG->consultarEstadosEmpresarialesM($empleado->documento);
-		    				    	// ...
-		    				    	// Estado empresarial (Vigente o retirado)
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BF'.$cont, 'Estado empresarial');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('BF'.$cont)->getFont()->setBold(true);
-		    				    	// fecha de ingreso
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BG'.$cont, 'Fecha de ingreso');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('BG'.$cont)->getFont()->setBold(true);
-		    				    	// Fecha de retiro
-		    				    	    $objExcelPHP->getActiveSheet()->setCellValue('BH'.$cont, 'Fecha de retiro');
-		    				    	    $objExcelPHP->getActiveSheet()->getStyle('BH'.$cont)->getFont()->setBold(true);
-		    				    	// motivo del retiro
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BI'.$cont, 'Motivo de retiro');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('BI'.$cont)->getFont()->setBold(true);
-		    				    	//	Indicador de rotaciòn
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BJ'.$cont, 'Indicador de rotaciòn');
-		    				    		$objExcelPHP->getActiveSheet()->getStyle('BJ'.$cont)->getFont()->setBold(true);
-		    				    	//	Empresa a la que pertenece o pertenecio
-		    				    	    $objExcelPHP->getActiveSheet()->setCellValue('BK'.$cont, 'Empresa');
-		    				    	    $objExcelPHP->getActiveSheet()->getStyle('BK'.$cont)->getFont()->setBold(true);
-		    				    	//	Antiguedad
-		    				    	    $objExcelPHP->getActiveSheet()->setCellValue('BL'.$cont, 'Antiguedad');
-		    				    	    $objExcelPHP->getActiveSheet()->getStyle('BL'.$cont)->getFont()->setBold(true);
-		    				    	//	Antiguedad
-		    				    	    $objExcelPHP->getActiveSheet()->setCellValue('BM'.$cont, 'Observaciòn de retiro');
-		    				    	    $objExcelPHP->getActiveSheet()->getStyle('BM'.$cont)->getFont()->setBold(true);         
-		    				    	// ...
-		    				    	foreach ($estadosE as $estado) {//Inicio for
-		    				    		$cont= $cont + $k;
-		    				    		// Estado empresarial (Vigente o retirado)
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BF'.$cont, ($estado->estado_e==1?'Retirado':'Vigente'));
-		    				    		// fecha de ingreso
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BG'.$cont, $estado->fecha_ingreso);
-		    				    		// Fecha de retiro
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BH'.$cont, ($estado->fecha_retiro=='00-00-0000'?'':$estado->fecha_retiro));
-		    				    		// Motivo de retiro
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BI'.$cont, ($estado->motivo!='NULL'?$estado->motivo:''));
-		    				    		//	Indicador de rotacion
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BJ'.$cont, ($estado->idIndicador_rotacion==1?'Deseado':'No Deseado'));
-		    				    		//	Empresa
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BK'.$cont, ($estado->nombre));
-		    				    		//	Antiguedad
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BL'.$cont, ($estado->antiguedad));
-		    				    		//	Observacion de retiro
-		    				    		$objExcelPHP->getActiveSheet()->setCellValue('BM'.$cont, ($estado->observacion_retiro));
-		    				    		// ...
-		    				    		$k++;
-		    				    	}//
-
-		    				    	// Border
-		    				    	$objExcelPHP->getActiveSheet()->getStyle('BF'.($cont-1).':BM'.($cont+4+($k>5?$k-5:0)))->applyFromArray($estilo);
-		    				    	// $objExcelPHP->getActiveSheet()->getStyle('N'.($cont-1).':T'.($cont+5))->applyFromArray($estilo);
-		    	}
-		    	// Siguiente empleado...
-		    	$cont+=8+($i>5?$i-5:0)+($j>5?$j-5:0)+($k>5?$k-5:0);
-		    }
-		    $objExcelPHP->getActiveSheet()->getStyle('B2:B'.$cont)->getFont()->setBold(true);
-
-
-		    $fileName= "FSDGs".date("Y-m-d h:i:s").'xlsx';
-		    $objExcelPHP->getActiveSheet()->setTitle('Fichas SDG');
-
-		    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-		    header('Content-Diposition: attachment;filiname="'.$fileName.'"');
-		    header('Cache-Control: max-age=0');
-
-		    $write= PHPExcel_IOFactory::createWriter($objExcelPHP,'Excel2007');
-		    $write->save('php://output');
 	}
 
 }

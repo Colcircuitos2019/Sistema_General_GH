@@ -23,7 +23,7 @@ foreach ($ususarios as $ususario) {
 
 
 function conexion(){//Iniciar la conexion con la base de datos
-	$conexion= new mysqli("localhost:33066","root","SaAFjmXlMRvppyqW","sgn") or die('No se pudo conectar: '.mysql_error());
+	$conexion= new mysqli("localhost","root","qblrENqllNIMvqHL","sgh") or die('No se pudo conectar: '.mysql_error());
 	/*Verificar conexion*/
 	if ($conexion->connect_errno) {
 		printf("Error al conectar: %s\n",$conexion->connect_error);

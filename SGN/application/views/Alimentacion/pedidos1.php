@@ -3,8 +3,8 @@
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <h1>
-        Pedidos
-        <small>Desktop</small>
+        Historial de pedidos
+        <!-- <small>Desktop</small> -->
       </h1>
       <!--<ol class="breadcrumb">
         <li><a href="#"><i class="fas fa-desktop"></i> Home</a></li>
@@ -25,6 +25,13 @@
   border: 1px solid #E4E6E7;
   border-radius: 5px;
 }
+
+.link{
+
+  cursor: pointer;
+
+}
+
 </style>
 <section class="content">
 	<div class="row">
@@ -35,7 +42,7 @@
           <div class="box box-primary">
             <div class="box-header">
               <i class="fas fa-users"></i>
-              <h3 class="box-title">Liquidación Proveedor por dia</h3>
+              <h3 class="box-title">Liquidación de proveedor</h3>
               <!-- btn X -->
 
               <div class="pull-right box-tools">
@@ -55,14 +62,20 @@
                   <div class="row">
                     <!-- Colum 1 -->
                     <div class="col-sm-3">
-                      <label>Fecha de liquidación</label>
+                      <label>Fecha inicio</label>
                       <div class="input-group date fh-date" >
-                        <input type="text" id="fechaL"  class="form-control" readonly="readonly"><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+                        <input type="text" id="fechaPI"  class="form-control" readonly="readonly"><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
+                      </div>              
+                    </div>
+                    <div class="col-sm-3">
+                      <label>Fecha fin</label>
+                      <div class="input-group date fh-date" >
+                        <input type="text" id="fechaPF"  class="form-control" readonly="readonly"><span class="input-group-addon"><i class="glyphicon glyphicon-th"></i></span>
                       </div>              
                     </div>
                     <div class="col-sm-3">
                       <div>
-                        <button class="btn btn-primary" type="button" id="Buscar1">Buscar</button>
+                        <button class="btn btn-primary" type="button" id="Liquidar_proveedor">Liquidar</button>
                       </div>
                     </div>
                   <br>
@@ -80,7 +93,7 @@
                 </div>
               <!-- /form Persona -->
               <div class="box-footer clearfix">
-                  <!-- <a href="<?php //echo base_url(); ?>cPedido/" target="_blank">Descargar excel</a>   -->
+                  <a target="_blank" id="LinkLiquidacionProveedor" class="link">Liquidacion proveedores por rango de fecha</a>  
               </div>
             </div>
           </div>
@@ -127,7 +140,7 @@
                     <!-- Columna 3 -->
                     <div class="col-md-3">
                       <label></label>
-                      <button type="button" class="btn btn-primary " id="Buscar2">Buscar</button>
+                      <button type="button" class="btn btn-primary " id="Liquidar_empleado">Liquidar</button>
                     </div>
                   </div>
                   <br>
@@ -140,25 +153,22 @@
                          </div>
                       </div>   
                   </div>
-                  <!-- Este boton se encargara de generar un excel en un futuro... -->
-<!--                     <div class="row">
-                      <div class="col-sm-12">
-                        <button type="button" class="btn btn-primary pull-right"><span><i class="far fa-file-excel"></i>Generar</span></button>
-                      </div>
-                   </div>
- -->                </div>
+                </div>
               </div>
               <!-- /form Persona -->
               <div class="box-footer clearfix">
-                <div class="col-sm-4">
-                  <a target="_blank" id="linkF1">liquidacion por día</a>
+                <div class="col-sm-2">
+                  <a target="_blank" id="linkF1" class="link">liquidacion por día</a>
+                </div>
+                <div class="col-sm-2">
+                  <a target="_blank" id="ConsolidadoLiquidacionEmpleado" class="link">Consolidado Empleado</a>
                 </div>
                 <!--  -->
                 <div class="col-sm-4">
-                  <a class="pull-right" target="_blank" id="linkF3">Pedidos proveedores por rango de fechas</a>   
+                  <a class="pull-right" target="_blank" id="linkF3" class="link">Pedidos proveedores por rango de fechas</a>   
                 </div>
                 <div class="col-sm-4">
-                  <a class="pull-right" target="_blank" id="linkF2">liquidacion empleado por rango de fechas</a> 
+                  <a class="pull-right" target="_blank" id="linkF2" class="link">liquidacion empleado por rango de fechas</a> 
                 </div>
               </div>
             </div>

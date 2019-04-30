@@ -60,11 +60,9 @@
                                     <div class="col-sm-12">
 									  <div class="form-group">
 									  	<label class="radio-inline col-sm-6">
-                                          <input type="radio" name="optradio" id="D" value="1" onclick="consultarProveedores($('#selProveedor'),0,1);">Desayuno
-                                        </label>
+                                          <input type="radio" name="optradio" id="D" value="1" onclick="consultarProveedores($('#selProveedor'),0,1);">Desayuno</label>
                                         <label class="radio-inline">
-                                          <input type="radio" name="optradio" id="A" value="2" onclick="consultarProveedores($('#selProveedor'),0,2,)">Almuerzo
-                                        </label>
+                                          <input type="radio" name="optradio" id="A" value="2" onclick="consultarProveedores($('#selProveedor'),0,2);">Almuerzo</label>
 									  </div>
                                       <label for="selProveedor" class="panel1"><b>*</b> Proveedor:</label>
                                       <select class="form-control selectpicker proveedores"  id="selProveedor" data-orden='0'>
@@ -448,7 +446,8 @@
 										</div>
 									</div>					
 								</div>
-<!-- /Modals -->						
+<!-- /Modals -->
+
 			</div>
 		</div>
 	</div>

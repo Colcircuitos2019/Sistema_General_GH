@@ -237,7 +237,7 @@ class mFichaSDG extends CI_Model
 	{	
 
 		if ($info['accion']==0) {
-			$query= $this->db->query("CALL SE_PA_RegistrarModificarOtraInfo({$info['IDF']},'{$info['TCamida']}','{$info['TPantalon']}', '{$info['Tzapatos']}', '{$info['VCursoAlturas']}',{$info['PBrigadaEmergencia']}, {$info['AlgunComite']}, {$info['RquierecursoAlturas']});");
+			$query= $this->db->query("CALL SE_PA_RegistrarModificarOtraInfo({$info['IDF']},'{$info['TCamida']}','{$info['TPantalon']}', '{$info['Tzapatos']}', '{$info['VCursoAlturas']}',{$info['PBrigadaEmergencia']}, {$info['AlgunComite']}, {$info['RquierecursoAlturas']}, '{$info['locker']}');");
 
 			$res= $query->row();
 
@@ -252,7 +252,7 @@ class mFichaSDG extends CI_Model
 			$idOtros= ($idOtros==''?0:$idOtros);
 
 			// Registrar o modificar la otra información del empleado
-			$query= $this->db->query("CALL SE_PA_RegistrarModificarOtraInfo({$idOtros},'{$info['talla_camisa']}','{$info['talla_pantalon']}', '{$info['talla_zapatos']}', '{$info['vigencia_curso_alturas']}',{$info['perteneceCurso']}, {$info['comites']}, {$info['RequiereCursoA']});");
+			$query= $this->db->query("CALL SE_PA_RegistrarModificarOtraInfo({$idOtros},'{$info['talla_camisa']}','{$info['talla_pantalon']}', '{$info['talla_zapatos']}', '{$info['vigencia_curso_alturas']}',{$info['perteneceCurso']}, {$info['comites']}, {$info['RequiereCursoA']}, '{$info['locker']}');");
 
 			$res= $query->row();
 

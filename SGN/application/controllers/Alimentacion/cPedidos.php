@@ -186,7 +186,8 @@ class cPedidos extends CI_Controller
 
 	public function reporteConsumoPorProveedor()
 	{
-	    $info['fechaL']=$this->input->post('fechaL');
+	    $info['fechaI']=$this->input->post('fechaI');
+      $info['fechaF']=$this->input->post('fechaF');
 
 		$res= $this->mPedidos->reporteConsumoPorProveedorM($info);
 
@@ -310,7 +311,7 @@ class cPedidos extends CI_Controller
     	}
     	// Recorre los pedidos que se realizaron en la fecha ingresada.
     	$data= $this->reporteExcelLiquidacion($row1->fechasP);
-    	// Listado de pedidos
+    	// Listado de pedidos por fecha
     	foreach ($data as $row) {
     		// Hora de declaración del pedido
     		$objPHPExcel->getActiveSheet()->SetCellValue('A'.$j,$row->hora);
@@ -341,7 +342,7 @@ class cPedidos extends CI_Controller
     			$j++;
     			$accion=1;
     			// $fila++;
-    		}	
+    		}
 
     		    //Etiqueta del proveedor  
     			$objPHPExcel->getActiveSheet()->SetCellValue('C'.$j,'Productos pedidos: '.$row->ProductosC);
@@ -434,6 +435,158 @@ class cPedidos extends CI_Controller
       }
 
       $objPHPExcel->getActiveSheet()->SetCellValue('G'.($i),$total);
+
+      $filiname="LiquidacionProveedorEmpleadoRangoFechas-".date("Y-m-d h:i:s").'xlsx';
+      $objPHPExcel->getActiveSheet()->setTitle("Empleados-Proveedor");
+
+      header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      header('Content-Diposition: attachment;filiname="'.$filiname.'"');
+      header('Cache-Control: max-age=0');
+
+      $write= PHPExcel_IOFactory::createWriter($objPHPExcel,'Excel2007');
+      $write->save('php://output');
+
+      exit;
+
+    }
+
+  public function excelLiquidacionPedidosProveedor(){
+
+      require(APPPATH.'third_party/PHPExcel-1.8/Classes/PHPExcel.php');
+      require(APPPATH.'third_party/PHPExcel-1.8/Classes/PHPExcel/Writer/Excel2007.php');
+
+      $objPHPExcel= new PHPExcel();
+
+      $objPHPExcel->getProperties()->setCreator("");
+      $objPHPExcel->getProperties()->setLastModifiedBy("");
+      $objPHPExcel->getProperties()->setTitle("");
+      $objPHPExcel->getProperties()->setSubject("");
+      $objPHPExcel->getProperties()->setDescription("");
+
+
+      $estilo = array( 
+        'borders' => array(
+          'outline' => array(
+            'style' => PHPExcel_Style_Border::BORDER_THIN
+          )
+        )
+      );
+
+      $objPHPExcel->setActiveSheetIndex(0);
+
+      // Variables get 
+      $fechas['fecha1']= (string)$_GET['fechaI'];
+      $fechas['fecha2']= (string)$_GET['fechaF'];
+
+      // Fecha de inicio
+      $objPHPExcel->getActiveSheet()->SetCellValue('B'.(2),'Fecha Inicio');
+      $objPHPExcel->getActiveSheet()->SetCellValue('B'.(3),$fechas['fecha1']);
+      $objPHPExcel->getActiveSheet()->getStyle('B'.(2))->getFont()->setBold(true);// Esto se puede cambiar por un rango de celdas
+      // Fecha de Fin
+      $objPHPExcel->getActiveSheet()->SetCellValue('C'.(2),'Fecha Fin');
+      $objPHPExcel->getActiveSheet()->SetCellValue('C'.(3), $fechas['fecha2']);
+      $objPHPExcel->getActiveSheet()->getStyle('C'.(2))->getFont()->setBold(true);
+
+      $proveedores = $this->mPedidos->consultarIDProveedores();
+
+      $i =8;
+
+      foreach ($proveedores as $proveedor) {// Pendiente el total por fecha
+        
+          $consultar_fechas_pedidos_proveedor = $this->mPedidos->liquidarValorTotalProveedorRangofechasM($proveedor->idProveedor ,$fechas['fecha1'],$fechas['fecha2']);
+
+          $ingreso = 0;
+          $total = 0;
+          $header = 0;
+
+          foreach ($consultar_fechas_pedidos_proveedor as $fecha_pedido) {
+
+              $informacionProveedor= $this->mPedidos->liquidarProveedorPedidosRangoFechasM($proveedor->idProveedor, $fecha_pedido->fecha); // Consultar informacion liquidacion pedidos proveedor por rango de fecha
+
+              foreach ($informacionProveedor as $infoP) {
+                
+                if($ingreso==0){
+
+                  $total = $infoP->subValor;
+
+                  $objPHPExcel->getActiveSheet()->SetCellValue('B'.($i-2),'Proveedor');              
+                  $objPHPExcel->getActiveSheet()->SetCellValue('B'.($i-1), $proveedor->nombre);
+
+                  $objPHPExcel->getActiveSheet()->getStyle('B'.($i-2))->getFont()->setBold(true);
+                  $objPHPExcel->getActiveSheet()->getStyle('B'.($i-2).':B'.($i-1))->applyFromArray($estilo);              
+
+                  $objPHPExcel->getActiveSheet()->SetCellValue('B'.$i,'Fecha');
+                  $objPHPExcel->getActiveSheet()->SetCellValue('C'.$i,'Producto');
+                  $objPHPExcel->getActiveSheet()->SetCellValue('D'.$i,'Momento');
+                  $objPHPExcel->getActiveSheet()->SetCellValue('E'.$i,'Cantidad');
+                  $objPHPExcel->getActiveSheet()->SetCellValue('F'.$i,'Precio');
+
+                  $objPHPExcel->getActiveSheet()->SetCellValue('H'.$i, "Fecha liquidacion");
+                  $objPHPExcel->getActiveSheet()->SetCellValue('I'.$i, "Valor liquidacion");
+
+                  $objPHPExcel->getActiveSheet()->getStyle('B'.$i.':I'.$i)->getFont()->setBold(true);
+
+                  $header = $i;
+                  $i++;
+
+                  $objPHPExcel->getActiveSheet()->SetCellValue('B'.$i, $infoP->fecha_pedido);
+                  $objPHPExcel->getActiveSheet()->SetCellValue('C'.$i, $infoP->producto);
+                  $objPHPExcel->getActiveSheet()->SetCellValue('D'.$i, $infoP->momento);
+                  $objPHPExcel->getActiveSheet()->SetCellValue('E'.$i, $infoP->cantidad);
+                  $objPHPExcel->getActiveSheet()->SetCellValue('F'.$i, $infoP->valor);
+
+                  $ingreso++;
+
+                }else{
+
+                  $total+= $infoP->subValor;
+
+                  $objPHPExcel->getActiveSheet()->SetCellValue('B'.$i, $infoP->fecha_pedido);
+                  $objPHPExcel->getActiveSheet()->SetCellValue('C'.$i, $infoP->producto);
+                  $objPHPExcel->getActiveSheet()->SetCellValue('D'.$i, $infoP->momento);
+                  $objPHPExcel->getActiveSheet()->SetCellValue('E'.$i, $infoP->cantidad);
+                  $objPHPExcel->getActiveSheet()->SetCellValue('F'.$i, $infoP->valor);
+
+                }
+
+                $i++;
+
+              }
+
+          }
+
+          if($ingreso > 0){
+
+            // Calcular el valor total de los pedidos del proveedor...
+            $objPHPExcel->getActiveSheet()->SetCellValue('B'.$i,'Total');
+            $objPHPExcel->getActiveSheet()->getStyle('B'.$i.':F'.$i)->getFont()->setBold(true);   
+            $objPHPExcel->getActiveSheet()->SetCellValue('F'.$i, "$".(number_format($total)));
+
+            $objPHPExcel->getActiveSheet()->getStyle('B'.$header.':F'.$i)->applyFromArray($estilo);
+            $header++;   
+
+            // Consultar valores total de los pedidos de cada una de las fechas
+            $informacionLiquidacionesFechas= $this->mPedidos->liquidarValorTotalProveedorRangofechasM($proveedor->idProveedor ,$fechas['fecha1'],$fechas['fecha2']);
+
+            $inicio_header= $header;
+
+            foreach ($informacionLiquidacionesFechas as $liquidacionProveedorFecha) {
+
+                $objPHPExcel->getActiveSheet()->SetCellValue('H'.$header, $liquidacionProveedorFecha->fecha);
+                $objPHPExcel->getActiveSheet()->SetCellValue('I'.$header, $liquidacionProveedorFecha->valor_fecha);
+                $header++;
+
+            }
+
+            $objPHPExcel->getActiveSheet()->getStyle('H'.($inicio_header-1).':I'.($header-1))->applyFromArray($estilo);
+
+            $i =  $i + 5;
+
+          }
+
+      }
+      // ...
+      // $objPHPExcel->getActiveSheet()->SetCellValue('G'.($i),$total);//
 
       $filiname="LiquidacionProveedorEmpleadoRangoFechas-".date("Y-m-d h:i:s").'xlsx';
       $objPHPExcel->getActiveSheet()->setTitle("Empleados-Proveedor");
@@ -869,7 +1022,53 @@ class cPedidos extends CI_Controller
     // $cant= $this->mPedidos->cantidadLineasPedidoEmpleadoM($lineas->documento);
     // $this->listadoConfirmacionPDF($tabla); 
     echo $tabla;
-    // var_dump($tabla); 
+  }
+
+  public function ConsolidadoLiquidacionEmpleados()
+  {
+    
+    $fechas['fechaI'] = $_GET['fechaI'];
+    $fechas['fechaF'] = $_GET['fechaF'];
+
+    $this->load->library('pdfconsolidadoliquidacion');
+
+    $liquidacion_empleados = $this->mPedidos->ConsolidadoLiquidacionEmpleadosM($fechas);
+
+    $html_content = '<html><head>
+                      <style>
+                         *{
+                            font-family: Arial, Helvetica, sans-serif;
+                            font-size: 15px;
+                          }
+                          <meta charset="utf-8">
+                         .saltopagina{page-break-after:always;}
+                      </style>
+                     </head>
+                     <body>';
+
+    foreach ($liquidacion_empleados as $empleado) {
+
+ 
+      $variables['documento'] = $empleado->documento;
+      $variables['nombre'] =  strtoupper($empleado->nombre1)." ".strtoupper($empleado->nombre2)." ".strtoupper($empleado->apellido1)." ".strtoupper($empleado->apellido2);
+      $variables['liquidacion'] = $empleado->liquidacion;
+
+
+      $html_content.= $this->pdfconsolidadoliquidacion->header();
+
+      $html_content.= $this->pdfconsolidadoliquidacion->body($variables);
+
+      $this->pdfconsolidadoliquidacion->loadHtml($html_content);
+
+
+    }
+
+    $html_content.='</body></html>';
+
+    $this->pdfconsolidadoliquidacion->render();
+
+    $this->pdfconsolidadoliquidacion->stream(""."Consolidado_liquidacion".".pdf", array("Attachment"=>0));
+
   }
 
   public function listadoConfirmacionPDF($tabla)//Esta funcion esta sin utilizar
@@ -878,8 +1077,6 @@ class cPedidos extends CI_Controller
 
         $hoy = date("dmyhis");
 
-            //load the view and saved it into $html variable
-            // $html ='Hola mundo';
 
             //this the the PDF filename that user will get to download
             $pdfFilePath = "cipdf_.pdf";

@@ -105,10 +105,10 @@ class cAsistencia extends CI_Controller
   public function registrarAsistenciaEmpleado()
   {
     $info['contra']=base64_encode($this->input->post('contra'));
-    $info['lector']=$_SERVER['REMOTE_ADDR'];
+    $info['lector']=$_SERVER['REMOTE_ADDR'];// ID del cliente que ingreso a la URL
 
     $idHorario=$this->seleccionarIDHorarioEmpelado($info['contra'],1);//Consultar horario del empleado por contraseña unica.
-    // SE_FU_IDHorarioEmpleadoAsistencia funcion
+
     if ($idHorario>0) {
       $info['idHorario']=$idHorario;
       // 

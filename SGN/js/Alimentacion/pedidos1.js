@@ -3,6 +3,8 @@ var $cuerpoP = $('#cuerpoP');
 var $cabezaP = $('#cabeza');
 var $fechaI = $('#fechaI');
 var $fechaF = $('#fechaF');
+var $fechaI_liquidacion_proveedor = $('#fechaPI');
+var $fechaF_liquidacion_proveedor = $('#fechaPF');
 var $selectM = $('#selProveedorM1');
 var $selectP = $('#Upro');
 var $soloFecha = $('#fechaPedido');
@@ -23,20 +25,30 @@ $(document).ready(function() {
         multidate: false
     });
     //Evento del boton buscar liquidacion por empleados
-    $('#Buscar2').on('click', function(event) {
+    $('#Liquidar_empleado').on('click', function(event) {
         event.preventDefault();
         // console.log($('#fechaI').val());
         consultarPedidosReporte();
     });
     //Evento del boton buscar liquidacion por proveedor
-    $('#Buscar1').on('click', function(event) {
+    $('#Liquidar_proveedor').on('click', function(event) {
+
         event.preventDefault();
-        // console.log($('#fechaI').val());
-        consultarLiquidacionProveedorDia();
+        consultarLiquidacionProveedorDia();// Pendiente modificar el procedimiento almacenado de esta función.....
+
     });
+
     // Evento click del link 1
     $('#linkF1').click(function(event) {
         generarReportesDePedidos(1);
+    });
+    //
+    $('#ConsolidadoLiquidacionEmpleado').click(function(event) {
+        if ($fechaI.val() != '' && $fechaF.val() != '') {
+            generarReportesDePedidos(5);
+        } else {
+            swal('Alerta!', 'Ingrese las dos fechas porfavor para poder generar el reporte.', 'warning');
+        }
     });
     // Evento de click del link 2 optimizar código
     $('#linkF2').click(function(event) {
@@ -54,6 +66,15 @@ $(document).ready(function() {
             swal('Alerta!', 'Ingrese las dos fechas porfavor para poder generar el reporte.', 'warning');
         }
     });
+
+    $('#LinkLiquidacionProveedor').click(function() {
+        if ($fechaI_liquidacion_proveedor.val() != '' || $fechaF_liquidacion_proveedor.val() != '') {
+            generarReportesDePedidos(4);
+        } else {
+            swal('Alerta!', 'Ingrese las dos fechas porfavor para poder generar el reporte.', 'warning');
+        }
+    });
+
     // Cuando se le realice algun cambio al proveedor seleccionado
     $selectM.change(function(event) {
         // Consultar nuevamente los productos del nuevo proveedor seleccionado
@@ -154,6 +175,10 @@ function convertirMonedaPesosNumero(moneda) {
 }
 //Se encarga de darle un formato estandar a la fecha que es YYYY-MM-DD
 function formatoFecha(fecha) {
+    if(fecha == ""){
+        return "";
+    }
+
     var v= fecha.split('-');
     return v[2]+'-'+v[1]+'-'+v[0];
 }
@@ -293,7 +318,8 @@ function consultarLiquidacionProveedorDia() {
     var filas = 0;
     $cuerpo.empty(); //Limpiamos la tabla
     $.post(baseurl + 'Alimentacion/cPedidos/reporteConsumoPorProveedor', {
-        fechaL: String($('#fechaL').val())
+        fechaI: formatoFecha(String($('#fechaPI').val())),
+        fechaF: formatoFecha(String($('#fechaPF').val()))
     }, function(data) {
         //console.log(data);
         result = JSON.parse(data);
@@ -577,6 +603,12 @@ function generarReportesDePedidos(op) {
         case 3://Link 3
         window.location.href = baseurl + "Alimentacion/cPedidos/excelLiquidacionProveedorRangoFechas?fechaI=" + formatoFecha($fechaI.val()) + "&fechaF=" + formatoFecha($fechaF.val()) + "";
             break;
+        case 4:// Liquidación de proveedores
+        window.location.href = baseurl + "Alimentacion/cPedidos/excelLiquidacionPedidosProveedor?fechaI=" + formatoFecha($fechaI_liquidacion_proveedor.val()) + "&fechaF=" + formatoFecha($fechaF_liquidacion_proveedor.val()) + "";
+            break;  
+        case 5:// Consolidados de Liquidacion de la temporal
+        window.open(baseurl + "Alimentacion/cPedidos/ConsolidadoLiquidacionEmpleados?fechaI=" + formatoFecha($fechaI.val()) + "&fechaF=" + formatoFecha($fechaF.val()) + "");
+            break;    
     }
 }
 // $("#btnDescargar").click(function() {

@@ -940,134 +940,141 @@
                         </div>
                         <br>
                         <!-- Cuarta fila -->
-                      <div id="CantidadDeHijos">
-                        <div class="row" id="HijosRow">
-                          <!-- Columna 1 -->
-                          <div class="col-sm-2 col-xs-4">
-                            <!--  -->
-                            <div class="checkbox">
-                              <label style="font-size: 1em">
-                                  <input type="checkbox" value="" id="hijos" data-toggle="collapse" data-target=".multi-collapse1" aria-expanded="false" aria-controls="despliegueHijo1 despliegueHijo2 despliegueHijo3 despliegueHijo4">
-                                  <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-                                  Hijos
-                              </label>
-                            </div>
-                            <!--  -->
-                          </div>
-                          <!-- Acordeon columna 2-->
-                          <div class="col-sm-5 col-xs-10">
-                            <div class="col">
-                                <div class="collapse multi-collapse1 acordeon1" id="despliegueHijo1">
-                                  <div class="card card-body">
-                                    <!-- <label>Nombre</label> -->
-                                    <input type="text" name="nameHijo" id="" class="form-control limpiarC" placeholder="*Nombre completo del hijo" style="text-transform: capitalize;">
-                                  </div>
+                        <b>¿Tines hijos/hijastros?</b>
+                        <div style="border: solid #C9C9C9 0.5px; border-radius: 3.5px">
+                          
+                          <br>
+                          <div id="CantidadDeHijos">
+                            <div class="row" id="HijosRow">
+                              <!-- Columna 1 -->
+                              <div class="col-sm-2 col-xs-4">
+                                <!--  -->
+                                <div class="checkbox">
+                                  <label style="font-size: 1em">
+                                      <input type="checkbox" value="" id="hijos" data-toggle="collapse" data-target=".multi-collapse1" aria-expanded="false" aria-controls="despliegueHijo1 despliegueHijo2 despliegueHijo3 despliegueHijo4">
+                                      <span class="cr"><i class="cr-icon fa fa-check"></i></span>
+                                      Hijos
+                                  </label>
                                 </div>
-                            </div>
-                            <div class="col">
-                              <div class="collapse multi-collapse1 acordeon1" id="despliegueHijo2">
-                                <div class="card card-body">
-                                  <!-- <label>Nombre</label> -->
-                                  <div class="input-group date">
-                                    <div class="input-group-addon">
-                                      <i class="fa fa-calendar"></i>
-                                    </div>
-                                    <input type="text" class="form-control pull-right limpiarC" id="" placeholder="F.N dd-mm-yyyy" name="fechaNH">
-                                  </div>
-                                </div>
+                                <!--  -->
                               </div>
-                            </div>
-                            <!--  -->
-                          </div>
-                          <!-- Columna 3 -->
-                          <div class="col-sm-4">
-                            <div class="col">
-                              <div class="collapse multi-collapse1 acordeon1" id="despliegueHijo3">
-                                <div class="card card-body">
-                                  <!-- <label>Nombre</label> -->
-                                    <div class="checkbox">
-                                      <!-- Madre -->
-                                      <label style="font-size: 1em">
-                                          <input type="checkbox" value="" id="" checked>
-                                          <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-                                          Vive con el ?
-                                      </label>
+                              <!-- Acordeon columna 2-->
+                              <div class="col-sm-5 col-xs-10">
+                                <div class="col">
+                                    <div class="collapse multi-collapse1 acordeon1" id="despliegueHijo1">
+                                      <div class="card card-body">
+                                        <!-- <label>Nombre</label> -->
+                                        <input type="text" name="nameHijo" id="" class="form-control limpiarC" placeholder="*Nombre completo del hijo" style="text-transform: capitalize;">
+                                      </div>
                                     </div>
-                                    <div class="pull-right">
-                                      <label class="btn btn-default" id="masHijos" onclick="agregarMasInputHijos(this,1);"><span><i class="fas fa-plus"></i></span></label>
+                                </div>
+                                <div class="col">
+                                  <div class="collapse multi-collapse1 acordeon1" id="despliegueHijo2">
+                                    <div class="card card-body">
+                                      <!-- <label>Nombre</label> -->
+                                      <div class="input-group date">
+                                        <div class="input-group-addon">
+                                          <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" class="form-control pull-right limpiarC" id="" placeholder="F.N dd-mm-yyyy" name="fechaNH">
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
+                                <!--  -->
                               </div>
+                              <!-- Columna 3 -->
+                              <div class="col-sm-4">
+                                <div class="col">
+                                  <div class="collapse multi-collapse1 acordeon1" id="despliegueHijo3">
+                                    <div class="card card-body">
+                                      <!-- <label>Nombre</label> -->
+                                        <div class="checkbox">
+                                          <!-- Madre -->
+                                          <label style="font-size: 1em">
+                                              <input type="checkbox" value="" id="" checked>
+                                              <span class="cr"><i class="cr-icon fa fa-check"></i></span>
+                                              Vive con el ?
+                                          </label>
+                                        </div>
+                                        <div class="pull-right">
+                                          <label class="btn btn-default" id="masHijos" onclick="agregarMasInputHijos(this,1);"><span><i class="fas fa-plus"></i></span></label>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
                             </div>
+                          </div>
+                          <br>
+                            <!-- Quienta -->
+                            <!-- Informacion sobre los hijos e hijastros -->
+                          <div id="CantidadDeHijastros">
+                            <div class="row" id="HijastrosRow">
+                              <!-- Falta colocar los hijos e hijastros y sus respectivos menu de despliegue -->
+                              <!-- Columna 1 -->
+                              <div class="col-sm-2 col-xs-4">
+                                <!--  -->
+                                <div class="checkbox">
+                                  <label style="font-size: 1em">
+                                      <input type="checkbox" value="" id="hijastro" data-toggle="collapse" data-target=".multi-collapse2" aria-expanded="false" aria-controls="despliegueHijastro1 despliegueHijastro2 despliegueHijastro3">
+                                      <span class="cr"><i class="cr-icon fa fa-check"></i></span>
+                                      Hijastro
+                                  </label>
+                                </div>
+                                <!--  -->
+                              </div>
+                              <!-- Acordeon columna 2-->
+                              <div class="col-sm-5 col-xs-10">
+                                <div class="col">
+                                    <div class="collapse multi-collapse2 acordeon2" id="despliegueHijastro1">
+                                      <div class="card card-body">
+                                        <!-- <label>Nombre</label> -->
+                                        <input type="text" name="nameHijo" id="" class="form-control limpiarC" style="text-transform: capitalize;" placeholder="*Nombre completo hijastro">
+                                      </div>
+                                    </div>
+                                </div>
+                                <div class="col">
+                                  <div class="collapse multi-collapse2 acordeon2" id="despliegueHijastro2">
+                                    <div class="card card-body">
+                                      <!-- <label>Nombre</label> -->
+                                      <div class="input-group date">
+                                        <div class="input-group-addon">
+                                          <i class="fa fa-calendar"></i>
+                                        </div>
+                                        <input type="text" class="form-control pull-right limpiarC" id="" placeholder="F.N dd-mm-yyyy" name="fechaNH">
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <!--  -->
+                              </div>
+                              <!-- Columna 3 -->
+                              <div class="col-sm-4">
+                                <div class="col">
+                                  <div class="collapse multi-collapse2 acordeon2" id="despliegueHijastro3">
+                                    <div class="card card-body">
+                                      <!-- <label>Nombre</label> -->
+                                        <div class="checkbox">
+                                          <!-- Madre -->
+                                          <label style="font-size: 1em">
+                                              <input type="checkbox" value="" id="" checked>
+                                              <span class="cr"><i class="cr-icon fa fa-check"></i></span>
+                                              Vive con el ?
+                                          </label>
+                                        </div>
+                                        <div class="pull-right">
+                                          <label class="btn btn-default" name="masHijastros" onclick="agregarMasInputHijos(this,2);"><span><i class="fas fa-plus"></i></span></label>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                            </div>
+                          </div>
+                          <br>  
+
                         </div>
-                      </div>
-                      <br>
-                        <!-- Quienta -->
-                        <!-- Informacion sobre los hijos e hijastros -->
-                      <div id="CantidadDeHijastros">
-                        <div class="row" id="HijastrosRow">
-                          <!-- Falta colocar los hijos e hijastros y sus respectivos menu de despliegue -->
-                          <!-- Columna 1 -->
-                          <div class="col-sm-2 col-xs-4">
-                            <!--  -->
-                            <div class="checkbox">
-                              <label style="font-size: 1em">
-                                  <input type="checkbox" value="" id="hijastro" data-toggle="collapse" data-target=".multi-collapse2" aria-expanded="false" aria-controls="despliegueHijastro1 despliegueHijastro2 despliegueHijastro3">
-                                  <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-                                  Hijastro
-                              </label>
-                            </div>
-                            <!--  -->
-                          </div>
-                          <!-- Acordeon columna 2-->
-                          <div class="col-sm-5 col-xs-10">
-                            <div class="col">
-                                <div class="collapse multi-collapse2 acordeon2" id="despliegueHijastro1">
-                                  <div class="card card-body">
-                                    <!-- <label>Nombre</label> -->
-                                    <input type="text" name="nameHijo" id="" class="form-control limpiarC" style="text-transform: capitalize;" placeholder="*Nombre completo hijastro">
-                                  </div>
-                                </div>
-                            </div>
-                            <div class="col">
-                              <div class="collapse multi-collapse2 acordeon2" id="despliegueHijastro2">
-                                <div class="card card-body">
-                                  <!-- <label>Nombre</label> -->
-                                  <div class="input-group date">
-                                    <div class="input-group-addon">
-                                      <i class="fa fa-calendar"></i>
-                                    </div>
-                                    <input type="text" class="form-control pull-right limpiarC" id="" placeholder="F.N dd-mm-yyyy" name="fechaNH">
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                            <!--  -->
-                          </div>
-                          <!-- Columna 3 -->
-                          <div class="col-sm-4">
-                            <div class="col">
-                              <div class="collapse multi-collapse2 acordeon2" id="despliegueHijastro3">
-                                <div class="card card-body">
-                                  <!-- <label>Nombre</label> -->
-                                    <div class="checkbox">
-                                      <!-- Madre -->
-                                      <label style="font-size: 1em">
-                                          <input type="checkbox" value="" id="" checked>
-                                          <span class="cr"><i class="cr-icon fa fa-check"></i></span>
-                                          Vive con el ?
-                                      </label>
-                                    </div>
-                                    <div class="pull-right">
-                                      <label class="btn btn-default" name="masHijastros" onclick="agregarMasInputHijos(this,2);"><span><i class="fas fa-plus"></i></span></label>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                        </div>
-                      </div>
                         <!-- /Informacion sobre los hijos e hijastros -->
                         <br>
                       </div>
@@ -1208,6 +1215,13 @@
                             <span class="cr"><i class="cr-icon fa fa-check"></i></span>
                         </label>
                       </div>
+                    </div>
+                    <!-- Locker -->
+                    <div class="col-sm-1">
+                      <label style="font-size: 1em">
+                        <label for="locker">Locker</label>
+                        <input type="text" min="0" maxlength="3" name="locker" id="locker" class="form-control" style="text-align: center;">
+                      </label>
                     </div>
                   </div>
                   </div>

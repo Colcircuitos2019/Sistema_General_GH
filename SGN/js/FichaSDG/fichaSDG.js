@@ -118,6 +118,7 @@ var $VCursoAlturas = $('#vigenciAlturas');
 var $RquierecursoAlturas = $('#RequiereCursoAlturas');
 var $PBrigadaEmergencia = $('#pertenceBrigada');
 var $AlgunComite = $('#AlgunComite');
+var $locker = $('#locker');
 // 
 var idEstudios=0;
 var idLaboral=0;
@@ -1120,6 +1121,7 @@ function consultarOtraInformacion(doc) {
             $PBrigadaEmergencia.prop('checked',(row.brigadas==1?true:false));//Revisar los Checked de los combo box
             $AlgunComite.prop('checked',(row.comites==1?true:false));
             $RquierecursoAlturas.prop('checked',(row.necesitaCALT==1?true:false));
+            $locker.val(row.locker);
          });
          // Accion 9
          setTimeout(function () {
@@ -1215,7 +1217,8 @@ $.post(baseurl+'FichaSDG/cFichaE/registrarModificarOtraInformacion',
         VCursoAlturas: $VCursoAlturas.val(),
         RquierecursoAlturas: $RquierecursoAlturas.prop('checked'),
         PBrigadaEmergencia: $PBrigadaEmergencia.prop('checked'),
-        AlgunComite: $AlgunComite.prop('checked')
+        AlgunComite: $AlgunComite.prop('checked'),
+        locker: $locker.val()
     }, function(data, textStatus, xhr) {
     if (data>=1) {
         idInfoOtra=data;
@@ -1840,6 +1843,7 @@ function limpiarCamposTexto() {//Falta remover los atributos data-.removeAttr('d
      $PBrigadaEmergencia.removeProp('checked');
      $AlgunComite.prop('checked', false);
      $AlgunComite.removeProp('checked');
+     $locker.val("");
      // Informacion Personal
      IDPersonasVive=[];
      $otrasActividades.val('');
