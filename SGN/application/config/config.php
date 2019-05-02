@@ -22,7 +22,7 @@
 | a PHP script and you can easily do that on your own.
 |
 */
-$config['base_url'] = 'http://192.168.4.173:1024/DesarrolloBETA/SGN/';
+$config['base_url'] = 'http://192.168.4.173:1024/Sistema_General_GH/SGN/';
 
 /*
 |--------------------------------------------------------------------------

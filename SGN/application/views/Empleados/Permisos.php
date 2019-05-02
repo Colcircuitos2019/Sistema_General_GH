@@ -237,7 +237,7 @@
             <div class="modal-body">
                 <div class="col-sm-12">
                     <label>Numero documento</label>
-                    <input type="numeber" name="" class="form-control" id="documentoPermiso" max="13" >
+                    <input type="numeber" name="" class="form-control" id="documentoPermiso" max="20" >
                 </div>
                 <br><br>
                 <div class="col-sm-12">
@@ -279,7 +279,7 @@
                             Documento:
                         </label>
                         <div class="input-group">
-                            <input class="form-control" id="documento" maxlength="13" placeholder="Numero documento de identidad" type="text">
+                            <input class="form-control" id="documento" maxlength="20" placeholder="Numero documento de identidad" type="text">
                             </input>
                         </div>
                     </div>

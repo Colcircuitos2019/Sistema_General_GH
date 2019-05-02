@@ -95,13 +95,13 @@
  		            $datos['huella3']=$this->input->post('huella3');
  		            $datos['correo']=$this->input->post('correo');
  		            $datos['contraseña']=base64_encode($this->input->post('contra'));
+                $datos['estado']= 1;
  		            $datos['idEmpresa']=$this->input->post('idEmpresa');
                 $datos['idRol']=$this->input->post('rol');
                 $datos['piso']=$this->input->post('piso');
                 $datos['fecha_expedicion']=$this->input->post('fechaExpedi');
                 $datos['lugar_expedicion']=$this->input->post('lugarExpedi');
                 $datos['idManufactura']= $this->input->post('manufactura');
-                $datos['estado']= -1;
                 // $datos['fecha_registro']='(SELECT CURDATE())';
                 $op=$this->input->post('accion');
  		            //Ejecucion de la funcion de registro

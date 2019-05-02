@@ -52,7 +52,7 @@
     <div class="form-group">
         <label class="control-label col-sm-2" for="documento"><strong>*</strong>Documento:</label>
         <div class="col-sm-10">
-            <input type="text" class="form-control" maxlength="13" id="documento" placeholder="Documento" onkeypress="return valida(event)" onkeyup="validarPorCampo(this.id)">
+            <input type="text" class="form-control" maxlength="20" id="documento" placeholder="Documento" onkeypress="return valida(event)" onkeyup="validarPorCampo(this.id)">
         </div>
     </div>
     <!-- Fecha de expedicion y lugar de expedicion -->

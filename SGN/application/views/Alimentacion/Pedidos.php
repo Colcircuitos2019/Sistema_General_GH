@@ -252,7 +252,7 @@
 								<form id="formConsultarP">
 								 <div class="form-group">
                                     <label for="doc">Documento:</label>
-                                    <input type="text" autocomplete="off" maxlength="13" class="form-control" id="docP" placeholder="ej: 9812543657" onkeypress="return valida(event)">
+                                    <input type="text" autocomplete="off" maxlength="20" class="form-control" id="docP" placeholder="ej: 9812543657" onkeypress="return valida(event)">
                                  </div>
 								<div class="table-responsive">
                                  <div class="form-group">
@@ -295,7 +295,7 @@
                                   <div class="form-group">
                                     <label for="usr">Documento:</label>
                                     <div class="input-group">
-                                    	<input type="text" class="form-control" id="usr" onkeypress="return valida(event)" maxlength="13" autocomplete="off" placeholder="ej: 981532745">
+                                    	<input type="text" class="form-control" id="usr" onkeypress="return valida(event)" maxlength="20" autocomplete="off" placeholder="ej: 981532745">
                                     </div>
                                   </div>
                                   <div class="form-group">
@@ -373,7 +373,7 @@
 											  	<!-- Columna 1 -->
 											  	<div class="col-sm-4">
 											  		<label><STRONG>*</STRONG> Documento:</label>
-											  		<input type="text" autocomplete="off" maxlength="13" class="form-control" id="documentoL" placeholder="ej: 9812543657" onkeypress="return valida(event)">
+											  		<input type="text" autocomplete="off" maxlength="20" class="form-control" id="documentoL" placeholder="ej: 9812543657" onkeypress="return valida(event)">
 											  	</div>
 											  	<!-- Columna 2 -->
 											  	<div class="col-sm-4">
