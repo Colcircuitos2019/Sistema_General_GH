@@ -109,6 +109,8 @@ class cAsistencia extends CI_Controller
 
     $idHorario=$this->seleccionarIDHorarioEmpelado($info['contra'],1);//Consultar horario del empleado por contraseña unica.
 
+    var_dump($idHorario);
+
     if ($idHorario>0) {
       $info['idHorario']=$idHorario;
       // 
@@ -192,7 +194,7 @@ class cAsistencia extends CI_Controller
     // ...
     $respuesta=0;
     // ...
-    foreach ($horarios as $horario) {
+    foreach ($horarios as $horario) {//Simplificar el proceso de seleeccion del horario del día
       // ...
       if (($horario->diaInicio==$horario->diaFin)) {//Cuando el dia de inicio y fin son iguales
         $respuesta=$horario->idConfiguracion;
@@ -243,6 +245,9 @@ class cAsistencia extends CI_Controller
         // ...
       } 
     }
+
+    #echo $respuesta;
+
     return $respuesta;
   }
 
@@ -291,6 +296,8 @@ class cAsistencia extends CI_Controller
     $doc=$this->input->post('documento');
 
     $idHorario=$this->seleccionarIDHorarioEmpelado($doc,0);//Consultar Empleado Por Documento de identidad.
+
+    var_dump($idHorario);
 
     if ($idHorario>0) {
       // ...

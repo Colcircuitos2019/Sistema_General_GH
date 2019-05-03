@@ -39,12 +39,23 @@ class cConfiguracion extends CI_Controller
 
 	public function validarHoras()
 	{
+		$horas=null;
+
 		$horas['hora1']=$this->input->post('hora1');
 		$horas['hora2']=$this->input->post('hora2');
 
-		$res=$this->mConfiguracion->validarHorasM($horas);
+		if(($horas['hora1'] == "00:00:00" || $horas['hora2'] == "00:00:00") && $this->input->post('accion') == 2){
 
-		echo $res;
+			echo true;
+
+		}else{
+
+			$res=$this->mConfiguracion->validarHorasM($horas);
+
+			echo $res;
+
+		}	
+		
 	}
 
 	public function actualizarConfiguracion()

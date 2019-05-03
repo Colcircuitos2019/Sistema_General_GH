@@ -346,7 +346,6 @@ function cerrarEventosLaboral(doc) {
                         timer: 2500
                     });
                     consultarAsistenciasDia();
-                    // consultarAsistenciasDia();
                 } else {
                     swal({
                         position: 'center',

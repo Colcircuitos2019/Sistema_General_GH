@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 4.8.5
+-- version 4.7.4
 -- https://www.phpmyadmin.net/
 --
--- Servidor: 127.0.0.1
--- Tiempo de generación: 30-04-2019 a las 23:05:36
--- Versión del servidor: 10.1.38-MariaDB
--- Versión de PHP: 7.1.28
+-- Servidor: 127.0.0.1:33066
+-- Tiempo de generación: 03-05-2019 a las 23:20:00
+-- Versión del servidor: 10.1.29-MariaDB
+-- Versión de PHP: 7.2.0
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -19,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `sgh`
+-- Base de datos: `sgn`
 --
 
 DELIMITER $$
@@ -35,7 +35,7 @@ SELECT 1 AS respuesta;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `PA_ConsultarEmpleadosColtime` (IN `doc` VARCHAR(13), IN `name` VARCHAR(50))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `PA_ConsultarEmpleadosColtime` (IN `doc` VARCHAR(20), IN `name` VARCHAR(50))  NO SQL
 BEGIN
 
 IF doc!='' AND name='' THEN
@@ -135,7 +135,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `PA_SE_ConsultarIncapacidadesEmpleadoRangoFecha` (IN `documento` VARCHAR(13), IN `fecha1` VARCHAR(10), IN `fecha2` VARCHAR(10))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `PA_SE_ConsultarIncapacidadesEmpleadoRangoFecha` (IN `documento` VARCHAR(20), IN `fecha1` VARCHAR(10), IN `fecha2` VARCHAR(10))  NO SQL
 BEGIN
 
 IF fecha1!='' AND fecha2!='' THEN
@@ -272,7 +272,7 @@ SELECT DISTINCT(l.idPedido),e.nombre1,e.nombre2,e.apellido1,e.apellido2 FROM emp
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_ConsultarPedidos` (IN `doc` VARCHAR(13), IN `op` TINYINT)  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_ConsultarPedidos` (IN `doc` VARCHAR(20), IN `op` TINYINT)  NO SQL
 BEGIN
 #DECLARE per tinyint(1);
 #Valida que el estado de los tiempos si sean los correctos.
@@ -341,7 +341,7 @@ SELECT DATE_FORMAT(pd.fecha_pedido,'%d/%m/%Y') AS fecha_pedido,p.nombre AS produ
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_LiquidacionPedidosPorEmpeladoYFechas` (IN `doc` VARCHAR(13), IN `fechaI` VARCHAR(15), IN `fechaF` VARCHAR(15))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_LiquidacionPedidosPorEmpeladoYFechas` (IN `doc` VARCHAR(20), IN `fechaI` VARCHAR(15), IN `fechaF` VARCHAR(15))  NO SQL
 BEGIN
 
 SELECT DATE_FORMAT(p.fecha_pedido,'%Y-%m-%d') AS fecha,DATE_FORMAT(p.fecha_pedido,'%r') AS hora,em.nombre,e.nombre1,e.nombre2,e.apellido1,e.apellido2,p.total AS valor FROM empresa em JOIN empleado e ON em.idEmpresa=e.idEmpresa JOIN pedido p ON e.documento=p.documento JOIN lineas_pedido lp ON p.idPedido=lp.idPedido JOIN producto pr ON lp.idProducto=pr.idProducto JOIN proveedor pro ON pr.idProveedor=pro.idProveedor WHERE p.fecha_pedido BETWEEN fechaI AND ADDDATE(fechaF, INTERVAL 1 DAY) AND e.documento=doc  GROUP BY p.idPedido ORDER BY p.fecha_pedido;
@@ -460,7 +460,7 @@ SELECT true AS respuesta;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_RegistrarPedido` (IN `doc` VARCHAR(13), IN `total` VARCHAR(8))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_RegistrarPedido` (IN `doc` VARCHAR(20), IN `total` VARCHAR(8))  NO SQL
 BEGIN
 
 DECLARE dias tinyint(1);
@@ -560,7 +560,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_ValidarPedidoPorDia` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_ValidarPedidoPorDia` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 DECLARE dias tinyint(1);
@@ -642,7 +642,7 @@ select EXISTS(select * from empleado e WHERE e.documento=doc AND e.contraseña C
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_ValidarUsuarioPedido` (IN `doc` VARCHAR(13), IN `con` VARCHAR(10), IN `idP` INT)  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_ValidarUsuarioPedido` (IN `doc` VARCHAR(20), IN `con` VARCHAR(10), IN `idP` INT)  NO SQL
 BEGIN
 
 select EXISTS(select * from empleado e JOIN pedido p ON e.documento=p.documento WHERE e.documento=doc AND e.contraseña COLLATE utf8_bin=con AND p.idPedido=idP AND e.estado=1) AS respuesta;
@@ -685,7 +685,7 @@ SELECT true AS respuesta;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_AsistenciaPorEmpleado` (IN `doc` VARCHAR(13), IN `op` INT, IN `fecha` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_AsistenciaPorEmpleado` (IN `doc` VARCHAR(20), IN `op` INT, IN `fecha` VARCHAR(13))  NO SQL
 BEGIN
 
 IF op=0 THEN
@@ -703,7 +703,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_AsistenciaPorFechas` (IN `fecha1` VARCHAR(13), IN `fecha2` VARCHAR(13), IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_AsistenciaPorFechas` (IN `fecha1` VARCHAR(13), IN `fecha2` VARCHAR(13), IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 IF doc='' THEN
@@ -804,7 +804,7 @@ SELECT true as respuesta;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_CambiarEstadoDeAsistenciaOperarioInicial` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_CambiarEstadoDeAsistenciaOperarioInicial` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc;
@@ -840,7 +840,7 @@ SELECT 1 AS respuesta;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_CambiarEstadoHorarioEmpleado` (IN `id` INT, IN `documento` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_CambiarEstadoHorarioEmpleado` (IN `id` INT, IN `documento` VARCHAR(20))  NO SQL
 BEGIN
 DECLARE estado tinyint(1);
 #...
@@ -873,7 +873,7 @@ SELECT 1 AS respuesta;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_CantidadDePedidosDiarios` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_CantidadDePedidosDiarios` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 #----
 SELECT COUNT(l.idLineas_pedido) AS rowsConect FROM empleado em join pedido pd on em.documento=pd.documento JOIN lineas_pedido l ON pd.idPedido=l.idPedido JOIN producto p on l.idProducto=p.idProducto JOIN proveedor pr ON p.idProveedor=pr.idProveedor WHERE DATE_FORMAT(pd.fecha_pedido,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND em.documento=doc;
@@ -887,7 +887,7 @@ SELECT COUNT(*) AS respuesta FROM notificacion n WHERE n.idUsuario= rol AND n.le
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_CantidadUsoLector` (IN `doc` VARCHAR(13), IN `evento` TINYINT(1), IN `fechaI` VARCHAR(10), IN `fechaF` VARCHAR(10))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_CantidadUsoLector` (IN `doc` VARCHAR(20), IN `evento` TINYINT(1), IN `fechaI` VARCHAR(10), IN `fechaF` VARCHAR(10))  NO SQL
 BEGIN
 
 #SELECT a.lectorI,COUNT(a.lectorI) AS cantidadI, a.lectorF,COUNT(a.lectorF) as cantidadF FROM asistencia a WHERE a.lectorI is not null AND a.lectorF is not null AND a.documento='1216727816' GROUP BY a.lectorI,a.lectorF
@@ -978,7 +978,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarCantidadEventos` (IN `doc` VARCHAR(13), IN `fecha1` VARCHAR(10), IN `fecha2` VARCHAR(10), IN `evento` TINYINT(1))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarCantidadEventos` (IN `doc` VARCHAR(20), IN `fecha1` VARCHAR(10), IN `fecha2` VARCHAR(10), IN `evento` TINYINT(1))  NO SQL
 BEGIN
 #variables
 DECLARE aTiempo int;
@@ -1135,7 +1135,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarEmpelados` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarEmpelados` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 IF doc='-1' THEN
@@ -1221,7 +1221,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarEstadoEmpresariales` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarEstadoEmpresariales` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 DECLARE idF int;
 
@@ -1232,7 +1232,7 @@ SELECT es.idEstado_empresarial,es.idFicha_SD,es.estado_e,DATE_FORMAT(es.fecha_re
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarEventosDA` (IN `doc` VARCHAR(13), IN `fechaI` VARCHAR(10), IN `fechaF` VARCHAR(10), IN `evento` TINYINT(1))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarEventosDA` (IN `doc` VARCHAR(20), IN `fechaI` VARCHAR(10), IN `fechaF` VARCHAR(10), IN `evento` TINYINT(1))  NO SQL
 BEGIN
 #...
 IF fechaI!='' AND fechaF!='' THEN
@@ -1338,7 +1338,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarIndoPersonal` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarIndoPersonal` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 #SELECT p.idPersonal,p.direccion,REPLACE(p.direccion,';',' ') AS direc,p.barrio,p.comuna,p.idMunicipio,m.nombre AS municipio,p.estrato,p.caso_emergencia,p.tel,p.parentezco,pt.nombre,p.idTipo_vivienda,t.nombre AS vivienda,p.altura,p.peso FROM empleado e JOIN ficha_sd f ON e.documento=f.documento JOIN personal p ON f.idPersonal=p.idPersonal JOIN municipio m ON p.idMunicipio=m.idMunicipio JOIN tipo_vivienda t ON p.idTipo_vivienda=t.idTipo_vivienda JOIN parentezco pt ON pt.idParentezco=p.parentezco  WHERE e.documento=doc;
@@ -1347,21 +1347,21 @@ SELECT p.idPersonal,p.direccion,UPPER(REPLACE(p.direccion,';',' ')) AS direc,p.b
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoEstudios` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoEstudios` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 SELECT es.idEstudios,es.idGrado_escolaridad,ge.grado,es.titulo_profecional,es.titulo_especializacion,es.titulo_estudios_actuales,(SELECT g.grado FROM grado_escolaridad g where g.idGrado_escolaridad=es.titulo_estudios_actuales) as estudios_actuales,es.nombre_carrera  FROM empleado e JOIN ficha_sd f ON e.documento=f.documento JOIN estudios es ON f.idEstudios=es.idEstudios JOIN grado_escolaridad ge ON es.idGrado_escolaridad=ge.idGrado_escolaridad  WHERE e.documento=doc;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoLaboral` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoLaboral` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 SELECT l.idLaboral,l.idHorario_trabajo,h.horario,l.idArea_trabajo,art.area,l.idCargo,c.cargo,l.recurso_humano,l.idTipo_contrato,tc.contrato,DATE_FORMAT(l.fecha_vencimiento_contrato,'%d-%m-%Y') AS fecha_vencimiento_contrato,l.antiguedad,l.idClasificacion_contable,cc.clasificacion FROM empleado e JOIN ficha_sd f ON e.documento=f.documento JOIN laboral l ON f.idLaboral=l.idLaboral JOIN horario_trabajo h ON l.idHorario_trabajo=h.idHorario_trabajo JOIN cargo c ON l.idCargo=c.idCargo JOIN area_trabajo art ON l.idArea_trabajo=art.idArea_trabajo JOIN tipo_contrato tc ON l.idTipo_contrato=tc.idTipo_contrato JOIN clasificacion_contable cc ON l.idClasificacion_contable=cc.idClasificacion_contable WHERE e.documento=doc;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoSalarial` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoSalarial` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 
@@ -1374,21 +1374,21 @@ SELECT s.idSalarial,s.idPromedio_salario,(SELECT ps.nombre FROM promedio_salario
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoSalud` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoSalud` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 SELECT s.idSalud,s.fuma,s.alcohol,s.descripccion_emergencia  FROM empleado e JOIN ficha_sd f ON e.documento=f.documento JOIN salud s ON f.idSalud=s.idSalud WHERE e.documento=doc;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoSAuxilios` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoSAuxilios` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 SELECT ta.idTipo_auxilio,ta.auxilio,a.monto,CONCAT('$',FORMAT(a.monto,00)) AS mondoFormato,a.estado FROM ficha_sd f RIGHT JOIN salarial s ON f.idSalarial=s.idSalarial RIGHT JOIN auxilio a ON s.idSalarial=a.idSalarial JOIN tipo_auxilio ta ON a.idTipo_auxilio=ta.idTipo_auxilio WHERE f.documento=doc AND a.estado=1;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoSecundariaBasica` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarInfoSecundariaBasica` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 SELECT s.idSecundaria_basica,s.idEstado_civil,es.nombre_estado,DATE_FORMAT(s.fecha_nacimiento,'%d-%m-%Y') AS fecha_nacimiento,s.lugar_nacimiento,s.tel_fijo,s.celular,s.idTipo_sangre,ts.nombre AS sangre,s.idEPS,eps.nombre AS eps,s.idAFP,afp.nombre AS afp FROM empleado e JOIN ficha_sd f ON e.documento=f.documento JOIN secundaria_basica s ON f.idSecundaria_basica=s.idSecundaria_basica JOIN estado_civil es ON s.idEstado_civil=es.idEstado_civil JOIN tipo_sangre ts ON s.idTipo_sangre=ts.idTipo_sangre JOIN eps ON s.idEPS=eps.idEPS JOIN afp ON s.idAFP=afp.idAFP WHERE e.documento=doc;
@@ -1430,14 +1430,14 @@ SELECT e.documento,e.asistencia, (SELECT a1.hora_inicio FROM asistencia a1 WHERE
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarOtraInformacion` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarOtraInformacion` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 SELECT o.idOtros,o.talla_camisa,o.talla_pantalon,o.talla_zapatos,o.vigencia_curso_alturas,o.brigadas,o.comites,o.necesitaCALT, o.locker FROM ficha_sd f JOIN otros o ON f.idOtros=o.idOtros WHERE f.documento=doc;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarPermisoEmpleado` (IN `doc` VARCHAR(13), IN `cod` VARCHAR(5), IN `fecha` VARCHAR(15))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarPermisoEmpleado` (IN `doc` VARCHAR(20), IN `cod` VARCHAR(5), IN `fecha` VARCHAR(15))  NO SQL
 BEGIN
 
 IF doc!='' AND fecha!='' THEN
@@ -1465,7 +1465,7 @@ SELECT p.documento,p.idPermiso,p.fecha_solicitud,DATE_FORMAT(p.fecha_permiso,'%d
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarPermisosEmpleado` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarPermisosEmpleado` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 IF doc!='' THEN#Consulta por documento
@@ -1476,7 +1476,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarPermisosPorRangoFechas` (IN `fechaI` VARCHAR(11), IN `fechaF` VARCHAR(11), IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ConsultarPermisosPorRangoFechas` (IN `fechaI` VARCHAR(11), IN `fechaF` VARCHAR(11), IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 IF doc!='' THEN#Consultar por rango de fecha o fecha y por el documento. 
@@ -1598,7 +1598,7 @@ SELECT COUNT(a.idAuxilio) AS cantidad FROM ficha_sd f RIGHT JOIN salarial s ON f
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_EliminarEmpleado` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_EliminarEmpleado` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 DECLARE c int;
@@ -1727,7 +1727,7 @@ DELETE FROM estado_empresarial;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ModificarEmpleados` (IN `doc` VARCHAR(13), IN `nom1` VARCHAR(45), IN `nom2` VARCHAR(45), IN `apelli1` VARCHAR(45), IN `apelli2` VARCHAR(45), IN `genero` TINYINT(1), IN `huella1` INT, IN `huella2` INT, IN `huella3` INT, IN `correo` VARCHAR(50), IN `contra` VARCHAR(50), IN `idE` TINYINT, IN `idR` TINYINT, IN `piso` VARCHAR(1), IN `fechaEx` VARCHAR(10), IN `lugarEx` VARCHAR(50), IN `idM` TINYINT, IN `estado` TINYINT(1))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ModificarEmpleados` (IN `doc` VARCHAR(20), IN `nom1` VARCHAR(45), IN `nom2` VARCHAR(45), IN `apelli1` VARCHAR(45), IN `apelli2` VARCHAR(45), IN `genero` TINYINT(1), IN `huella1` INT, IN `huella2` INT, IN `huella3` INT, IN `correo` VARCHAR(50), IN `contra` VARCHAR(50), IN `idE` TINYINT, IN `idR` TINYINT, IN `piso` VARCHAR(1), IN `fechaEx` VARCHAR(10), IN `lugarEx` VARCHAR(50), IN `idM` TINYINT, IN `estado` TINYINT(1))  NO SQL
 BEGIN
 
 IF contra!='' THEN
@@ -1769,7 +1769,7 @@ SELECT n.idNotificacion,SE_FU_TiempoDeNotificacion(n.fecha) AS fecha,DATE_FORMAT
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_RegistrarFichaSDG` (IN `doc` VARCHAR(13), IN `idSalarial` INT, IN `idLaboral` INT, IN `idEstudio` INT, IN `idSecundariaB` INT, IN `idPersonal` INT, IN `idSalud` INT, IN `idOtros` INT)  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_RegistrarFichaSDG` (IN `doc` VARCHAR(20), IN `idSalarial` INT, IN `idLaboral` INT, IN `idEstudio` INT, IN `idSecundariaB` INT, IN `idPersonal` INT, IN `idSalud` INT, IN `idOtros` INT)  NO SQL
 BEGIN
 
 IF EXISTS(SELECT * FROM ficha_sd f WHERE f.documento=doc) THEN#Si existe la ficha SDG
@@ -1849,7 +1849,7 @@ SELECT 1 AS respuesta;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_RegistrarModificarEliminarExamenesMedicos` (IN `idE` INT, IN `documento` VARCHAR(13), IN `tipoExamen` INT, IN `otroExamen` VARCHAR(45), IN `motivo` VARCHAR(250), IN `fechaplazo` VARCHAR(15), IN `fechaRetorno` VARCHAR(15))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_RegistrarModificarEliminarExamenesMedicos` (IN `idE` INT, IN `documento` VARCHAR(20), IN `tipoExamen` INT, IN `otroExamen` VARCHAR(45), IN `motivo` VARCHAR(250), IN `fechaplazo` VARCHAR(15), IN `fechaRetorno` VARCHAR(15))  NO SQL
 BEGIN
 #variable de retorno
 DECLARE res int;#Registrar=1,Modificar=2
@@ -1867,7 +1867,7 @@ SELECT res AS respuesta;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_RegistrarModificarEmpleadoHorario` (IN `idD` INT, IN `documento` VARCHAR(13), IN `idConfig` TINYINT(1), IN `diaInicio` TINYINT(1), IN `diaFin` TINYINT(1))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_RegistrarModificarEmpleadoHorario` (IN `idD` INT, IN `documento` VARCHAR(20), IN `idConfig` TINYINT(1), IN `diaInicio` TINYINT(1), IN `diaFin` TINYINT(1))  NO SQL
 BEGIN
 
 IF EXISTS(SELECT * FROM empleado_horario e WHERE e.idEmpleado_horario=idD) THEN
@@ -2357,7 +2357,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_RegistrarModificarIncapacidades` (IN `accion` TINYINT(1), IN `doc` VARCHAR(13), IN `fechaI` VARCHAR(15), IN `fechaF` VARCHAR(15), IN `dias` VARCHAR(4), IN `valorT` VARCHAR(13), IN `diagnostico` VARCHAR(4), IN `descrip` VARCHAR(100), IN `idIncap` INT, IN `idTipoIncapa` INT, IN `idEnfermedad` INT, IN `valorEPS` VARCHAR(13), IN `valorEmpresa` VARCHAR(13), IN `valorARL` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_RegistrarModificarIncapacidades` (IN `accion` TINYINT(1), IN `doc` VARCHAR(20), IN `fechaI` VARCHAR(15), IN `fechaF` VARCHAR(15), IN `dias` VARCHAR(4), IN `valorT` VARCHAR(13), IN `diagnostico` VARCHAR(4), IN `descrip` VARCHAR(100), IN `idIncap` INT, IN `idTipoIncapa` INT, IN `idEnfermedad` INT, IN `valorEPS` VARCHAR(13), IN `valorEmpresa` VARCHAR(13), IN `valorARL` VARCHAR(13))  NO SQL
 BEGIN
 #Registrar la informacion
 IF accion=0 THEN
@@ -2517,7 +2517,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_RegistrarModificarPermisoEmpleado` (IN `idP` INT, IN `documento` VARCHAR(13), IN `fechaP` VARCHAR(10), IN `concepto` TINYINT(2), IN `momento` TINYINT(1), IN `hora` VARCHAR(8), IN `des` VARCHAR(100))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_RegistrarModificarPermisoEmpleado` (IN `idP` INT, IN `documento` VARCHAR(20), IN `fechaP` VARCHAR(10), IN `concepto` TINYINT(2), IN `momento` TINYINT(1), IN `hora` VARCHAR(8), IN `des` VARCHAR(100))  NO SQL
 BEGIN
 
 IF EXISTS(SELECT * FROM permiso p WHERE p.idPermiso=idP) THEN
@@ -2588,7 +2588,7 @@ END IF;
 #...
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_validarDocumentoExistente` (IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_validarDocumentoExistente` (IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 IF EXISTS(SELECT * FROM empleado e WHERE e.documento=doc) THEN
@@ -2599,7 +2599,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ValidarExistenciaContraseña` (IN `contra` VARCHAR(20), IN `doc` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ValidarExistenciaContraseña` (IN `contra` VARCHAR(20), IN `doc` VARCHAR(20))  NO SQL
 BEGIN
 
 #validar existencia empleado
@@ -2714,7 +2714,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ValidarUsuarioPermiso` (IN `doc` VARCHAR(13), IN `con` VARCHAR(10), IN `cod` VARCHAR(5))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SE_PA_ValidarUsuarioPermiso` (IN `doc` VARCHAR(20), IN `con` VARCHAR(10), IN `cod` VARCHAR(5))  NO SQL
 BEGIN
 
 select EXISTS(select * from empleado e JOIN codigo_permiso c ON e.documento=c.documento WHERE e.documento=doc AND e.contraseña=con AND e.estado=1 AND c.Codigo COLLATE utf8_bin=cod) AS respuesta;
@@ -2757,92 +2757,109 @@ DECLARE horasExtras time;
 DECLARE tiempo time;
 DECLARE estadoEvento tinyint(1);
 #Validar que las horas laborales del dia en curso no esten registradas para poder hacer el calculo
-IF !(EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d'))) OR (accion=2) THEN#Acciones 1=Automatico 2=Manual
+IF !(EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d'))) OR (accion=2) THEN # Acciones 1=Automatico 2=Manual
 
-#...
-SET horasTrabajadas=(SELECT a.tiempo FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(fechaAsitencia,'%d-%m-%Y') AND a.idTipo_evento=1);#Horas trabajadas sin substraerl los tiempos de descanso.
-#Tiempo del desayuno
-SET tiempo=(SELECT a.tiempo FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(fechaAsitencia,'%d-%m-%Y') AND a.idTipo_evento=2);#tiempo del desayuno.
+  #...
+  SET horasTrabajadas=(SELECT a.tiempo FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(fechaAsitencia,'%d-%m-%Y') AND a.idTipo_evento=1);#Horas trabajadas sin substraerl los tiempos de descanso.
+  
+  #Aplica el desayuno?
+  IF EXISTS(SELECT * FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.hora_inicio_desayuno > '00:00:00') THEN
 
-#se resta el tiempo del desayuno.
-SET horasTrabajadas=(SUBTIME(horasTrabajadas,tiempo));
-#SELECT horasTrabajadas;
-#Tiempo del almuerzo.
-SET tiempo=(SELECT a.tiempo FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(fechaAsitencia,'%d-%m-%Y') AND a.idTipo_evento=3);#Tiempo del almuerzo.
+    #Tiempo del desayuno
+    SET tiempo=(SELECT a.tiempo FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(fechaAsitencia,'%d-%m-%Y') AND a.idTipo_evento=2);#tiempo del desayuno.
 
-#Se resta el tiempo del almuerzo y este es el tiempo total trabajado normal. (Normalmente se trabajan 9.5(09:30:00) horas diarias).
-SET horasTrabajadas=(SUBTIME(horasTrabajadas,tiempo));
-#SELECT horasTrabajadas;
-#...
-SET horaFinLaboral=(SELECT c.hora_salida_empresa FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);
-#se tiene que validar que la hora del fin laboral de la persona sea mayor a la hora laboral extablecida para saber si se selecciona la hora fin del empleado o la hora establecida de la empresa.
-#...
-#Las horas totales trabajadas son mayores al total de horas laborales establecidos por día (9 horas y media por dia, por el momento. esto puede estar suceptible a cambios). 
-   # Tiempo estipulado de labor diaria.
-   SET tiempo=(SELECT SI_FU_TiempoPredeterminadoDeTrabajoDiario(idHorario));
-   #...
-IF (horasTrabajadas)>(tiempo) THEN# si mi hora laboral es mayor que el horario establecido de la empresa se considera horas extrar. falta preguntar un rango de tiempo para considerar horas extras.#Valida la cantidad de horas extras 
+    #se resta el tiempo del desayuno.
+    SET horasTrabajadas=(SUBTIME(horasTrabajadas,tiempo));
+
+  END IF;
+
+  #Aplica el almuerzo?
+  IF EXISTS(SELECT * FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.hora_inicio_almuerzo > '00:00:00') THEN
+
+    #Tiempo del almuerzo.
+    SET tiempo=(SELECT a.tiempo FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(fechaAsitencia,'%d-%m-%Y') AND a.idTipo_evento=3);#Tiempo del almuerzo.
+
+    #Se resta el tiempo del almuerzo y este es el tiempo total trabajado normal. (Normalmente se trabajan 9.5(09:30:00) horas diarias).
+    SET horasTrabajadas=(SUBTIME(horasTrabajadas,tiempo));
+
+  END IF;
+  
+  #...
+  SET horaFinLaboral=(SELECT c.hora_salida_empresa FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);
+  #se tiene que validar que la hora del fin laboral de la persona sea mayor a la hora laboral extablecida para saber si se selecciona la hora fin del empleado o la hora establecida de la empresa.
+  
+  #...
+  #Las horas totales trabajadas son mayores al total de horas laborales establecidos por día (9 horas y media por dia, por el momento. esto puede estar suceptible a cambios). 
+  # Tiempo estipulado de labor diaria.
+  SET tiempo=(SELECT SI_FU_TiempoPredeterminadoDeTrabajoDiario(idHorario));
+  #...
+  IF (horasTrabajadas)>(tiempo) THEN# si mi hora laboral es mayor que el horario establecido de la empresa se considera horas extrar. falta preguntar un rango de tiempo para considerar horas extras.#Valida la cantidad de horas extras 
     #...
     #Horas extras
     SET horasExtras=(SELECT TIMEDIFF(horasTrabajadas,tiempo));
     #...
-    #SET estadoEvento=(SELECT SE_FU_ClasificarEventoHorasTrabajadas(fechaAsitencia,horasTrabajadas,1));#Clasificar el evento de horas laborales.
-    #Existen las horas normales para esta fecha ya registradas?
-    IF EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=1) THEN#Actualizar
-    	UPDATE h_laboral h SET h.numero_horas=(SELECT SUBTIME(horasTrabajadas,horasExtras)), h.horas_aceptadas=(SELECT SUBTIME(horasTrabajadas,horasExtras)) WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=1;
-        #SELECT 1;
-    ELSE#Registrar
+      #Existen las horas normales para esta fecha ya registradas?
+      IF EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=1) THEN # Actualizar
+
+        UPDATE h_laboral h SET h.numero_horas=(SELECT SUBTIME(horasTrabajadas,horasExtras)), h.horas_aceptadas=(SELECT SUBTIME(horasTrabajadas,horasExtras)) WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=1;
+      
+      ELSE #Registrar
+
         # Se ingresa esta información a la base de datos. Horas trabajadas normales. Clasificar recargo horas
         INSERT INTO `h_laboral`(`documento`, `idEvento_laboral`, `fecha_laboral`, `numero_horas`, `Estado`, `horas_aceptadas`, `horas_rechazadas`) VALUES (doc,1,fechaAsitencia,SUBTIME(horasTrabajadas,horasExtras),1,TIME_FORMAT(SUBTIME(horasTrabajadas,horasExtras),'%H:%i:%s'),'0');
-        #SELECT 0;
+
+      END IF;
+      #...
+      #Las horas trabajadas de la persona tienen que ser mayor a las horas totales trabajadas propuestas por la empresa.
+      IF (horasTrabajadas > tiempo)  THEN
+      #Se hace la diferencia de horas y el resultado tiene que ser mayor de 10 minutos para que cuente como horas extrar
+      #...
+      #Si las horas extra horario son mayores a 10 minutos se toma en cuenta las horas extra laborales.
+        IF horasExtras>'00:10:00' THEN
+        #Validar Existencia horas extras registradas.
+          IF EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=2) THEN # Actualizar
+
+            UPDATE h_laboral h SET h.numero_horas=(SELECT SE_FU_RedondiarTiempo(horasExtras)), h.horas_aceptadas=0, h.Estado=0,h.horas_rechazadas=0 WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=2;
+
+          ELSE#Registrar                                                                                                        
+            
+            # Se ingresa esta informacion a la base de datos. Horas Extras.
+            INSERT INTO `h_laboral`(`documento`, `idEvento_laboral`, `fecha_laboral`, `numero_horas`, `Estado`) VALUES (doc,2,fechaAsitencia,(SELECT SE_FU_RedondiarTiempo(horasExtras)),0);
+
+          END IF;
+
+        ELSE # Eliminar Horas extras si es que existen
+
+          DELETE FROM h_laboral  WHERE documento=doc AND fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND idEvento_laboral=2;
+
+        END IF;
+      END IF;
+  #...
+  ELSE
+    #...Eliminar horas extras si es que tiene...
+
+    IF EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=1) THEN # Actualizar
+
+      UPDATE h_laboral h SET h.numero_horas=horasTrabajadas, h.horas_aceptadas=horasTrabajadas WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=1;
+
+    ELSE # Registrar
+
+      #Consultar evento de horas laborales
+      #Se ingresa esta informacion a la base de datos. Horas trebajadas normales.
+      INSERT INTO `h_laboral`(`documento`, `idEvento_laboral`, `fecha_laboral`, `numero_horas`, `Estado`, `horas_aceptadas`, `horas_rechazadas`) VALUES (doc,1,DATE_FORMAT(fechaAsitencia,'%Y-%m-%d'),horasTrabajadas,1,horasTrabajadas,'0');
+
     END IF;
-  #...
-  #Las horas trabajadas de la persona tienen que ser mayor a las horas totales trabajadas propuestas por la empresa.
-  IF horasTrabajadas>tiempo  THEN
-   #Se hace la diferencia de horas y el resultado tiene que ser mayor de 10 minutos para que cuente como horas extrar
-   #...
-       #Si las horas extra horario son mayores a 10 minutos se toma en cuenta las horas extra laborales.
-    IF horasExtras>'00:10:00' THEN
-       #Validar Existencia horas extras registradas.
-       IF EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=2) THEN#Actualizar
-		   UPDATE h_laboral h SET h.numero_horas=(SELECT SE_FU_RedondiarTiempo(horasExtras)), h.horas_aceptadas=0, h.Estado=0,h.horas_rechazadas=0 WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=2;
-           #SELECT 1;
-       ELSE#Registrar                                                                                                        
-           # Se ingresa esta informacion a la base de datos. Horas Extras.
-           INSERT INTO `h_laboral`(`documento`, `idEvento_laboral`, `fecha_laboral`, `numero_horas`, `Estado`) VALUES (doc,2,fechaAsitencia,(SELECT SE_FU_RedondiarTiempo(horasExtras)),0);
-           #SELECT 0;
-       END IF;
-    ELSE#Eliminar Horas extras si es que existen
-      DELETE FROM h_laboral  WHERE documento=doc AND fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND idEvento_laboral=2;
-      #SELECT 2;
-    END IF;
+    
+    #...Eliminar horas extras si es que tiene...
+    DELETE FROM h_laboral  WHERE documento=doc AND fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND idEvento_laboral=2;
+    #...
   END IF;
-  #...
-ELSE
-  #...Eliminar horas extras si es que tiene...
-  #SELECT horasTrabajadas;
-  IF EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=1) THEN#Actualizar
-    UPDATE h_laboral h SET h.numero_horas=horasTrabajadas, h.horas_aceptadas=horasTrabajadas WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND h.idEvento_laboral=1;
-    #SELECT 1;
-  ELSE#Registrar
-    #Consultar evento de horas laborales
-    #SET estadoEvento=(SELECT SE_FU_ClasificarEventoHorasTrabajadas(fechaAsitencia,horasTrabajadas,1));
-    #Se ingresa esta informacion a la base de datos. Horas trebajadas normales.
-    INSERT INTO `h_laboral`(`documento`, `idEvento_laboral`, `fecha_laboral`, `numero_horas`, `Estado`, `horas_aceptadas`, `horas_rechazadas`) VALUES (doc,1,DATE_FORMAT(fechaAsitencia,'%Y-%m-%d'),horasTrabajadas,1,horasTrabajadas,'0');
-    #SELECT estadoEvento;
-    #SELECT 0;
-  END IF;
-  #...Eliminar horas extras si es que tiene...
-  DELETE FROM h_laboral  WHERE documento=doc AND fecha_laboral=DATE_FORMAT(fechaAsitencia,'%Y-%m-%d') AND idEvento_laboral=2;
-  #SELECT 2;
-  #...
-END IF;
 
 END IF;
 #...
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_CierreEventosAsistenciaOperarios` (IN `doc` VARCHAR(13), IN `evento` TINYINT(1), IN `lector` INT, IN `idHorario` INT, IN `accion` INT)  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_CierreEventosAsistenciaOperarios` (IN `doc` VARCHAR(20), IN `evento` TINYINT(1), IN `lector` INT, IN `idHorario` INT, IN `accion` INT)  NO SQL
 BEGIN
 #accion me sirve para saber si tengo en cuenta los 5 minutos o no para cerrar la toma de tiempo
 #Este procedimiento solo va a funcionar con los eventos de desayuno y almuerzo.
@@ -2917,7 +2934,7 @@ SELECT h.idH_laboral,e.documento,e.nombre1,e.nombre2,e.apellido1,e.apellido2,em.
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ConsultarTipoAlerta` (IN `documento` VARCHAR(13))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ConsultarTipoAlerta` (IN `documento` VARCHAR(20))  NO SQL
 BEGIN
 
 IF (SELECT ac.fecha_fin FROM asistencia ac WHERE ac.idTipo_evento=1 AND ac.fecha_inicio=CURDATE() AND ac.documento=documento) IS null THEN
@@ -2952,6 +2969,87 @@ INSERT INTO `notificacion`(`fecha`, `comentario`, `leido`, `idUsuario`, `idTipo_
 
 END IF;
 
+
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_GestionEventosAlmuerzoDesayuno` (IN `doc` INT, IN `lector` INT, IN `idHorario` INT)  NO SQL
+BEGIN
+
+DECLARE respuesta tinyint(1);
+
+#Aplica el vento del desayuno?
+IF EXISTS(SELECT * FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.hora_inicio_desayuno > '00:00:00') THEN
+
+  IF !EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin is NOT null AND a.hora_fin is null AND a.idTipo_evento=2) THEN
+  
+  	#Aplica el desayuno
+  	CALL SI_PA_ValidacionExistenciaEventosQueAplican(doc, 2, lector, idHorario);
+  
+  END IF;
+
+END IF;
+
+#Aplica el evento del almuerzo?
+IF EXISTS(SELECT * FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.hora_inicio_almuerzo > '00:00:00') THEN
+    
+  IF !EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin is NOT null AND a.hora_fin is null AND a.idTipo_evento=3) THEN
+  
+  	#Aplica el almuerzo
+  	CALL SI_PA_ValidacionExistenciaEventosQueAplican(doc, 3, lector, idHorario); 
+  
+  END IF;
+
+END IF;
+
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ProcedimientoEventosNoAsistidos` (IN `doc` INT, IN `lector` TINYINT(2), IN `idHorario` TINYINT(2), IN `evento` TINYINT(1))  NO SQL
+BEGIN
+
+DECLARE horaF time;#Hora de fin del evento (Desayuno/Almuerzo)
+DECLARE respuesta int;
+DECLARE tiempoEvento varchar(8);
+
+  #Se consulta de fin del evento (Desayuno/Almuerzo)
+  IF evento = 2 THEN
+  #Desayuno
+  	SET horaF=(SELECT c.hora_fin_desayuno FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);
+  ELSE
+  #Almuerzo
+  	SET horaF=(SELECT c.hora_fin_almuerzo FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);
+  END IF;
+
+  #...
+  #la hora del sistema es mayor que la hora final del evento (Desayuno/Almuerzo)
+  IF now() > horaF THEN
+  
+    IF !EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND DATE_FORMAT(a.fecha_fin,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=evento) THEN
+    
+    # se valida si existe una asistencia abierta. 
+      IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin IS null AND a.hora_fin IS null AND a.idTipo_evento=evento) THEN
+      
+        #se actualiza el evento (Desayuno/Almuerzo)
+        UPDATE asistencia a SET a.fecha_fin=now(),a.hora_fin=now(),a.idEstado_asistencia=2, a.estado=0, a.lectorF=lector WHERE a.documento=doc AND a.idTipo_evento=evento AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
+        
+        #Se calculara el tiempo que corresponde al evento (Desayuno/Almuerzo).
+        SET respuesta=(SELECT SI_FU_ClasificarElTiempoCorrecto(doc,evento));
+        
+      ELSE
+        #se registra el evento (Desayuno/Almuerzo)
+        IF evento = 2 THEN
+  		#Desayuno
+        	SET tiempoEvento = (SELECT c.tiempo_desayuno FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);
+        ELSE
+        #Almuerzo
+        	SET tiempoEvento = (SELECT c.tiempo_almuerzo FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);
+        END IF;
+        
+        INSERT INTO `asistencia`(`documento`, `idTipo_evento`, `fecha_inicio`, `hora_inicio`, `fecha_fin`, `hora_fin`,`idEstado_asistencia`, `estado`, `lectorF`, `tiempo`,`idConfiguracion`) VALUES (doc, evento, now(), now(), now(), now(), 3, 0, 0, tiempoEvento, idHorario);
+      END IF;
+      #SELECT 1;
+    END IF;
+  END IF;
+  #  
 
 END$$
 
@@ -3078,7 +3176,7 @@ END IF;
 		 SELECT doc;
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_RegistrarAsistenciaContraseña` (IN `contra` VARCHAR(20), IN `lector` INT, IN `idHorario` TINYINT(1))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_RegistrarAsistenciaContraseña` (IN `contra` VARCHAR(20), IN `lector` INT, IN `idHorario` TINYINT(2))  NO SQL
 BEGIN#Global#Esta es la version de control de asistencia mediante contraseña
 #Falta integrar la configuracion de horario que va a tener cada empleado...Pendiente
 #El evento de desayuno o almuerzo se cerraran cuando se vuelva a colocar la huella(contraseña) 5 minutos despues te la domo inicial del evento.
@@ -3095,100 +3193,68 @@ DECLARE horaF time; #hora fin de algun evento
 DECLARE horaD time;#Hora de inicio del evento Desayuno o almuerzo
 DECLARE tiempo varchar(10); #Tiempo total laborado el día de hoy.
 DECLARE permiso tinyint(1);
+DECLARE multiplesEventos tinyint(1);
+DECLARE cantidad_eventos_que_aplican tinyint(1);
 #Buscamos el documendo de la perzona a la cual pertenece la huella (rol =1 =Operario), (estado=1=activado), huellas...
 #SET doc=(SELECT e.documento FROM empleado e WHERE e.huella1=huella OR e.huella2=huella OR e.huella3=huella AND e.estado=1 AND e.idRol=1);
 #Consultar documento del empelado por la contrasela que tiene asociada cada empleado para realizar diferentes acciones dentro de la empresa.
 SET doc=(SELECT e.documento FROM empleado e WHERE e.contraseña COLLATE utf8_bin=contra AND e.estado=1 AND e.idRol=1);
 #preguntamos si existe alguien con esa huella, si existe alguien con la huella que inserte el registro, si no no va a realizar la inserción.
-
+SET multiplesEventos = (SELECT SI_FU_ArreglarProblemaBugAsistenciaMultiplesEventos(doc));#->Se encarga de eliminar los registros duplicados del mismo evento (Desayuno, Almuerzo o laboral) en dado caso de que existan.
 #Condicional de documento.------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------7
 IF doc!='' THEN
-   #se valida que la en el día no tenga más de un evento laboral, si lo tiene no se puede volver a registrar el dia actual otro evento de esos.-----------------------------------------------------------------------------------------------------------------8
+  #se valida que la en el día no tenga más de un evento laboral, si lo tiene no se puede volver a registrar el dia actual otro evento de esos.-----------------------------------------------------------------------------------------------------------------8
   SET permiso=(SELECT SE_FU_ValidacionPermisosEmpleadosAsistencia(doc,idHorario));#Validacion de existencia de permiso para el día de hoy.
   IF permiso=-1 or permiso=2 THEN#Va a continuar con la toma de los eventos normalmente
-  #...
-     IF !EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_fin,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y'))  THEN
-   #validamos si existe una asistenca de tipo laboral---------------------------------------------------------------------------------------------------------------------------------------------------------------6
-      IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin is null AND a.hora_fin is null AND a.idTipo_evento=1) THEN 
-       #Validacion de cuantos eventos tiene en un dia de evento normal.-------------------------------------------------------------------------------------------------------------------------5
-	   #validamos la existencia de los eventos que no se lograron asistir y se generan.    
-	   CALL SI_PA_ValidacionEventosNoAsistidos(doc, lector, idHorario);
-	     IF (SELECT COUNT(*) FROM asistencia a WHERE (a.idTipo_evento=2 OR a.idTipo_evento=3) AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.hora_fin is NOT null)=2 THEN #Por lo general puede tener dos eventos cuando trabaja un dia completo pero tambien hay que tener en cuenta que puede tener menos.
-              #Validacion de que el ultimo evento de descanso(Almuerzo) tenga menos de 10 minutos más del evento del almeurzo.
-			   SET horaI=(SELECT c.hora_fin_almuerzo FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
-			   SET horaF=(SELECT a.hora_fin FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=3);
-			   #...
-			   #
-			   #TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'),horaF)>'00:10:00' //valida que el tiempo final del evento del almuerzo sea mayor a 10 minutos para poder realizar el cierre.
-			   IF  (TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'),horaI)>'00:10:00')=1  THEN # Si termine de almorzar despues del horario establecido para el evento y han pasado más de 10 minutos, entonces procedo a cerrar el evento laboral.
-			   		   #...
-		              #cierra el evento de asistencia Laboral!!!
-			          #...
-					  #select 1;
-			          #
- 	                  UPDATE asistencia a SET a.fecha_fin=now(), a.hora_fin=now(), a.lectorF=lector, a.estado=0, a.tiempo=tiempo WHERE a.documento=doc AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
-                      #acutualizar el estado del empleado en la empresa a 0=ausente
-		              UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc;
-			          #
-			          #
-                      SET horaI=(SELECT a.hora_inicio FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=1);
-                      SET horaF=(SELECT a.hora_fin FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=1);
-                      #
-			          SET tiempo= (SELECT TIMEDIFF(horaF,horaI));
-			          #select tiempo;
-			          #
-                      UPDATE asistencia a SET a.tiempo=tiempo WHERE a.documento=doc AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
-                      #...
-			            CALL SI_PA_CalcularRegistrarHorasTrabajadas(doc,idHorario,now(),1);
-                      #...
-			   END IF;
-			   #...
-         ELSE
-            #valida las otras asistencia (Desayuno y almuerzo)
-            #validamos si tiene alguna asistencia de Desayuno--------------------------------------------------------------------------------------------------------------------------------4
-             IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=2) THEN 
-                   # Valida si cierra la toma de tiempo o busca la siguiente asistencia---------------------------------------------------------------------------------------------3
-                  IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin is null AND a.hora_fin is null AND a.idTipo_evento=2) THEN 
-                       # cierra la toma de tiempo  Desayuno!!!
- 	                   #  
-			           #Cierre del evento  de desayuno
-			  	       #...
-			  		      CALL SI_PA_CierreEventosAsistenciaOperarios(doc, 2, lector,idHorario,0);#Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo Pendiente
-                      #...
-                   ELSE 
-   	                  #Se valida si tiene alguna asistencia del evento de Almuerzo--------------------------------------------2
-                     IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin is null AND a.hora_fin is null AND a.idTipo_evento=3) THEN 
-   		                 #
-			             #Cierra la toma de tiempo  Almuerzo!!!
-                         #...
-			  	            CALL SI_PA_CierreEventosAsistenciaOperarios(doc, 3, lector,idHorario,0);#Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo. Pendiente
-                         #...
-                     ELSE
-                         #...
-			  	         #Asistencia de tipo evento Almuerzo---------1 
-			 			      CALL SI_PA_RegistroEventoAsistencia(doc, 3, lector,idHorario);
-			  	         #/Asistencia de tipo evento Almuerzo----------1
-                         #...
-                     END IF;
-			      #//Se valida si tiene alguna asistencia del evento de Almuerzo fin---------------------------------------2
-             END IF;
-             # //Valida si cierra la toma de tiempo o busca la siguiente asistencia fin---------------------------------------------------------------------------------3
-             ELSE
-              #... 
-              #asistencia de tipo evento Desayuno
-	              CALL SI_PA_RegistroEventoAsistencia(doc, 2 , lector,idHorario);
-	          #asistencia de tipo evento Desayuno
-              #...	 
-            END IF;
-        #validamos si tiene alguna asistencia de Desayuno---------------------------------------------------------------------------------------------------------------------------------4
-       END IF;
- #Validacion de cuantos eventos tiene en un dia de evento normal.-------------------------------------------------------------------------------------------------------------------------5    
-ELSE 
-	SET horaI=(SELECT c.hora_ingreso_empresa FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
-    # Validar que solo permita el ingreso a las personas 15 minutos antes de su horario laboral
-    IF (TIMEDIFF(horaI,DATE_FORMAT(now(),'%H:%i:%S'))<='00:15:00') OR (TIMEDIFF(horaI,DATE_FORMAT(now(),'%H:%i:%S'))<='00:00:00') THEN
     #...
-        #Asistencia de tipo evento Laboral<<<<<
+    IF !EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_fin,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y'))  THEN
+    #validamos si existe una asistenca de tipo laboral---------------------------------------------------------------------------------------------------------------------------------------------------------------6
+      IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin is null AND a.hora_fin is null AND a.idTipo_evento=1) THEN 
+      #Validacion de cuantos eventos tiene en un dia de evento normal.-------------------------------------------------------------------------------------------------------------------------5
+      #Validacion la cantidad de eventos disponibles en el día...<Pendiente>
+      SET cantidad_eventos_que_aplican = (SELECT SI_FU_CantidadEventosQueAplicanHorario(idHorario));
+        
+        #validamos la existencia de los eventos que no se lograron asistir y se generan con un estado de no asistio.
+        CALL SI_PA_ValidacionEventosNoAsistidos(doc, lector, idHorario);
+
+        IF (SELECT COUNT(*) FROM asistencia a WHERE (a.idTipo_evento=2 OR a.idTipo_evento=3) AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.hora_fin is NOT null) = cantidad_eventos_que_aplican THEN #Por lo general puede tener dos eventos cuando trabaja un dia completo pero tambien hay que tener en cuenta que puede tener menos.
+         #Validacion de que el ultimo evento de descanso(Almuerzo) tenga menos de 10 minutos más del evento del almeurzo.
+         SET horaF=(SELECT a.hora_fin FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=3);
+          #...
+
+          IF  (SELECT SI_FU_ValidacionCierreAsistencia(idHorario)) = 1  THEN # Si se puede cerrar la asistencia?
+              #...
+                #cierra el evento de asistencia Laboral!!!
+
+              UPDATE asistencia a SET a.fecha_fin=now(), a.hora_fin=now(), a.lectorF=lector, a.estado=0, a.tiempo=tiempo WHERE a.documento=doc AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
+              #acutualizar el estado del empleado en la empresa a 0=ausente
+              UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc;
+
+              SET horaI=(SELECT a.hora_inicio FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=1);
+              SET horaF=(SELECT a.hora_fin FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=1);
+              #
+              SET tiempo= (SELECT TIMEDIFF(horaF,horaI));
+              #
+              UPDATE asistencia a SET a.tiempo=tiempo WHERE a.documento=doc AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
+              #...
+              CALL SI_PA_CalcularRegistrarHorasTrabajadas(doc,idHorario,now(),1);
+              #...
+          END IF;
+          #...
+        ELSE
+          #valida las otras asistencia (Desayuno y almuerzo)
+            #Se valida que si apliquen los eventos.
+            CALL SI_PA_GestionEventosAlmuerzoDesayuno(doc, lector, idHorario);#Se coloca dentro de esta variable para que el procedimiento no responda acá.
+          # ...    
+        #validamos si tiene alguna asistencia de Desayuno---------------------------------------------------------------------------------------------------------------------------------4
+      END IF;
+    #Validacion de cuantos eventos tiene en un dia de evento normal.-------------------------------------------------------------------------------------------------------------------------5    
+    ELSE 
+      SET horaI=(SELECT c.hora_ingreso_empresa FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
+      # Validar que solo permita el ingreso a las personas 15 minutos antes de su horario laboral
+      IF (TIMEDIFF(horaI,DATE_FORMAT(now(),'%H:%i:%S'))<='00:15:00') OR (TIMEDIFF(horaI,DATE_FORMAT(now(),'%H:%i:%S'))<='00:00:00') THEN
+      #...
+        #Asistencia de tipo evento Laboral
         INSERT INTO `asistencia`(`documento`, `idTipo_evento`, `fecha_inicio`, `hora_inicio`, `fecha_fin`, `hora_fin`,`idEstado_asistencia`, `estado`, `lectorI`,`idConfiguracion`) VALUES (doc,1,now(),now(),null,null,1,1,lector,idHorario);
         UPDATE empleado e SET e.asistencia=1 WHERE e.documento=doc;#acutualizar el estado del empleado en la empresa 1=Presente
         #Clasificaion del tipo de estado de la asistencia
@@ -3200,39 +3266,39 @@ ELSE
         ELSE
           SET estadoA=(SELECT SI_FU_ClasificacionEstadoAsistencia(1,horaI,horaF,idHorario));#Estado de la asistencia para el igreso laboral
         END IF;
-	    #...
-		#Actualizar el estado del operario que registro la asistencia laboral.
-	    UPDATE asistencia a SET a.idEstado_asistencia= estadoA  WHERE a.documento=doc AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
-	    #
-		IF estadoA=2 THEN
-	        CALL SI_PA_GeneradorDeAlertas();#Genera la alerta de llegada tarde de los empleados
-	    END IF;                                                                 
-    ELSE
-      SET doc=-2;
-    #...
-    END IF;
-		#
-	  END IF; 
+        #...
+        #Actualizar el estado del operario que registro la asistencia laboral.
+        UPDATE asistencia a SET a.idEstado_asistencia= estadoA  WHERE a.documento=doc AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
+        #
+        IF estadoA=2 THEN
+          CALL SI_PA_GeneradorDeAlertas();#Genera la alerta de llegada tarde de los empleados
+        END IF;                                                                 
+      ELSE
+        SET doc=-2;
+      #...
+      END IF;
+    #
+    END IF; 
        #validamos si existe una asistenca de tipo laboral fin---------------------------------------------------------------------------------------------------------------------------------------------------------------6
-   END IF;# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------8
+  END IF;# ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------8
   #Fin validacion permiso 
-  ELSE#Permiso es de tipo Salida e Ingreso
- 	    #Cierra eventos de desayuno o almuerzo si es el caso que esta abierto.
+ELSE#Permiso es de tipo Salida e Ingreso
+  #Cierra eventos de desayuno o almuerzo si es el caso que esta abierto.
         
-		#Cerrar evento de desayuno
-		 CALL SI_PA_CierreEventosAsistenciaOperarios(doc, 2, lector,idHorario,1);#Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo Pendiente
-         #SELECT doc, 2, lector,idHorario,1;
-		 #Cerrar evento de Almuerzo
-		 CALL SI_PA_CierreEventosAsistenciaOperarios(doc, 3, lector,idHorario,1);#Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo. Pendiente
-         #SELECT doc, 3, lector,idHorario,1;
-		 #...
-         SET doc=permiso;
-  END IF;
+  #Cerrar evento de desayuno
+    CALL SI_PA_CierreEventosAsistenciaOperarios(doc, 2, lector,idHorario,1);#Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo Pendiente
+    #SELECT doc, 2, lector,idHorario,1;
+    #Cerrar evento de Almuerzo
+    CALL SI_PA_CierreEventosAsistenciaOperarios(doc, 3, lector,idHorario,1);#Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo. Pendiente
+    #SELECT doc, 3, lector,idHorario,1;
+    #...
+    SET doc=permiso;
+END IF;
 #....
 END IF;
 #Condicional de documento.--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------7
-      	  #Retornar el numero de documento de la persona perteneciente a la huella dactilar.
-		 SELECT doc AS documento;
+          #Retornar el numero de documento de la persona perteneciente a la huella dactilar.
+     SELECT doc AS documento;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_RegistroEventoAsistencia` (IN `doc` INT, IN `evento` INT, IN `lector` INT, IN `idHorario` INT)  NO SQL
@@ -3280,7 +3346,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_TotalHorasTrabajasEmpleado` (IN `doc` VARCHAR(13), IN `fecha` VARCHAR(25))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_TotalHorasTrabajasEmpleado` (IN `doc` VARCHAR(20), IN `fecha` VARCHAR(25))  NO SQL
 BEGIN
 
 IF fecha!='' THEN
@@ -3295,65 +3361,47 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ValidacionEventosNoAsistidos` (IN `doc` VARCHAR(13), IN `lector` TINYINT, IN `idHorario` TINYINT(1))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ValidacionEventosNoAsistidos` (IN `doc` VARCHAR(20), IN `lector` TINYINT, IN `idHorario` TINYINT(1))  NO SQL
 BEGIN
 #
-DECLARE horaF time;#Hora de fin del evento Desayuno o almuerzo
+DECLARE horaF time;#Hora de fin del evento (Desayuno/Almuerzo)
 DECLARE respuesta int;
 #
-#validacion del evento de desayuno......................................
+#Aplica el Desayuno
+IF EXISTS(SELECT * FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.hora_inicio_desayuno > '00:00:00') THEN
 
-#Se consulta de fin del evento Desayuno
-SET horaF=(SELECT c.hora_fin_desayuno FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);
-#...
-#la hora del sistema es mayor que la hora final del desayuno
-IF now() > horaF THEN #si la hora del sistema es mayor a la hora final del evento desayuno y no existe ningun evento de desayuno, se procede a registrar.
-  IF !EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND DATE_FORMAT(a.fecha_fin,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=2) THEN
-  # se valida si existe una asistencia abierta. 
-  IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin IS null AND a.hora_fin IS null AND a.idTipo_evento=2) THEN
-  #se actualiza el evento de desayuno
-  UPDATE asistencia a SET a.fecha_fin=now(),a.hora_fin=now(),a.idEstado_asistencia=2, a.estado=0, a.lectorF=lector WHERE a.documento=doc AND a.idTipo_evento=2 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
-  #...Se calculara el tiempo que corresponde al evento de desayuno.
-  SET respuesta=(SELECT SI_FU_ClasificarElTiempoCorrecto(doc,2));
-  #...
-  ELSE
-  #se registra el evento del desayuno
-  	  INSERT INTO `asistencia`(`documento`, `idTipo_evento`, `fecha_inicio`, `hora_inicio`, `fecha_fin`, `hora_fin`,`idEstado_asistencia`, `estado`, `lectorF`, `tiempo`,`idConfiguracion`) VALUES (doc,2,now(),now(),now(),now(),3,0,0,(SELECT c.tiempo_desayuno FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1),idHorario);
-  END IF;
-  #SELECT 1;
-  END IF;
+  CALL SI_PA_ProcedimientoEventosNoAsistidos(doc, lector, idHorario, 2);
+	
 END IF;
-#
-#Validacion del evento del almuerzo.....................................
-#
-#Se consulta de fin del evento almuerzo
-SET horaF=(SELECT c.hora_fin_almuerzo FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);
-#...
-#la hora del sistema es mayor que la hora final del almuerzo
-IF now() > horaF THEN #si la hora del sistema es mayor a la hora final del evento almuerzo y no existe ningun evento de almuerzo, se procede a registrar.
-  IF !EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND DATE_FORMAT(a.fecha_fin,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=3) THEN
-  
-  IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin IS null AND a.hora_fin IS null AND a.idTipo_evento=3) THEN
-  # se actualiza el evento de almuerzo
-  #SELECT TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'),horaF);
-     #...
-     UPDATE asistencia a SET a.fecha_fin=now(),a.hora_fin=now(),a.idEstado_asistencia=2, a.estado=0, a.lectorF=lector WHERE a.documento=doc AND a.idTipo_evento=3 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
-     #...Se calculara el tiempo que corresponde al evento de almerzo.
-     SET respuesta=(SELECT SI_FU_ClasificarElTiempoCorrecto(doc,3));
-     #...
-  ELSE
-  # se registra el evento de almuerzo
-     INSERT INTO `asistencia`(`documento`, `idTipo_evento`, `fecha_inicio`, `hora_inicio`, `fecha_fin`, `hora_fin`,`idEstado_asistencia`, `estado`, `lectorF`, `tiempo`, `idConfiguracion`) VALUES (doc,3,now(),now(),now(),now(),3,0,0,(SELECT c.tiempo_almuerzo FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1),idHorario);
-  END IF;
-  #SELECT 2;
-  END IF;
+
+#Aplica el Almuerzo
+IF EXISTS(SELECT * FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.hora_inicio_almuerzo > '00:00:00') THEN
+
+  CALL SI_PA_ProcedimientoEventosNoAsistidos(doc, lector, idHorario, 3);
+
+
 END IF;
-#
- # IF (!EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=2)) THEN
-  	#Registra el evento del desayuno con un estado diferente.
-  #  INSERT INTO `asistencia`(`documento`, `idTipo_evento`, `fecha_inicio`, `hora_inicio`, `fecha_fin`, `hora_fin`,`idEstado_asistencia`, `estado`) VALUES (doc,2,now(),now(),now(),now(),3,1);
-  	#
-  #END IF;
+
+
+END$$
+
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ValidacionExistenciaEventosQueAplican` (IN `doc` INT, IN `idEvento` TINYINT(1), IN `lector` INT, IN `idHorario` INT)  NO SQL
+BEGIN
+#Valida si se tiene alguna asistencia de algun evento (Desayuno o almuerzo)
+IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=idEvento) THEN 
+	
+    #Valida si la asistencia se encuentra en ejecucion o ya termino
+	IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin is null AND a.hora_fin is null AND a.idTipo_evento=idEvento) THEN
+    
+    CALL SI_PA_CierreEventosAsistenciaOperarios(doc, idEvento, lector, idHorario, 0);#Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo Pendiente
+    
+    END IF;
+
+ELSE
+	
+	CALL SI_PA_RegistroEventoAsistencia(doc, idEvento, lector, idHorario);
+
+END IF;
 
 END$$
 
@@ -3784,12 +3832,60 @@ END IF;
 
 END$$
 
+CREATE DEFINER=`root`@`localhost` FUNCTION `SI_FU_ArreglarProblemaBugAsistenciaMultiplesEventos` (`doc` VARCHAR(20)) RETURNS TINYINT(1) NO SQL
+BEGIN
+
+DECLARE idAsistenciaEmpleado int;
+DECLARE idTipoEventoEmpleado tinyint;
+
+SET idAsistenciaEmpleado = (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.fecha_inicio=CURDATE() GROUP BY a.idTipo_evento HAVING COUNT(a.idTipo_evento)>=2);
+
+IF (idAsistenciaEmpleado IS NOT null) THEN
+
+  SET idTipoEventoEmpleado = (SELECT a.idTipo_evento FROM asistencia a WHERE a.documento=doc AND a.fecha_inicio=CURDATE() GROUP BY a.idTipo_evento HAVING COUNT(a.idTipo_evento)>=2);
+
+  DELETE FROM asistencia WHERE idAsistencia!=idAsistenciaEmpleado AND idTipo_evento=idTipoEventoEmpleado AND documento=doc AND fecha_inicio=CURDATE();
+
+END IF;
+
+RETURN 1;
+
+END$$
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `SI_FU_CantidadEventosQueAplicanHorario` (`idHorario` TINYINT(1)) RETURNS INT(1) NO SQL
+BEGIN
+
+DECLARE cantidad_eventos_validos tinyint(1);
+
+SET cantidad_eventos_validos = 0;
+
+#Aplica el almuerzo en este horario
+IF EXISTS(SELECT * FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.hora_inicio_desayuno > '00:00:00') THEN
+
+  SET cantidad_eventos_validos = 1;
+
+END IF;
+
+#Aplica el almuerzo en este horario
+IF EXISTS(SELECT * FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.hora_inicio_almuerzo > '00:00:00') THEN
+
+  SET cantidad_eventos_validos = (cantidad_eventos_validos + 1);
+
+END IF;
+
+RETURN cantidad_eventos_validos;
+
+END$$
+
 CREATE DEFINER=`root`@`localhost` FUNCTION `SI_FU_CerrarAsistenciaEmpleado` (`doc` VARCHAR(13), `idHorario` INT) RETURNS TINYINT(1) NO SQL
 BEGIN
 
 DECLARE horaI time; #hora de inicio de algun event
 DECLARE horaF time; #hora fin de algun evento
 DECLARE tiempo varchar(10);
+
+#Validar si aplica el evento del desayuno para el horario del operario
+IF EXISTS(SELECT * FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.hora_inicio_desayuno > '00:00:00') THEN
 
 #Validacion de la existencia del evento de desayuno.
   IF !EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND DATE_FORMAT(a.fecha_fin,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=2) THEN
@@ -3800,50 +3896,56 @@ DECLARE tiempo varchar(10);
            #SELECT 4;
        ELSE
           #se registra el evento del desayuno
-  	      INSERT INTO `asistencia`(`documento`, `idTipo_evento`, `fecha_inicio`, `hora_inicio`, `fecha_fin`, `hora_fin`,`idEstado_asistencia`, `estado`, `tiempo`, `lectorF`,`idConfiguracion`) VALUES (doc,2,now(),now(),now(),now(),3,0,(SELECT c.tiempo_desayuno FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1),0,idHorario);
+          INSERT INTO `asistencia`(`documento`, `idTipo_evento`, `fecha_inicio`, `hora_inicio`, `fecha_fin`, `hora_fin`,`idEstado_asistencia`, `estado`, `tiempo`, `lectorF`,`idConfiguracion`) VALUES (doc,2,now(),now(),now(),now(),3,0,(SELECT c.tiempo_desayuno FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1),0,idHorario);
           #SELECT 3;
        END IF;
   END IF;
+
+END IF;
   
+#Validar si aplica el evento del Almuerzo para el horario del operario
+IF EXISTS(SELECT * FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.hora_inicio_almuerzo > '00:00:00') THEN
+
 #Validacion de la existencia del evento de almuerzo.
-    IF !EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND DATE_FORMAT(a.fecha_fin,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=3) THEN
+  IF !EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND DATE_FORMAT(a.fecha_fin,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=3) THEN
      #
         IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.fecha_fin IS null AND a.hora_fin IS null AND a.idTipo_evento=3) THEN
         # se actualiza el evento de almuerzo
              UPDATE asistencia a SET a.fecha_fin=now(),a.hora_fin=now(),a.idEstado_asistencia=2, a.estado=0, a.lectorF=0, a.tiempo=(SELECT c.tiempo_almuerzo FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1) WHERE a.documento=doc AND a.idTipo_evento=3 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
              #SELECT 2;
-         ELSE
+        ELSE
          # se registra el evento de almuerzo
              INSERT INTO `asistencia`(`documento`, `idTipo_evento`, `fecha_inicio`, `hora_inicio`, `fecha_fin`, `hora_fin`,`idEstado_asistencia`, `estado`, `tiempo`, `lectorF`,`idConfiguracion`) VALUES (doc,3,now(),now(),now(),now(),3,0,(SELECT c.tiempo_almuerzo FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1),0,idHorario);
              #SELECT 1;
-          END IF;
+        END IF;
   END IF;
+
+END IF;
   
-#Cierre del evento laboral.
-UPDATE asistencia a SET a.fecha_fin=now(),a.hora_fin=now(),a.lectorF=0, a.estado=0 WHERE a.documento=doc AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
-#
-UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc;
-#
-SET horaI=(SELECT a.hora_inicio FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=1);
-SET horaF=(SELECT a.hora_fin FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=1);
-#
-SET tiempo=(SELECT TIMEDIFF(horaF,horaI));
+  #Cierre del evento laboral.
+  UPDATE asistencia a SET a.fecha_fin=now(),a.hora_fin=now(),a.lectorF=0, a.estado=0 WHERE a.documento=doc AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
+  #
+  UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc;
+  #
+  SET horaI=(SELECT a.hora_inicio FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=1);
+  SET horaF=(SELECT a.hora_fin FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=1);
+  #
+  SET tiempo=(SELECT TIMEDIFF(horaF,horaI));
 
-UPDATE asistencia a SET a.tiempo=(SELECT TIMEDIFF(horaF,horaI)) WHERE a.documento=doc AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
-#
-CALL SI_PA_CalcularRegistrarHorasTrabajadas(doc,idhorario,now(),1);
+  UPDATE asistencia a SET a.tiempo=(SELECT TIMEDIFF(horaF,horaI)) WHERE a.documento=doc AND a.idTipo_evento=1 AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
+  #
+  CALL SI_PA_CalcularRegistrarHorasTrabajadas(doc,idhorario,now(),1);
 
-#SELECT 1 AS respuesta;
 
 RETURN 1;
 END$$
 
-CREATE DEFINER=`root`@`localhost` FUNCTION `SI_FU_ClasificacionEstadoAsistencia` (`eve` TINYINT(1), `hora` TIME, `horafin` TIME, `idHorario` INT) RETURNS TINYINT(1) NO SQL
+CREATE DEFINER=`root`@`localhost` FUNCTION `SI_FU_ClasificacionEstadoAsistencia` (`evento` TINYINT(1), `hora` TIME, `horafin` TIME, `idHorario` INT) RETURNS TINYINT(1) NO SQL
 BEGIN
 DECLARE horaBase time;
 DECLARE diferencia time;
 ##############################
-IF eve=1 THEN #Evento laboral
+IF evento=1 THEN #Evento laboral
 SET horaBase=(SELECT c.hora_ingreso_empresa FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);#Hora de ingreso laboral
 #...
  IF (hora)<(horaBase) THEN
@@ -3853,7 +3955,7 @@ SET horaBase=(SELECT c.hora_ingreso_empresa FROM configuracion c WHERE c.idConfi
  END IF;
 #...
 else
- IF eve=2 THEN #Evento Desayuno
+ IF evento=2 THEN #Evento Desayuno
  	SET horaBase=(SELECT c.tiempo_desayuno FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 limit 1);#Tiempo de desayuno
 #...
  set diferencia= (SELECT TIMEDIFF(horafin,hora));
@@ -3864,7 +3966,7 @@ else
  END IF;
 #...
  ELSE
-  IF eve=3 THEN #Evento Almuerzo
+  IF evento=3 THEN #Evento Almuerzo
   	SET horaBase=(SELECT c.tiempo_almuerzo FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 limit 1);#Tiempo de desayuno
 #...
  set diferencia= (SELECT TIMEDIFF(horafin,hora));
@@ -3924,6 +4026,37 @@ SET horaL =(SELECT SUBTIME(SUBTIME(TIMEDIFF(c.hora_salida_empresa,c.hora_ingreso
 
 RETURN horaL;
 
+
+END$$
+
+CREATE DEFINER=`root`@`localhost` FUNCTION `SI_FU_ValidacionCierreAsistencia` (`idHorario` TINYINT(2)) RETURNS TINYINT(1) NO SQL
+BEGIN
+DECLARE horaFinAlmuerzo varchar(8);
+DECLARE horaInicioAlmuerzo varchar(8);
+
+SET horaInicioAlmuerzo = (SELECT c.hora_inicio_almuerzo FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
+SET horaFinAlmuerzo = (SELECT c.hora_fin_almuerzo FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
+
+
+IF horaInicioAlmuerzo = '00:00:00' THEN
+#No aplica el evento del almuerzo
+
+  RETURN 1;#Si se puede cerrar la asistencia.
+
+ELSE
+#Si aplica el evento del almuerzo
+
+  IF (TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'),horaFinAlmuerzo) > '00:10:00') = 1 THEN #Ya pasaron mas de 10 minutos despues de la hora del almuerzo?
+    
+      RETURN 1; 
+    
+    ELSE
+    
+      RETURN 0;
+    
+    END IF;
+
+END IF;
 
 END$$
 
@@ -4686,7 +4819,8 @@ INSERT INTO `actividades_timpo_libre` (`idActividades_timpo_libre`, `idPersonal`
 (708, 115, 11),
 (709, 115, 7),
 (710, 115, 4),
-(711, 115, 12);
+(711, 115, 12),
+(712, 116, 7);
 
 -- --------------------------------------------------------
 
@@ -4768,7 +4902,7 @@ INSERT INTO `area_trabajo` (`idArea_trabajo`, `area`, `estado`) VALUES
 
 CREATE TABLE `asistencia` (
   `idAsistencia` int(11) NOT NULL,
-  `documento` varchar(13) NOT NULL,
+  `documento` varchar(20) NOT NULL,
   `idTipo_evento` tinyint(4) NOT NULL,
   `fecha_inicio` date NOT NULL,
   `hora_inicio` time NOT NULL,
@@ -12481,44 +12615,44 @@ INSERT INTO `asistencia` (`idAsistencia`, `documento`, `idTipo_evento`, `fecha_i
 (7889, '1001545147', 3, '2019-04-29', '13:20:04', '2019-04-29', '13:58:59', 1, 0, 4, 4, '00:40:00', 1),
 (7890, '1077453248', 3, '2019-04-29', '13:24:57', '2019-04-29', '14:09:11', 2, 0, 5, 0, '00:44:14', 1),
 (7891, '1037949696', 3, '2019-04-29', '14:03:01', '2019-04-29', '17:32:15', 2, 0, 0, 0, '03:29:14', 1),
-(7892, '43189198', 1, '2019-04-30', '05:47:53', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7893, '1216716458', 1, '2019-04-30', '05:49:36', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7894, '1036622270', 1, '2019-04-30', '05:49:45', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7895, '23917651', 1, '2019-04-30', '05:49:54', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(7892, '43189198', 1, '2019-04-30', '05:47:53', '2019-04-30', '16:30:17', 1, 0, 4, 4, '10:42:24', 1),
+(7893, '1216716458', 1, '2019-04-30', '05:49:36', '2019-04-30', '16:34:27', 1, 0, 4, 4, '10:44:51', 1),
+(7894, '1036622270', 1, '2019-04-30', '05:49:45', '2019-04-30', '16:30:49', 1, 0, 4, 4, '10:41:04', 1),
+(7895, '23917651', 1, '2019-04-30', '05:49:54', '2019-04-30', '16:30:56', 1, 0, 4, 4, '10:41:02', 1),
 (7896, '15489896', 1, '2019-04-30', '05:50:06', NULL, NULL, 1, 1, 0, NULL, NULL, 1),
-(7897, '760579', 1, '2019-04-30', '05:50:12', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7898, '1036598684', 1, '2019-04-30', '05:50:23', NULL, NULL, 1, 1, 0, NULL, NULL, 1),
-(7899, '15515649', 1, '2019-04-30', '05:50:31', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7900, '43265824', 1, '2019-04-30', '05:51:02', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7901, '1152701919', 1, '2019-04-30', '05:51:11', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(7897, '760579', 1, '2019-04-30', '05:50:12', '2019-04-30', '16:34:11', 1, 0, 4, 4, '10:43:59', 1),
+(7898, '1036598684', 1, '2019-04-30', '05:50:23', '2019-04-30', '16:30:35', 1, 0, 0, 0, '10:40:12', 1),
+(7899, '15515649', 1, '2019-04-30', '05:50:31', '2019-04-30', '16:34:20', 1, 0, 4, 4, '10:43:49', 1),
+(7900, '43265824', 1, '2019-04-30', '05:51:02', '2019-04-30', '16:31:57', 1, 0, 4, 4, '10:40:55', 1),
+(7901, '1152701919', 1, '2019-04-30', '05:51:11', '2019-04-30', '16:31:13', 1, 0, 4, 4, '10:40:02', 1),
 (7902, '1077453248', 1, '2019-04-30', '05:51:37', NULL, NULL, 1, 1, 0, NULL, NULL, 1),
-(7903, '1096238261', 1, '2019-04-30', '05:51:48', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7904, '1020457057', 1, '2019-04-30', '05:51:54', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7905, '1037949696', 1, '2019-04-30', '05:52:01', NULL, NULL, 1, 1, 0, NULL, NULL, 1),
-(7906, '1037949573', 1, '2019-04-30', '05:52:07', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7907, '1036625052', 1, '2019-04-30', '05:52:27', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7908, '43542658', 1, '2019-04-30', '05:52:32', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7909, '32353491', 1, '2019-04-30', '05:53:13', NULL, NULL, 1, 1, 0, NULL, NULL, 1),
-(7910, '43866346', 1, '2019-04-30', '05:53:21', NULL, NULL, 1, 1, 0, NULL, NULL, 1),
-(7911, '44006996', 1, '2019-04-30', '05:53:33', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(7903, '1096238261', 1, '2019-04-30', '05:51:48', '2019-04-30', '16:30:42', 1, 0, 4, 4, '10:38:54', 1),
+(7904, '1020457057', 1, '2019-04-30', '05:51:54', '2019-04-30', '16:30:11', 1, 0, 4, 4, '10:38:17', 1),
+(7905, '1037949696', 1, '2019-04-30', '05:52:01', '2019-04-30', '17:31:27', 1, 0, 0, 0, '11:39:26', 1),
+(7906, '1037949573', 1, '2019-04-30', '05:52:07', '2019-04-30', '16:30:35', 1, 0, 4, 4, '10:38:28', 1),
+(7907, '1036625052', 1, '2019-04-30', '05:52:27', '2019-04-30', '16:31:39', 1, 0, 4, 4, '10:39:12', 1),
+(7908, '43542658', 1, '2019-04-30', '05:52:32', '2019-04-30', '16:31:31', 1, 0, 4, 4, '10:38:59', 1),
+(7909, '32353491', 1, '2019-04-30', '05:53:13', '2019-04-30', '16:33:07', 1, 0, 0, 0, '10:39:54', 1),
+(7910, '43866346', 1, '2019-04-30', '05:53:21', '2019-04-30', '16:30:12', 1, 0, 0, 0, '10:36:51', 1),
+(7911, '44006996', 1, '2019-04-30', '05:53:33', '2019-04-30', '16:34:28', 1, 0, 4, 0, '10:40:55', 1),
 (7912, '1017125039', 1, '2019-04-30', '05:53:48', NULL, NULL, 1, 1, 0, NULL, NULL, 1),
-(7913, '1143991147', 1, '2019-04-30', '05:53:55', NULL, NULL, 1, 1, 0, NULL, NULL, 1),
+(7913, '1143991147', 1, '2019-04-30', '05:53:55', '2019-04-30', '16:30:25', 1, 0, 0, 0, '10:36:30', 1),
 (7914, '1152450553', 1, '2019-04-30', '05:54:30', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7915, '1046913982', 1, '2019-04-30', '05:54:37', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(7915, '1046913982', 1, '2019-04-30', '05:54:37', '2019-04-30', '16:30:29', 1, 0, 4, 4, '10:35:52', 1),
 (7916, '71267825', 1, '2019-04-30', '05:54:42', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7917, '1039049115', 1, '2019-04-30', '05:55:14', NULL, NULL, 1, 1, 0, NULL, NULL, 1),
-(7918, '1036651097', 1, '2019-04-30', '05:57:05', NULL, NULL, 1, 1, 0, NULL, NULL, 1),
-(7919, '1013537192', 1, '2019-04-30', '05:57:12', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7920, '1001545147', 1, '2019-04-30', '05:58:20', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7921, '1017187557', 1, '2019-04-30', '05:58:28', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7922, '43288005', 1, '2019-04-30', '05:58:35', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7923, '1017225857', 1, '2019-04-30', '05:58:41', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(7917, '1039049115', 1, '2019-04-30', '05:55:14', '2019-04-30', '16:33:34', 1, 0, 0, 0, '10:38:20', 1),
+(7918, '1036651097', 1, '2019-04-30', '05:57:05', '2019-04-30', '16:32:13', 1, 0, 0, 0, '10:35:08', 1),
+(7919, '1013537192', 1, '2019-04-30', '05:57:12', '2019-04-30', '16:32:10', 1, 0, 4, 4, '10:34:58', 1),
+(7920, '1001545147', 1, '2019-04-30', '05:58:20', '2019-04-30', '16:31:20', 1, 0, 4, 4, '10:33:00', 1),
+(7921, '1017187557', 1, '2019-04-30', '05:58:28', '2019-04-30', '16:30:05', 1, 0, 4, 4, '10:31:37', 1),
+(7922, '43288005', 1, '2019-04-30', '05:58:35', '2019-04-30', '16:36:52', 1, 0, 4, 1, '10:38:17', 1),
+(7923, '1017225857', 1, '2019-04-30', '05:58:41', '2019-04-30', '16:31:25', 1, 0, 4, 4, '10:32:44', 1),
 (7924, '1036629003', 1, '2019-04-30', '05:59:13', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7925, '80145967', 1, '2019-04-30', '06:00:04', NULL, NULL, 2, 1, 4, NULL, NULL, 1),
-(7926, '8433778', 1, '2019-04-30', '06:00:24', NULL, NULL, 2, 1, 4, NULL, NULL, 1),
-(7927, '1090523316', 1, '2019-04-30', '06:10:21', NULL, NULL, 2, 1, 4, NULL, NULL, 1),
+(7925, '80145967', 1, '2019-04-30', '06:00:04', '2019-04-30', '16:31:47', 2, 0, 4, 4, '10:31:43', 1),
+(7926, '8433778', 1, '2019-04-30', '06:00:24', '2019-04-30', '16:30:24', 2, 0, 4, 4, '10:30:00', 1),
+(7927, '1090523316', 1, '2019-04-30', '06:10:21', '2019-04-30', '16:35:01', 2, 0, 4, 4, '10:24:40', 1),
 (7928, '1216727816', 1, '2019-04-30', '07:15:20', NULL, NULL, 2, 1, 1, NULL, NULL, 1),
-(7929, '98668402', 1, '2019-04-30', '08:30:00', NULL, NULL, 2, 1, 1, NULL, NULL, 3),
+(7929, '98668402', 1, '2019-04-30', '08:30:00', '2019-04-30', '16:30:02', 2, 0, 1, 1, '08:00:02', 3),
 (7930, '8433778', 2, '2019-04-30', '08:30:02', '2019-04-30', '08:48:53', 1, 0, 4, 4, '00:20:00', 1),
 (7931, '1046913982', 2, '2019-04-30', '08:30:06', '2019-04-30', '08:49:13', 1, 0, 4, 4, '00:20:00', 1),
 (7932, '43189198', 2, '2019-04-30', '08:30:10', '2019-04-30', '08:46:33', 1, 0, 4, 4, '00:20:00', 1),
@@ -12558,7 +12692,7 @@ INSERT INTO `asistencia` (`idAsistencia`, `documento`, `idTipo_evento`, `fecha_i
 (7966, '71267825', 2, '2019-04-30', '10:12:02', '2019-04-30', '10:27:57', 1, 0, 4, 4, '00:20:00', 1),
 (7967, '44006996', 2, '2019-04-30', '10:23:00', '2019-04-30', '10:35:39', 1, 0, 0, 0, '00:20:00', 1),
 (7968, '1143991147', 3, '2019-04-30', '12:16:13', '2019-04-30', '12:51:06', 1, 0, 0, 0, '00:40:00', 1),
-(7969, '43189198', 3, '2019-04-30', '12:16:22', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(7969, '43189198', 3, '2019-04-30', '12:16:22', '2019-04-30', '16:30:17', 2, 0, 4, 4, '04:13:55', 1),
 (7970, '1046913982', 3, '2019-04-30', '12:16:38', '2019-04-30', '12:51:49', 1, 0, 4, 4, '00:40:00', 1),
 (7971, '43542658', 3, '2019-04-30', '12:17:34', '2019-04-30', '12:56:01', 1, 0, 4, 4, '00:40:00', 1),
 (7972, '43265824', 3, '2019-04-30', '12:19:34', '2019-04-30', '12:55:37', 1, 0, 4, 4, '00:40:00', 1),
@@ -12569,8 +12703,8 @@ INSERT INTO `asistencia` (`idAsistencia`, `documento`, `idTipo_evento`, `fecha_i
 (7977, '80145967', 3, '2019-04-30', '12:23:02', '2019-04-30', '12:55:55', 1, 0, 4, 4, '00:40:00', 1),
 (7978, '32353491', 3, '2019-04-30', '12:23:06', '2019-04-30', '13:02:42', 1, 0, 0, 0, '00:40:00', 1),
 (7979, '1017225857', 3, '2019-04-30', '12:23:18', '2019-04-30', '12:55:47', 1, 0, 4, 4, '00:40:00', 1),
-(7980, '1036622270', 3, '2019-04-30', '12:51:56', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
-(7981, '1017187557', 3, '2019-04-30', '12:53:28', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(7980, '1036622270', 3, '2019-04-30', '12:51:56', '2019-04-30', '16:30:49', 2, 0, 4, 4, '03:38:53', 1),
+(7981, '1017187557', 3, '2019-04-30', '12:53:28', '2019-04-30', '16:30:05', 2, 0, 4, 4, '03:36:37', 1),
 (7982, '43605625', 1, '2019-04-30', '12:54:43', NULL, NULL, 2, 1, 4, NULL, NULL, 1),
 (7983, '1036598684', 3, '2019-04-30', '12:57:52', '2019-04-30', '13:36:48', 1, 0, 0, 0, '00:40:00', 1),
 (7984, '1017125039', 3, '2019-04-30', '12:58:00', '2019-04-30', '13:39:21', 2, 0, 0, 0, '00:41:21', 1),
@@ -12597,7 +12731,189 @@ INSERT INTO `asistencia` (`idAsistencia`, `documento`, `idTipo_evento`, `fecha_i
 (8005, '1036651097', 3, '2019-04-30', '13:30:53', '2019-04-30', '14:09:16', 1, 0, 0, 0, '00:40:00', 1),
 (8006, '1037949696', 3, '2019-04-30', '14:01:55', '2019-04-30', '14:32:52', 1, 0, 0, 0, '00:40:00', 1),
 (8007, '1216727816', 2, '2019-04-30', '14:30:13', '2019-04-30', '14:30:13', 3, 0, 0, 0, '00:20:00', 1),
-(8008, '1216727816', 3, '2019-04-30', '14:30:13', NULL, NULL, 1, 1, 2, NULL, NULL, 1);
+(8008, '1216727816', 3, '2019-04-30', '14:30:13', NULL, NULL, 1, 1, 2, NULL, NULL, 1),
+(8009, '98668402', 2, '2019-04-30', '16:30:02', '2019-04-30', '16:30:02', 3, 0, 0, 0, '00:15:00', 3),
+(8010, '98668402', 3, '2019-04-30', '16:30:02', '2019-04-30', '16:30:02', 3, 0, 0, 0, '00:00:00', 3),
+(8011, '760579', 1, '2019-05-02', '06:30:36', '2019-05-02', '16:31:05', 2, 0, 4, 4, '10:00:29', 1),
+(8012, '1216716458', 1, '2019-05-02', '06:30:44', '2019-05-02', '16:30:58', 2, 0, 4, 4, '10:00:14', 1),
+(8013, '1036629003', 1, '2019-05-02', '06:30:51', NULL, NULL, 2, 1, 4, NULL, NULL, 1),
+(8014, '8433778', 1, '2019-05-02', '06:31:00', '2019-05-02', '16:30:26', 2, 0, 4, 4, '09:59:26', 1),
+(8015, '23917651', 1, '2019-05-02', '06:31:05', NULL, NULL, 2, 1, 4, NULL, NULL, 1),
+(8016, '1037949573', 1, '2019-05-02', '06:31:15', '2019-05-02', '16:30:07', 2, 0, 4, 4, '09:58:52', 1),
+(8017, '1036622270', 1, '2019-05-02', '06:31:25', NULL, NULL, 2, 1, 4, NULL, NULL, 1),
+(8018, '1020457057', 1, '2019-05-02', '06:31:31', NULL, NULL, 2, 1, 4, NULL, NULL, 1),
+(8019, '42702332', 1, '2019-05-02', '06:31:38', '2019-05-02', '16:30:02', 2, 0, 4, 4, '09:58:24', 1),
+(8020, '1037587834', 1, '2019-05-02', '06:31:43', '2019-05-02', '16:30:48', 2, 0, 4, 4, '09:59:05', 1),
+(8021, '43605625', 1, '2019-05-02', '06:31:50', '2019-05-02', '16:29:29', 2, 0, 4, 4, '09:57:39', 1),
+(8022, '43265824', 1, '2019-05-02', '06:33:35', '2019-05-02', '16:31:13', 2, 0, 4, 4, '09:57:38', 1),
+(8023, '80145967', 1, '2019-05-02', '06:33:58', '2019-05-02', '16:31:46', 2, 0, 4, 4, '09:57:48', 1),
+(8024, '1017225857', 1, '2019-05-02', '06:34:12', '2019-05-02', '16:31:28', 2, 0, 4, 4, '09:57:16', 1),
+(8025, '1152701919', 1, '2019-05-02', '06:34:19', '2019-05-02', '16:30:34', 2, 0, 4, 4, '09:56:15', 1),
+(8026, '98772784', 1, '2019-05-02', '06:35:20', '2019-05-02', '16:30:15', 2, 0, 1, 1, '09:54:55', 1),
+(8027, '43288005', 1, '2019-05-02', '06:35:27', '2019-05-02', '16:36:14', 2, 0, 1, 1, '10:00:47', 1),
+(8028, '1095791547', 1, '2019-05-02', '06:35:33', '2019-05-02', '16:30:28', 2, 0, 1, 1, '09:54:55', 1),
+(8029, '98668402', 1, '2019-05-02', '06:35:44', '2019-05-02', '16:30:04', 2, 0, 1, 1, '09:54:20', 3),
+(8030, '1001545147', 1, '2019-05-02', '06:36:48', '2019-05-02', '16:32:04', 2, 0, 4, 4, '09:55:16', 1),
+(8031, '71267825', 1, '2019-05-02', '06:40:07', NULL, NULL, 2, 1, 4, NULL, NULL, 1),
+(8032, '1046913982', 1, '2019-05-02', '06:40:44', '2019-05-02', '16:31:23', 2, 0, 4, 4, '09:50:39', 1),
+(8033, '1096238261', 1, '2019-05-02', '06:46:01', '2019-05-02', '16:30:43', 2, 0, 4, 4, '09:44:42', 1),
+(8034, '15515649', 1, '2019-05-02', '06:46:29', '2019-05-02', '16:30:53', 2, 0, 4, 4, '09:44:24', 1),
+(8035, '1216727816', 1, '2019-05-02', '06:49:04', NULL, NULL, 2, 1, 5, NULL, NULL, 1),
+(8036, '8433778', 2, '2019-05-02', '08:30:03', '2019-05-02', '08:48:34', 1, 0, 4, 4, '00:20:00', 1),
+(8037, '98668402', 2, '2019-05-02', '08:30:03', '2019-05-02', '08:40:47', 1, 0, 1, 1, '00:15:00', 3),
+(8038, '43189198', 1, '2019-05-02', '08:30:08', '2019-05-02', '16:30:12', 2, 0, 4, 4, '08:00:04', 1),
+(8039, '43189198', 2, '2019-05-02', '08:30:15', '2019-05-02', '08:46:15', 1, 0, 4, 4, '00:20:00', 1),
+(8040, '1036625052', 1, '2019-05-02', '08:30:23', '2019-05-02', '16:31:18', 2, 0, 4, 4, '08:00:55', 1),
+(8041, '1036625052', 2, '2019-05-02', '08:30:28', '2019-05-02', '08:50:05', 1, 0, 4, 4, '00:20:00', 1),
+(8042, '1001545147', 2, '2019-05-02', '08:30:33', '2019-05-02', '08:44:12', 1, 0, 4, 4, '00:20:00', 1),
+(8043, '1046913982', 2, '2019-05-02', '08:30:37', '2019-05-02', '08:48:47', 1, 0, 4, 4, '00:20:00', 1),
+(8044, '1017225857', 2, '2019-05-02', '08:30:48', '2019-05-02', '08:52:59', 2, 0, 4, 4, '00:22:11', 1),
+(8045, '1036622270', 2, '2019-05-02', '08:31:07', '2019-05-02', '08:47:59', 1, 0, 4, 4, '00:20:00', 1),
+(8046, '1013537192', 1, '2019-05-02', '08:31:12', '2019-05-02', '16:32:09', 2, 0, 4, 4, '08:00:57', 1),
+(8047, '1013537192', 2, '2019-05-02', '08:31:19', '2019-05-02', '08:49:41', 1, 0, 4, 4, '00:20:00', 1),
+(8048, '1020457057', 2, '2019-05-02', '08:32:20', '2019-05-02', '08:52:20', 1, 0, 4, 4, '00:20:00', 1),
+(8049, '1036629003', 2, '2019-05-02', '08:32:28', '2019-05-02', '08:52:22', 1, 0, 4, 4, '00:20:00', 1),
+(8050, '1037949573', 2, '2019-05-02', '08:33:16', '2019-05-02', '08:53:07', 1, 0, 4, 4, '00:20:00', 1),
+(8051, '80145967', 2, '2019-05-02', '08:33:37', '2019-05-02', '08:52:09', 1, 0, 4, 4, '00:20:00', 1),
+(8052, '32353491', 1, '2019-05-02', '08:35:39', NULL, NULL, 2, 1, 5, NULL, NULL, 1),
+(8053, '32353491', 2, '2019-05-02', '08:35:52', '2019-05-02', '08:55:34', 1, 0, 5, 5, '00:20:00', 1),
+(8054, '43265824', 2, '2019-05-02', '08:38:50', '2019-05-02', '08:57:37', 1, 0, 4, 4, '00:20:00', 1),
+(8055, '43605625', 2, '2019-05-02', '08:50:54', '2019-05-02', '09:11:50', 2, 0, 4, 4, '00:20:56', 1),
+(8056, '1096238261', 2, '2019-05-02', '08:59:10', '2019-05-02', '09:17:22', 1, 0, 4, 4, '00:20:00', 1),
+(8057, '1216716458', 2, '2019-05-02', '08:59:16', '2019-05-02', '09:18:15', 1, 0, 4, 4, '00:20:00', 1),
+(8058, '760579', 2, '2019-05-02', '08:59:24', '2019-05-02', '09:18:27', 1, 0, 4, 4, '00:20:00', 1),
+(8059, '42702332', 2, '2019-05-02', '09:00:03', '2019-05-02', '09:19:43', 1, 0, 4, 4, '00:20:00', 1),
+(8060, '1152450553', 1, '2019-05-02', '09:00:12', '2019-05-02', '16:31:38', 2, 0, 4, 4, '07:31:26', 1),
+(8061, '1152450553', 2, '2019-05-02', '09:00:19', '2019-05-02', '09:18:32', 1, 0, 4, 4, '00:20:00', 1),
+(8062, '15515649', 2, '2019-05-02', '09:00:26', '2019-05-02', '09:18:20', 1, 0, 4, 4, '00:20:00', 1),
+(8063, '15489896', 1, '2019-05-02', '09:00:45', '2019-05-02', '16:32:22', 2, 0, 5, 5, '07:31:37', 1),
+(8064, '15489896', 2, '2019-05-02', '09:00:53', '2019-05-02', '09:19:36', 1, 0, 5, 5, '00:20:00', 1),
+(8065, '44006996', 1, '2019-05-02', '09:01:13', '2019-05-02', '16:31:05', 2, 0, 5, 5, '07:29:52', 1),
+(8066, '44006996', 2, '2019-05-02', '09:01:23', '2019-05-02', '09:19:45', 1, 0, 5, 5, '00:20:00', 1),
+(8067, '43288005', 2, '2019-05-02', '09:01:26', '2019-05-02', '09:16:40', 1, 0, 1, 1, '00:20:00', 1),
+(8068, '98772784', 2, '2019-05-02', '09:02:06', '2019-05-02', '09:22:04', 1, 0, 1, 1, '00:20:00', 1),
+(8069, '43866346', 1, '2019-05-02', '09:02:31', '2019-05-02', '16:30:52', 2, 0, 5, 5, '07:28:21', 1),
+(8070, '43866346', 2, '2019-05-02', '09:02:40', '2019-05-02', '09:18:07', 1, 0, 5, 5, '00:20:00', 1),
+(8071, '1152701919', 2, '2019-05-02', '09:03:25', '2019-05-02', '09:19:32', 1, 0, 4, 4, '00:20:00', 1),
+(8072, '1017125039', 1, '2019-05-02', '09:04:11', '2019-05-02', '16:39:26', 2, 0, 5, 5, '07:35:15', 1),
+(8073, '1017125039', 2, '2019-05-02', '09:04:16', '2019-05-02', '09:21:08', 1, 0, 5, 5, '00:20:00', 1),
+(8074, '1036598684', 1, '2019-05-02', '09:06:50', '2019-05-02', '16:33:18', 2, 0, 5, 5, '07:26:28', 1),
+(8075, '1036598684', 2, '2019-05-02', '09:06:56', '2019-05-02', '09:25:38', 1, 0, 5, 5, '00:20:00', 1),
+(8076, '1036651097', 1, '2019-05-02', '09:28:24', '2019-05-02', '16:32:33', 2, 0, 5, 5, '07:04:09', 1),
+(8077, '1036651097', 2, '2019-05-02', '09:28:30', '2019-05-02', '09:46:34', 1, 0, 5, 5, '00:20:00', 1),
+(8078, '1077453248', 1, '2019-05-02', '09:29:18', '2019-05-02', '16:29:21', 2, 0, 5, 5, '07:00:03', 1),
+(8079, '1077453248', 2, '2019-05-02', '09:29:26', '2019-05-02', '09:45:20', 1, 0, 5, 5, '00:20:00', 1),
+(8080, '1037949696', 1, '2019-05-02', '10:03:09', '2019-05-02', '16:00:29', 2, 0, 5, 5, '05:57:20', 1),
+(8081, '1037949696', 2, '2019-05-02', '10:03:17', '2019-05-02', '10:18:25', 1, 0, 5, 5, '00:20:00', 1),
+(8082, '71267825', 2, '2019-05-02', '10:07:20', '2019-05-02', '10:25:25', 1, 0, 4, 4, '00:20:00', 1),
+(8083, '1216727816', 2, '2019-05-02', '13:11:40', '2019-05-02', '13:11:40', 3, 0, 0, 0, '00:20:00', 1),
+(8084, '1216727816', 3, '2019-05-02', '13:11:40', '2019-05-02', '14:09:09', 2, 0, 2, 4, '00:57:29', 1),
+(8085, '1001545147', 3, '2019-05-02', '13:13:10', '2019-05-02', '13:38:52', 1, 0, 4, 4, '00:40:00', 1),
+(8086, '1152450553', 3, '2019-05-02', '13:15:38', '2019-05-02', '13:45:36', 1, 0, 4, 4, '00:40:00', 1),
+(8087, '1036651097', 3, '2019-05-02', '13:26:42', '2019-05-02', '14:07:19', 2, 0, 5, 5, '00:40:37', 1),
+(8088, '1077453248', 3, '2019-05-02', '13:36:33', '2019-05-02', '13:59:29', 1, 0, 5, 5, '00:40:00', 1),
+(8089, '8433778', 3, '2019-05-02', '13:38:17', '2019-05-02', '16:30:26', 2, 0, 4, 4, '02:52:09', 1),
+(8090, '42702332', 3, '2019-05-02', '13:40:02', '2019-05-02', '14:01:45', 1, 0, 4, 4, '00:40:00', 1),
+(8091, '760579', 3, '2019-05-02', '13:43:52', '2019-05-02', '16:31:05', 2, 0, 4, 4, '02:47:13', 1),
+(8092, '15489896', 3, '2019-05-02', '13:44:05', '2019-05-02', '16:32:22', 2, 0, 5, 5, '02:48:17', 1),
+(8093, '1152701919', 3, '2019-05-02', '13:44:05', '2019-05-02', '16:30:34', 2, 0, 4, 4, '02:46:29', 1),
+(8094, '1037949696', 3, '2019-05-02', '14:02:21', '2019-05-02', '16:00:29', 2, 0, 5, 5, '01:58:08', 1),
+(8095, '43605625', 3, '2019-05-02', '16:29:29', '2019-05-02', '16:29:29', 3, 0, 0, 0, '00:40:00', 1),
+(8096, '98668402', 3, '2019-05-02', '16:30:04', '2019-05-02', '16:30:04', 3, 0, 0, 0, '00:00:00', 3),
+(8097, '1037949573', 3, '2019-05-02', '16:30:07', '2019-05-02', '16:30:07', 3, 0, 0, 0, '00:40:00', 1),
+(8098, '43189198', 3, '2019-05-02', '16:30:12', '2019-05-02', '16:30:12', 3, 0, 0, 0, '00:40:00', 1),
+(8099, '98772784', 3, '2019-05-02', '16:30:15', '2019-05-02', '16:30:15', 3, 0, 0, 0, '00:40:00', 1),
+(8100, '1095791547', 2, '2019-05-02', '16:30:27', '2019-05-02', '16:30:27', 3, 0, 0, 0, '00:20:00', 1),
+(8101, '1095791547', 3, '2019-05-02', '16:30:28', '2019-05-02', '16:30:28', 3, 0, 0, 0, '00:40:00', 1),
+(8102, '1096238261', 3, '2019-05-02', '16:30:43', '2019-05-02', '16:30:43', 3, 0, 0, 0, '00:40:00', 1),
+(8103, '1037587834', 2, '2019-05-02', '16:30:48', '2019-05-02', '16:30:48', 3, 0, 0, 0, '00:20:00', 1),
+(8104, '1037587834', 3, '2019-05-02', '16:30:48', '2019-05-02', '16:30:48', 3, 0, 0, 0, '00:40:00', 1),
+(8105, '43866346', 3, '2019-05-02', '16:30:52', '2019-05-02', '16:30:52', 3, 0, 0, 0, '00:40:00', 1),
+(8106, '15515649', 3, '2019-05-02', '16:30:53', '2019-05-02', '16:30:53', 3, 0, 0, 0, '00:40:00', 1),
+(8107, '1216716458', 3, '2019-05-02', '16:30:58', '2019-05-02', '16:30:58', 3, 0, 0, 0, '00:40:00', 1),
+(8108, '44006996', 3, '2019-05-02', '16:31:04', '2019-05-02', '16:31:04', 3, 0, 0, 0, '00:40:00', 1),
+(8109, '43265824', 3, '2019-05-02', '16:31:13', '2019-05-02', '16:31:13', 3, 0, 0, 0, '00:40:00', 1),
+(8110, '1036625052', 3, '2019-05-02', '16:31:18', '2019-05-02', '16:31:18', 3, 0, 0, 0, '00:40:00', 1),
+(8111, '1046913982', 3, '2019-05-02', '16:31:23', '2019-05-02', '16:31:23', 3, 0, 0, 0, '00:40:00', 1),
+(8112, '1017225857', 3, '2019-05-02', '16:31:28', '2019-05-02', '16:31:28', 3, 0, 0, 0, '00:40:00', 1),
+(8113, '80145967', 3, '2019-05-02', '16:31:46', '2019-05-02', '16:31:46', 3, 0, 0, 0, '00:40:00', 1),
+(8114, '1013537192', 3, '2019-05-02', '16:32:09', '2019-05-02', '16:32:09', 3, 0, 0, 0, '00:40:00', 1),
+(8115, '1036598684', 3, '2019-05-02', '16:33:18', '2019-05-02', '16:33:18', 3, 0, 0, 0, '00:40:00', 1),
+(8116, '43288005', 3, '2019-05-02', '16:36:14', '2019-05-02', '16:36:14', 3, 0, 0, 0, '00:40:00', 1),
+(8117, '1017125039', 3, '2019-05-02', '16:39:26', '2019-05-02', '16:39:26', 3, 0, 0, 0, '00:40:00', 1),
+(8118, '1036598684', 1, '2019-05-03', '05:50:02', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8119, '1143991147', 1, '2019-05-03', '05:50:23', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8120, '1152701919', 1, '2019-05-03', '05:52:11', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8121, '1216716458', 1, '2019-05-03', '05:52:17', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8122, '43288005', 1, '2019-05-03', '05:52:29', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8123, '1046913982', 1, '2019-05-03', '05:54:20', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8124, '43189198', 1, '2019-05-03', '05:54:34', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8125, '1036622270', 1, '2019-05-03', '05:54:40', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8126, '1096238261', 1, '2019-05-03', '05:54:46', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8127, '1036651097', 1, '2019-05-03', '05:54:48', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8128, '15515649', 1, '2019-05-03', '05:54:50', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8129, '1152450553', 1, '2019-05-03', '05:54:56', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8130, '760579', 1, '2019-05-03', '05:55:00', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8131, '44006996', 1, '2019-05-03', '05:55:01', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8132, '43265824', 1, '2019-05-03', '05:55:07', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8133, '1077453248', 1, '2019-05-03', '05:55:23', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8134, '1036625052', 1, '2019-05-03', '05:55:24', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8135, '1037949573', 1, '2019-05-03', '05:55:30', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8136, '1013537192', 1, '2019-05-03', '05:55:34', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8137, '1001545147', 1, '2019-05-03', '05:55:44', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8138, '43605625', 1, '2019-05-03', '05:56:02', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8139, '1037949696', 1, '2019-05-03', '05:56:07', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8140, '15489896', 1, '2019-05-03', '05:56:18', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8141, '1039049115', 1, '2019-05-03', '05:56:27', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8142, '43542658', 1, '2019-05-03', '05:56:27', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8143, '1020457057', 1, '2019-05-03', '05:56:33', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8144, '1037587834', 1, '2019-05-03', '05:56:38', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8145, '42702332', 1, '2019-05-03', '05:56:44', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8146, '43866346', 1, '2019-05-03', '05:56:58', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8147, '71267825', 1, '2019-05-03', '05:57:05', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8148, '32353491', 1, '2019-05-03', '05:57:05', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8149, '1017125039', 1, '2019-05-03', '05:57:46', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8150, '1017225857', 1, '2019-05-03', '05:57:57', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8151, '8433778', 1, '2019-05-03', '05:58:16', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8152, '98668402', 1, '2019-05-03', '05:58:34', NULL, NULL, 1, 1, 1, NULL, NULL, 3),
+(8153, '1095791547', 1, '2019-05-03', '05:58:44', NULL, NULL, 1, 1, 1, NULL, NULL, 1),
+(8154, '98772784', 1, '2019-05-03', '05:58:47', NULL, NULL, 1, 1, 1, NULL, NULL, 1),
+(8155, '1017187557', 1, '2019-05-03', '05:59:00', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8156, '80145967', 1, '2019-05-03', '05:59:52', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8157, '8433778', 2, '2019-05-03', '08:30:40', '2019-05-03', '08:48:11', 1, 0, 4, 4, '00:20:00', 1),
+(8158, '1036625052', 2, '2019-05-03', '08:30:51', '2019-05-03', '08:50:45', 1, 0, 4, 4, '00:20:00', 1),
+(8159, '1013537192', 2, '2019-05-03', '08:31:00', '2019-05-03', '08:50:58', 1, 0, 4, 4, '00:20:00', 1),
+(8160, '98668402', 2, '2019-05-03', '08:31:10', '2019-05-03', '08:46:40', 2, 0, 1, 1, '00:15:30', 3),
+(8161, '1143991147', 2, '2019-05-03', '08:31:18', '2019-05-03', '08:51:18', 1, 0, 5, 4, '00:20:00', 1),
+(8162, '1017225857', 2, '2019-05-03', '08:31:20', '2019-05-03', '08:50:36', 1, 0, 4, 4, '00:20:00', 1),
+(8163, '80145967', 2, '2019-05-03', '08:31:30', '2019-05-03', '08:50:30', 1, 0, 4, 4, '00:20:00', 1),
+(8164, '1020457057', 2, '2019-05-03', '08:31:52', '2019-05-03', '08:50:26', 1, 0, 4, 4, '00:20:00', 1),
+(8165, '1046913982', 2, '2019-05-03', '08:32:05', '2019-05-03', '08:50:51', 1, 0, 4, 4, '00:20:00', 1),
+(8166, '1037949573', 2, '2019-05-03', '08:32:10', '2019-05-03', '08:50:31', 1, 0, 4, 4, '00:20:00', 1),
+(8167, '43189198', 2, '2019-05-03', '08:32:20', '2019-05-03', '08:48:53', 1, 0, 4, 4, '00:20:00', 1),
+(8168, '1017187557', 2, '2019-05-03', '08:32:31', '2019-05-03', '08:51:04', 1, 0, 4, 4, '00:20:00', 1),
+(8169, '43542658', 2, '2019-05-03', '08:32:37', '2019-05-03', '08:51:09', 1, 0, 4, 4, '00:20:00', 1),
+(8170, '1036598684', 2, '2019-05-03', '08:33:28', '2019-05-03', '08:52:33', 1, 0, 5, 5, '00:20:00', 1),
+(8171, '32353491', 2, '2019-05-03', '08:35:24', '2019-05-03', '08:56:35', 2, 0, 5, 5, '00:21:11', 1),
+(8172, '43265824', 2, '2019-05-03', '08:44:18', '2019-05-03', '09:03:20', 1, 0, 4, 4, '00:20:00', 1),
+(8173, '1001545147', 2, '2019-05-03', '08:46:31', '2019-05-03', '09:06:53', 2, 0, 4, 4, '00:20:22', 1),
+(8174, '1036622270', 2, '2019-05-03', '08:50:27', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8175, '44006996', 2, '2019-05-03', '09:00:38', '2019-05-03', '09:19:49', 1, 0, 5, 5, '00:20:00', 1),
+(8176, '15489896', 2, '2019-05-03', '09:01:34', '2019-05-03', '09:22:19', 2, 0, 5, 5, '00:20:45', 1),
+(8177, '43866346', 2, '2019-05-03', '09:01:41', '2019-05-03', '09:20:03', 1, 0, 5, 5, '00:20:00', 1),
+(8178, '1216716458', 2, '2019-05-03', '09:04:04', '2019-05-03', '09:23:33', 1, 0, 4, 4, '00:20:00', 1),
+(8179, '760579', 2, '2019-05-03', '09:04:10', '2019-05-03', '09:23:19', 1, 0, 4, 4, '00:20:00', 1),
+(8180, '1152450553', 2, '2019-05-03', '09:04:23', '2019-05-03', '09:23:25', 1, 0, 4, 4, '00:20:00', 1),
+(8181, '15515649', 2, '2019-05-03', '09:04:52', '2019-05-03', '09:23:53', 1, 0, 4, 4, '00:20:00', 1),
+(8182, '43288005', 2, '2019-05-03', '09:04:56', NULL, NULL, 1, 1, 1, NULL, NULL, 1),
+(8183, '1096238261', 2, '2019-05-03', '09:05:07', '2019-05-03', '09:25:51', 2, 0, 4, 4, '00:20:44', 1),
+(8184, '1039049115', 2, '2019-05-03', '09:19:56', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8185, '1036651097', 2, '2019-05-03', '09:21:40', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8186, '1017125039', 2, '2019-05-03', '09:22:29', '2019-05-03', '09:36:52', 1, 0, 5, 5, '00:20:00', 1),
+(8187, '1152701919', 2, '2019-05-03', '09:31:09', NULL, NULL, 1, 1, 4, NULL, NULL, 1),
+(8188, '1077453248', 2, '2019-05-03', '09:31:16', NULL, NULL, 1, 1, 5, NULL, NULL, 1),
+(8228, '1216727816', 1, '2019-05-03', '15:32:06', '2019-05-03', '15:34:09', 2, 0, 2, 0, '00:02:03', 4),
+(8229, '1216727816', 3, '2019-05-03', '15:32:14', '2019-05-03', '15:34:09', 2, 0, 2, 0, '00:00:00', 4);
 
 -- --------------------------------------------------------
 
@@ -12755,7 +13071,8 @@ INSERT INTO `auxilio` (`idAuxilio`, `idTipo_auxilio`, `monto`, `idSalarial`, `es
 (135, 3, '500000', 50, 1),
 (136, 2, '200000', 50, 1),
 (137, 2, '200000', 109, 1),
-(138, 1, '97032', 115, 1);
+(138, 1, '97032', 115, 1),
+(139, 1, '97032', 116, 1);
 
 -- --------------------------------------------------------
 
@@ -12916,7 +13233,8 @@ CREATE TABLE `configuracion` (
 INSERT INTO `configuracion` (`idConfiguracion`, `nombre`, `hora_ingreso_empresa`, `hora_salida_empresa`, `hora_inicio_desayuno`, `hora_fin_desayuno`, `hora_inicio_almuerzo`, `hora_fin_almuerzo`, `tiempo_desayuno`, `tiempo_almuerzo`, `estado`) VALUES
 (1, 'Primer horario laboral', '06:00:00', '16:30:00', '08:30:00', '11:00:00', '11:30:00', '15:10:00', '00:20:00', '00:40:00', 1),
 (2, 'Segundo horario laboral', '10:55:00', '20:00:00', '11:00:00', '14:00:00', '17:00:00', '19:00:00', '00:15:00', '00:40:00', 1),
-(3, 'Horario de los sabados', '06:00:00', '12:00:00', '08:30:00', '09:30:00', '10:00:00', '10:00:02', '00:15:00', '00:00:00', 1);
+(3, 'Horario de los sabados', '06:00:00', '12:00:00', '08:30:00', '09:30:00', '10:00:00', '10:00:02', '00:15:00', '00:00:00', 1),
+(4, 'Prueba de desarrollo', '08:00:00', '16:00:00', '00:00:00', '00:00:00', '13:00:00', '15:40:00', '00:20:00', '00:00:00', 1);
 
 -- --------------------------------------------------------
 
@@ -13009,7 +13327,7 @@ INSERT INTO `dias_festivos` (`iddias_festivos`, `nombre`, `fecha_dia`, `estado`)
 --
 
 CREATE TABLE `empleado` (
-  `documento` varchar(13) NOT NULL,
+  `documento` varchar(20) NOT NULL,
   `nombre1` varchar(45) NOT NULL,
   `nombre2` varchar(45) DEFAULT NULL,
   `apellido1` varchar(45) NOT NULL,
@@ -13082,7 +13400,7 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 ('1036622270', 'LINA ', 'JOHANNA', 'YEPES', 'RIOS', 0, 0, 0, 0, 'Linayepesrios2403@gmail.com', 'TElOQQ==', 3, 1, 1, 1, '4', '', '', '2018-08-29', 0),
 ('1036625052', 'carlos', 'alberto', 'rodriguez', 'pulgarin', 1, 0, 0, 0, 'albertico2319@gmail.com', 'NTI3OA==', 1, 1, 1, 1, '4', '10-08-2007', 'itagui', '2019-01-28', 0),
 ('1036625105', 'Deisy', 'Johana', 'Alvarez', 'Toro', 0, 0, 0, 0, 'dejoalto@gmail.com', 'Mjc5Mw==', 1, 0, 2, 0, '4', '', '', '2018-08-29', 0),
-('1036629003', 'evelin ', 'andrea', 'cano', 'muñoz', 0, 0, 0, 0, 'evelincano1989@gmail.com', 'MTEwOQ==', 1, 1, 1, 1, '1', '15/02/2009', 'Envigado', '2018-08-29', 21),
+('1036629003', 'evelin ', 'andrea', 'cano', 'muñoz', 0, 0, 0, 0, 'evelincano1989@gmail.com', 'MTEwOQ==', 1, 1, 1, 0, '1', '15/02/2009', 'Envigado', '2018-08-29', 21),
 ('1036634996', 'Simón', 'David', 'Muñetones', 'Morales', 1, 0, 0, 0, 'simon.munetones@tecrea.com.co', 'MDgxMg==', 4, 1, 2, 0, '4', '', '', '2018-08-29', 0),
 ('1036650501', 'Daniela', '', 'Giraldo', 'Arias', 0, 0, 0, 0, 'danigir29@hotmail.com', 'MDEyOQ==', 1, 1, 2, 0, '1', '06-02-2012', 'Itagui', '2019-02-05', 0),
 ('1036651097', 'cristian ', 'camilo', 'molina', 'bernal', 1, 0, 0, 0, 'cristianmolinab121@gmail.com', 'OTMxMg==', 1, 1, 1, 1, '4', '20-03-2000', 'itagui', '2018-08-29', 0),
@@ -13107,7 +13425,7 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 ('1066743123', 'Oscar', 'De Jesús ', 'Causil', 'Montiel', 1, 0, 0, 0, 'oscarcmwork@hotmail.com', 'NzMxMA==', 2, 0, 1, 0, '4', '', '', '2018-08-29', 0),
 ('1077453248', 'arnold', 'david', 'chala', 'rivas', 1, 0, 0, 0, 'arnoldvip@hotmail.com', 'MDQwOQ==', 1, 1, 1, 1, '5', '12/12/2011', 'MEDELLIN', '2018-08-29', 0),
 ('1078579715', 'maiber', 'david', 'gonzalez ', 'mercado', 1, 0, 0, 0, 'mader145@HOTMAI.com', 'MDMxNQ==', 1, 0, 2, 0, '4', '14/05/1989', 'MEDELLIN', '2018-08-29', 0),
-('1090523316', 'faiber', 'omar', 'atuesta', 'garcia', 1, 0, 0, 0, 'faiberatuesta@gmail.com', 'MTAxMw==', 1, 1, 1, 1, '4', '13/10/1998', 'Cucuta', '2018-08-29', 0),
+('1090523316', 'faiber', 'omar', 'atuesta', 'garcia', 1, 0, 0, 0, 'faiberatuesta@gmail.com', 'MTAxMw==', 1, 1, 1, 0, '4', '13/10/1998', 'Cucuta', '2018-08-29', 0),
 ('1095791547', 'diego', 'armando', 'lopez', 'moreno', 1, 0, 0, 0, 'bukacats@hotmail.com', 'ODYxOQ==', 1, 1, 1, 1, '1', '2000-01-10', 'Pendiente', '2018-08-29', 0),
 ('1096238261', 'Kelly', 'María', 'Villazón', 'Ramírez', 0, 0, 0, 0, 'kellyvillazon1@gmail.com', 'MTUzMQ==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
 ('1125779563', 'JOSE', 'FERNANDO', 'ARBOLEDA', 'RAMIREZ', 1, 0, 0, 0, 'josefernando870@gmail.com', 'MDk4Nw==', 4, 1, 2, 0, '3', '', '', '2018-08-29', 0),
@@ -13135,12 +13453,12 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 ('1216714539', 'Maria ', 'Alejandra', 'Zuluaga', 'Rivera', 0, 0, 0, 0, 'alejandra.zuluaga@colciercuitos.com', 'MTIxNg==', 1, 1, 2, 0, '2', '27/12/2011', 'MEDELLIN', '2018-08-29', 0),
 ('1216716458', 'sebastian', '', 'ramirez', 'corral', 1, 0, 0, 0, 'sebastos7d@gmail.com', 'ODg3OA==', 1, 1, 1, 1, '4', '03/09/2012', 'Medellín', '2018-08-29', 0),
 ('1216718503', 'Kelly', 'Jhoana', 'Zapata', 'Hoyos', 0, 0, 0, 0, 'kelly-08-@hotmail.com', 'MjgwOA==', 3, 0, 1, 0, '1', '29/08/2013', 'Medellin', '2018-08-29', 0),
-('1216727816', 'juan', 'david', 'marulanda', 'paniagua', 1, 0, 0, 0, 'jdmarulanda0@gmail.com', 'MTIzNA==', 1, 1, 1, 1, '2', '2016-12-14', 'Medellin', '2018-11-02', 11),
+('1216727816', 'juan', 'david', 'marulanda', 'paniagua', 1, 0, 0, 0, 'jdmarulanda0@gmail.com', 'MTIzNA==', 1, 1, 1, 0, '2', '2016-12-14', 'Medellin', '2018-11-02', 11),
 ('15489896', 'ludimer', 'de jesus', 'urrego', 'durango', 1, 0, 0, 0, 'luguilugui82@outloock.es', 'MTU0OA==', 1, 1, 1, 1, '5', '05/02/1999', 'Urrao', '2018-08-29', 0),
 ('15489917', 'Aicardo', 'Alexander', 'Montoya', 'Perez', 1, 0, 0, 0, 'alexmontoyap@yahoo.es', 'ODI1Nw==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
 ('15515649', 'Andres', 'Felipe', 'Tobon', 'Gonzalez', 1, 0, 0, 0, 'atobongonzalez@gmail.com', 'MjgxMg==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
 ('21424773', 'beatriz', 'elena', 'urrego', 'montes', 0, 0, 0, 0, 'bety-manuelita@hotmail.com', 'MDUwNQ==', 1, 1, 1, 0, '4', '', '', '2018-08-29', 0),
-('23917651', 'Dianneli', 'Patricia', 'Duran', 'Torres', 0, 0, 0, 0, 'dianneliduran22@gmail.com', 'MjIwMw==', 3, 1, 1, 1, '4', '05/04/2013', 'Venezuela ', '2018-08-29', 0),
+('23917651', 'Dianneli', 'Patricia', 'Duran', 'Torres', 0, 0, 0, 0, 'dianneliduran22@gmail.com', 'MjIwMw==', 3, 1, 1, 0, '4', '05/04/2013', 'Venezuela ', '2018-08-29', 0),
 ('26201420', 'Carmen', 'Milagro', 'Alvarez', 'Estrada', 0, 0, 0, 0, 'carmen15-17@hotmail.com', 'MTUxNw==', 1, 0, 1, 0, '4', '', '', '2018-08-29', 0),
 ('32242675', 'Liliana', 'Maria', 'Restrepo', 'Ortíz', 0, 0, 0, 0, 'liliana.restrepo@colcircuitos.com', 'MjQxMg==', 1, 0, 2, 0, '4', '', '', '2018-08-29', 0),
 ('32353491', 'janeth', 'viviana ', 'agudelo', 'zapata', 0, 0, 0, 0, 'janevia_0802@yahoo.es', 'NTUwOA==', 5, 1, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
@@ -13177,13 +13495,14 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 ('760579', 'higinio', 'alejandro', 'duarte', 'marquez', 1, 0, 0, 0, 'higinio.alejandro@gmail.com', 'MTg2Mg==', 1, 1, 1, 1, '4', '12-01-2000', 'Medellín', '2018-08-29', 0),
 ('78758797', 'Rafael', 'Eduardo', 'Herrera', 'Mangones', 1, 0, 0, 0, 'rafael.herreram@tecrea.com.co', 'MTk4MA==', 4, 0, 2, 0, '4', '', '', '2018-08-29', 0),
 ('80145967', 'jonathan', 'alvaro ', 'rojas ', 'beltran ', 1, 0, 0, 0, 'jonathanrb3@hotmail.com', 'ODkzMw==', 3, 1, 1, 1, '4', '10/01/2003', 'Bogotá', '2018-08-29', 0),
-('8102064', 'Adrian ', 'Felipe', 'Hernandez', 'Uribe', 1, 0, 0, 0, 'adrian.hernandez@colcircuitos.com', 'NzQ2MQ==', 1, 1, 2, 0, '2', '11/01/2002', 'Medellín', '2019-01-30', 0),
+('8102064', 'Adrian ', 'Felipe', 'Hernandez', 'Uribe', 1, 0, 0, 0, 'adrian.hernandez@colcircuitos.com', 'NzQ2MQ==', 1, 0, 2, 0, '2', '11/01/2002', 'Medellín', '2019-01-30', 0),
 ('8106761', 'andres', 'felipe', 'berrio', 'cataño', 1, 0, 0, 0, 'andres.berrio@tecrea.com.co', 'NzU0OA==', 4, 0, 2, 0, '4', '13/06/1895', 'Medellin', '2018-08-29', 0),
 ('8344177', 'FABIAN', 'aRNULFO', 'VELÉZ', 'MUÑOZ', 1, 0, 0, 0, 'fabianvm@hotmail.com', 'MDYyMQ==', 1, 1, 2, 0, '2', '21/06/1969', 'Envigado', '2019-03-07', 17),
 ('8355460', 'Juan ', 'Camilo ', 'Herrera ', 'Pineda', 1, 0, 0, 0, 'camherrera837@hotmail.com', 'MTAxMA==', 4, 1, 2, 0, '3', '15/11/2001', 'Envigado', '2018-08-29', 0),
 ('8433778', 'Fredy', 'Alejandro', 'Montoya', 'Isaza', 1, 0, 0, 0, 'complotminitk@hotmail.com', 'NTcxOQ==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
 ('9008773200219', 'Sara ', 'Maria ', 'Daboi', 'Ramirez', 0, 0, 0, 0, 'saradaboin@hotmail.com', 'MTMwOQ==', 3, 0, 1, 0, '1', '15/08/2017', 'Medellin', '2018-08-29', 0),
 ('91279058', 'FABIO', '', 'CUBILLOS', 'VALENCIA', 1, 0, 0, 0, 'gerencia@tecrea.com.co', 'NTkxNQ==', 4, 0, 2, 0, '4', '', '', '2018-08-29', 0),
+('955297213061995', 'Maria', 'Angelica', 'Medina', 'Valencia', 0, 0, 0, 0, 'angelicamvalencia22@gmail.com', 'MDMwMg==', 4, 1, 2, 0, '3', '28-12-2018', 'Medellin', '2019-05-02', 0),
 ('98558437', 'Fabian ', 'Fernando ', 'Vélez', 'Pérez', 1, 0, 0, 0, 'fernando@colcircuitos.com', 'MTQyMg==', 1, 1, 2, 0, '2', '30/07/1990', 'Envigado', '2019-03-13', 12),
 ('98668402', 'andres', 'felipe', 'graciano', 'pareja', 1, 0, 0, 0, 'andresgp.c2c3@gmail.com', 'ODQwMg==', 1, 1, 1, 1, '1', '1998-01-01', 'Pendiente', '2018-08-29', 0),
 ('98699433', 'andres', 'camilo', 'buitrago', 'gomez', 1, 0, 0, 0, 'andres.buitrago@colcircuitos.com', 'MjYwOA==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
@@ -13200,7 +13519,7 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 
 CREATE TABLE `empleado_horario` (
   `idEmpleado_horario` int(11) NOT NULL,
-  `documento` varchar(13) CHARACTER SET utf8 NOT NULL,
+  `documento` varchar(20) CHARACTER SET utf8 NOT NULL,
   `idConfiguracion` tinyint(4) NOT NULL,
   `diaInicio` tinyint(1) NOT NULL,
   `diaFin` tinyint(1) DEFAULT NULL,
@@ -13277,7 +13596,8 @@ INSERT INTO `empleado_horario` (`idEmpleado_horario`, `documento`, `idConfigurac
 (79, '1001545147', 1, 1, 5, 1, '2019-03-12', NULL),
 (80, '1095791547', 1, 1, 5, 1, '2019-03-27', NULL),
 (81, '1095791547', 3, 6, -1, 0, '2019-04-06', NULL),
-(82, '98668402', 3, 6, -1, 1, '2019-04-06', NULL);
+(82, '98668402', 3, 6, -1, 1, '2019-04-06', NULL),
+(83, '1216727816', 4, 6, -1, 0, '2019-05-03', NULL);
 
 -- --------------------------------------------------------
 
@@ -14113,7 +14433,17 @@ INSERT INTO `envio_pedido` (`idEnvio_pedido`, `fecha_envio`, `idProveedor`) VALU
 (889, '2019-04-30 07:45:07', 2),
 (890, '2019-04-30 07:45:09', 3),
 (891, '2019-04-30 07:45:12', 4),
-(892, '2019-04-30 07:45:14', 5);
+(892, '2019-04-30 07:45:14', 5),
+(893, '2019-05-02 07:45:04', 1),
+(894, '2019-05-02 07:45:06', 2),
+(895, '2019-05-02 07:45:09', 3),
+(896, '2019-05-02 07:45:11', 4),
+(897, '2019-05-02 07:45:13', 5),
+(898, '2019-05-03 07:45:04', 1),
+(899, '2019-05-03 07:45:06', 2),
+(900, '2019-05-03 07:45:09', 3),
+(901, '2019-05-03 07:45:11', 4),
+(902, '2019-05-03 07:45:13', 5);
 
 -- --------------------------------------------------------
 
@@ -14354,7 +14684,7 @@ INSERT INTO `estado_empresarial` (`idEstado_empresarial`, `idFicha_SD`, `estado_
 (139, 89, '2', '0000-00-00', '2018-10-01', 0, 0, '', 1, 4, 0),
 (140, 90, '1', '2015-10-31', '2013-04-15', 3, 3, '', 1, 1, 0),
 (141, 90, '2', '0000-00-00', '2015-11-01', 0, 0, '', 1, 4, 0),
-(142, 91, '2', '0000-00-00', '2018-01-10', 0, 0, '', 1, 1, 0),
+(142, 91, '1', '2019-04-30', '2018-01-10', 1, 2, '', 1, 1, 3),
 (143, 92, '1', '2013-08-07', '2013-02-08', 3, 3, 'Terminación prácticas', 1, 1, 0),
 (144, 92, '2', '0000-00-00', '2013-08-08', 0, 0, '', 1, 1, 0),
 (145, 93, '2', '0000-00-00', '2009-08-18', 0, 0, '', 1, 1, 0),
@@ -14393,7 +14723,8 @@ INSERT INTO `estado_empresarial` (`idEstado_empresarial`, `idFicha_SD`, `estado_
 (181, 34, '2', '0000-00-00', '2018-01-15', 0, 0, '', 1, 1, 0),
 (183, 80, '2', '0000-00-00', '2019-04-08', 0, 0, '', 1, 5, 0),
 (184, 115, '2', '0000-00-00', '2019-04-22', 0, 0, '', 1, 5, 0),
-(185, 59, '2', '0000-00-00', '2019-04-22', 0, 0, '', 1, 3, 0);
+(185, 59, '2', '0000-00-00', '2019-04-22', 0, 0, '', 1, 3, 0),
+(186, 116, '2', '0000-00-00', '2019-05-02', 0, 0, '', 1, 5, 0);
 
 -- --------------------------------------------------------
 
@@ -14543,7 +14874,8 @@ INSERT INTO `estudios` (`idEstudios`, `idGrado_escolaridad`, `titulo_profecional
 (126, 1, 'Media técnica en mecánica de presión', '', '0', ''),
 (127, 2, 'Tecnico en operaciòn de eventos', '', '0', ''),
 (128, 1, 'Bachiller Media Tecnica en Sistemas', '', '0', ''),
-(129, 4, 'Comunicadora Social Periodista', '', '0', '');
+(129, 4, 'Comunicadora Social Periodista', '', '0', ''),
+(130, 4, 'Abogada ', '', '0', '');
 
 -- --------------------------------------------------------
 
@@ -14577,7 +14909,7 @@ INSERT INTO `evento_laboral` (`idEvento_laboral`, `nombre`) VALUES
 
 CREATE TABLE `examenes_medicos` (
   `idexamenes_Medicos` int(11) NOT NULL,
-  `documento` varchar(13) CHARACTER SET utf8 NOT NULL,
+  `documento` varchar(20) CHARACTER SET utf8 NOT NULL,
   `fechaCarta` date NOT NULL,
   `fechaPlazo` date NOT NULL,
   `tipoExamenes` tinyint(1) NOT NULL,
@@ -14594,7 +14926,7 @@ CREATE TABLE `examenes_medicos` (
 
 CREATE TABLE `ficha_sd` (
   `idFicha_SD` smallint(6) NOT NULL,
-  `documento` varchar(13) NOT NULL,
+  `documento` varchar(20) NOT NULL,
   `idSalarial` smallint(6) NOT NULL,
   `idLaboral` smallint(6) NOT NULL,
   `idEstudios` smallint(6) NOT NULL,
@@ -14723,7 +15055,8 @@ INSERT INTO `ficha_sd` (`idFicha_SD`, `documento`, `idSalarial`, `idLaboral`, `i
 (112, '8344177', 112, 126, 126, 112, 112, 112, 112),
 (113, '1000633612', 113, 127, 127, 113, 113, 113, 113),
 (114, '1001545147', 114, 128, 128, 114, 114, 114, 114),
-(115, '1152195364', 115, 129, 129, 115, 115, 115, 115);
+(115, '1152195364', 115, 129, 129, 115, 115, 115, 115),
+(116, '955297213061995', 116, 130, 130, 116, 116, 116, 116);
 
 -- --------------------------------------------------------
 
@@ -14803,7 +15136,7 @@ INSERT INTO `horario_trabajo` (`idHorario_trabajo`, `horario`, `estado`) VALUES
 
 CREATE TABLE `h_laboral` (
   `idH_laboral` int(11) NOT NULL,
-  `documento` varchar(13) NOT NULL,
+  `documento` varchar(20) NOT NULL,
   `idEvento_laboral` tinyint(4) NOT NULL,
   `fecha_laboral` date NOT NULL,
   `numero_horas` varchar(8) NOT NULL,
@@ -17305,7 +17638,81 @@ INSERT INTO `h_laboral` (`idH_laboral`, `documento`, `idEvento_laboral`, `fecha_
 (2547, '1152450553', 1, '2019-04-29', '09:30:00', 1, NULL, '09:30:00', '0'),
 (2548, '1152450553', 2, '2019-04-29', '01:36:00', 0, NULL, '0', '0'),
 (2549, '760579', 1, '2019-04-29', '09:30:00', 1, NULL, '09:30:00', '0'),
-(2550, '760579', 2, '2019-04-29', '01:41:00', 0, NULL, '0', '0');
+(2550, '760579', 2, '2019-04-29', '01:41:00', 0, NULL, '0', '0'),
+(2551, '98668402', 1, '2019-04-30', '05:45:00', 1, NULL, '05:45:00', '0'),
+(2552, '98668402', 2, '2019-04-30', '02:01:00', 0, NULL, '0', '0'),
+(2553, '1017187557', 1, '2019-04-30', '06:35:00', 1, NULL, '06:35:00', '0'),
+(2554, '1020457057', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2555, '43866346', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2556, '43189198', 1, '2019-04-30', '06:08:29', 1, NULL, '06:08:29', '0'),
+(2557, '8433778', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2558, '1143991147', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2559, '1046913982', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2560, '1036598684', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2561, '1037949573', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2562, '1036598684', 2, '2019-04-30', '00:11:00', 0, NULL, '0', '0'),
+(2563, '1096238261', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2564, '1036622270', 1, '2019-04-30', '06:42:11', 1, NULL, '06:42:11', '0'),
+(2565, '23917651', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2566, '23917651', 2, '2019-04-30', '00:12:00', 0, NULL, '0', '0'),
+(2567, '1152701919', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2568, '1152701919', 2, '2019-04-30', '00:11:00', 0, NULL, '0', '0'),
+(2569, '1001545147', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2570, '1017225857', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2571, '43542658', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2572, '1036625052', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2573, '80145967', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2574, '43265824', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2575, '43265824', 2, '2019-04-30', '00:11:00', 0, NULL, '0', '0'),
+(2576, '1013537192', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2577, '1036651097', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2578, '32353491', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2579, '1039049115', 1, '2019-04-30', '09:27:39', 1, NULL, '09:27:39', '0'),
+(2580, '760579', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2581, '760579', 2, '2019-04-30', '00:14:00', 0, NULL, '0', '0'),
+(2582, '15515649', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2583, '15515649', 2, '2019-04-30', '00:14:00', 0, NULL, '0', '0'),
+(2584, '1216716458', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2585, '1216716458', 2, '2019-04-30', '00:15:00', 0, NULL, '0', '0'),
+(2586, '44006996', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2587, '44006996', 2, '2019-04-30', '00:11:00', 0, NULL, '0', '0'),
+(2588, '1090523316', 1, '2019-04-30', '09:24:40', 1, NULL, '09:24:40', '0'),
+(2589, '43288005', 1, '2019-04-30', '06:07:14', 1, NULL, '06:07:14', '0'),
+(2590, '1037949696', 1, '2019-04-30', '09:30:00', 1, NULL, '09:30:00', '0'),
+(2591, '1037949696', 2, '2019-04-30', '01:10:00', 0, NULL, '0', '0'),
+(2592, '1037949696', 1, '2019-05-02', '03:39:12', 1, NULL, '03:39:12', '0'),
+(2593, '1077453248', 1, '2019-05-02', '06:00:03', 1, NULL, '06:00:03', '0'),
+(2594, '43605625', 1, '2019-05-02', '08:56:43', 1, NULL, '08:56:43', '0'),
+(2595, '42702332', 1, '2019-05-02', '08:58:24', 1, NULL, '08:58:24', '0'),
+(2596, '98668402', 1, '2019-05-02', '05:45:00', 1, NULL, '05:45:00', '0'),
+(2597, '98668402', 2, '2019-05-02', '03:55:00', 0, NULL, '0', '0'),
+(2598, '1037949573', 1, '2019-05-02', '08:58:52', 1, NULL, '08:58:52', '0'),
+(2599, '43189198', 1, '2019-05-02', '07:00:04', 1, NULL, '07:00:04', '0'),
+(2600, '98772784', 1, '2019-05-02', '08:54:55', 1, NULL, '08:54:55', '0'),
+(2601, '8433778', 1, '2019-05-02', '06:47:17', 1, NULL, '06:47:17', '0'),
+(2602, '1095791547', 1, '2019-05-02', '08:54:55', 1, NULL, '08:54:55', '0'),
+(2603, '1152701919', 1, '2019-05-02', '06:49:46', 1, NULL, '06:49:46', '0'),
+(2604, '1096238261', 1, '2019-05-02', '08:44:42', 1, NULL, '08:44:42', '0'),
+(2605, '1037587834', 1, '2019-05-02', '08:59:05', 1, NULL, '08:59:05', '0'),
+(2606, '43866346', 1, '2019-05-02', '06:28:21', 1, NULL, '06:28:21', '0'),
+(2607, '15515649', 1, '2019-05-02', '08:44:24', 1, NULL, '08:44:24', '0'),
+(2608, '1216716458', 1, '2019-05-02', '09:00:14', 1, NULL, '09:00:14', '0'),
+(2609, '44006996', 1, '2019-05-02', '06:29:52', 1, NULL, '06:29:52', '0'),
+(2610, '760579', 1, '2019-05-02', '06:53:16', 1, NULL, '06:53:16', '0'),
+(2611, '43265824', 1, '2019-05-02', '08:57:38', 1, NULL, '08:57:38', '0'),
+(2612, '1036625052', 1, '2019-05-02', '07:00:55', 1, NULL, '07:00:55', '0'),
+(2613, '1046913982', 1, '2019-05-02', '08:50:39', 1, NULL, '08:50:39', '0'),
+(2614, '1017225857', 1, '2019-05-02', '08:55:05', 1, NULL, '08:55:05', '0'),
+(2615, '1152450553', 1, '2019-05-02', '06:31:26', 1, NULL, '06:31:26', '0'),
+(2616, '80145967', 1, '2019-05-02', '08:57:48', 1, NULL, '08:57:48', '0'),
+(2617, '1001545147', 1, '2019-05-02', '08:55:16', 1, NULL, '08:55:16', '0'),
+(2618, '1013537192', 1, '2019-05-02', '07:00:57', 1, NULL, '07:00:57', '0'),
+(2619, '15489896', 1, '2019-05-02', '04:23:20', 1, NULL, '04:23:20', '0'),
+(2620, '1036651097', 1, '2019-05-02', '06:03:32', 1, NULL, '06:03:32', '0'),
+(2621, '1036598684', 1, '2019-05-02', '06:26:28', 1, NULL, '06:26:28', '0'),
+(2622, '43288005', 1, '2019-05-02', '09:00:47', 1, NULL, '09:00:47', '0'),
+(2623, '1017125039', 1, '2019-05-02', '06:35:15', 1, NULL, '06:35:15', '0'),
+(2626, '1216727816', 1, '2019-05-03', '-00:23:1', 1, NULL, '-00:23:1', '0');
 
 -- --------------------------------------------------------
 
@@ -17315,7 +17722,7 @@ INSERT INTO `h_laboral` (`idH_laboral`, `documento`, `idEvento_laboral`, `fecha_
 
 CREATE TABLE `incapacidad` (
   `idIncapacidad` int(11) NOT NULL,
-  `documento` varchar(13) NOT NULL,
+  `documento` varchar(20) NOT NULL,
   `fecha_incapacidad` date NOT NULL,
   `fecha_fin_incapacidad` date NOT NULL,
   `dias` varchar(4) NOT NULL,
@@ -17551,7 +17958,8 @@ INSERT INTO `laboral` (`idLaboral`, `idHorario_trabajo`, `idArea_trabajo`, `idCa
 (126, 2, 17, 11, 0, 2, '0000-00-00', NULL, 7),
 (127, 2, 9, 25, 0, 3, '0000-00-00', NULL, 6),
 (128, 1, 20, 35, 0, 3, '0000-00-00', NULL, 6),
-(129, 2, 9, 25, 0, 2, '0000-00-00', NULL, 7);
+(129, 2, 9, 25, 0, 2, '0000-00-00', NULL, 7),
+(130, 2, 18, 14, 0, 2, '0000-00-00', NULL, 7);
 
 -- --------------------------------------------------------
 
@@ -22857,7 +23265,50 @@ INSERT INTO `lineas_pedido` (`idLineas_pedido`, `cantidad`, `idPedido`, `idProdu
 (5377, '1', 3228, 69, 1, '1200'),
 (5378, '1', 3229, 52, 1, '3500'),
 (5379, '1', 3229, 55, 1, '2500'),
-(5380, '1', 3230, 73, 1, '2000');
+(5380, '1', 3230, 73, 1, '2000'),
+(5381, '1', 3231, 1, 2, '7900'),
+(5382, '1', 3231, 61, 1, '3500'),
+(5383, '1', 3232, 35, 1, '1400'),
+(5384, '1', 3233, 21, 1, '2000'),
+(5385, '1', 3233, 4, 1, '4800'),
+(5386, '1', 3233, 3, 2, '5900'),
+(5387, '1', 3234, 22, 2, '2000'),
+(5388, '1', 3234, 7, 2, '5000'),
+(5389, '1', 3235, 77, 1, '1500'),
+(5390, '2', 3236, 72, 1, '2000'),
+(5391, '1', 3237, 55, 1, '2500'),
+(5392, '1', 3238, 17, 1, '5000'),
+(5393, '1', 3238, 80, 2, '12600'),
+(5394, '1', 3239, 84, 2, '12600'),
+(5395, '1', 3240, 16, 1, '2000'),
+(5396, '1', 3241, 80, 2, '12600'),
+(5397, '1', 3242, 33, 1, '1400'),
+(5398, '1', 3243, 84, 2, '12600'),
+(5399, '1', 3244, 1, 2, '7900'),
+(5400, '1', 3245, 70, 1, '1200'),
+(5401, '1', 3246, 35, 1, '1400'),
+(5402, '1', 3246, 43, 1, '1300'),
+(5403, '1', 3246, 44, 1, '2500'),
+(5404, '2', 3247, 74, 1, '4000'),
+(5405, '1', 3247, 77, 1, '1500'),
+(5406, '2', 3248, 70, 1, '2400'),
+(5407, '1', 3248, 77, 1, '1500'),
+(5408, '1', 3249, 8, 2, '4800'),
+(5409, '1', 3249, 23, 2, '2000'),
+(5410, '1', 3250, 84, 2, '12600'),
+(5411, '1', 3251, 33, 1, '1400'),
+(5412, '1', 3251, 34, 1, '1400'),
+(5413, '2', 3252, 35, 1, '2800'),
+(5414, '1', 3253, 63, 1, '3500'),
+(5415, '1', 3253, 1, 2, '7900'),
+(5416, '1', 3254, 21, 1, '2000'),
+(5417, '1', 3255, 20, 1, '2000'),
+(5418, '1', 3255, 77, 1, '1500'),
+(5419, '1', 3255, 73, 1, '2000'),
+(5420, '1', 3256, 66, 1, '2500'),
+(5421, '1', 3256, 82, 2, '12600'),
+(5422, '1', 3256, 77, 1, '1500'),
+(5423, '1', 3257, 72, 1, '1000');
 
 -- --------------------------------------------------------
 
@@ -23274,7 +23725,13 @@ INSERT INTO `notificacion` (`idNotificacion`, `fecha`, `comentario`, `leido`, `i
 (342, '2019-04-26 06:00:04', 'El dia de hoy 25 llego/aron tarde...', 1, 7, 4),
 (343, '2019-04-27 06:02:50', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
 (344, '2019-04-29 06:00:01', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(345, '2019-04-30 06:00:04', 'El dia de hoy 8 llego/aron tarde...', 1, 7, 4);
+(345, '2019-04-30 06:00:04', 'El dia de hoy 8 llego/aron tarde...', 1, 7, 4),
+(346, '2019-05-02 06:30:36', 'El dia de hoy 38 llego/aron tarde...', 1, 7, 4),
+(347, '2019-05-02 07:35:30', '2 nuevo/s Empleado/s', 1, 7, 5),
+(348, '2019-05-02 07:35:30', '2 nuevo/s Empleado/s', 0, 22, 5),
+(349, '2019-05-02 07:35:30', '2 nuevo/s Empleado/s', 0, 24, 5),
+(350, '2019-05-02 07:35:30', '2 nuevo/s Empleado/s', 0, 25, 5),
+(351, '2019-05-03 10:52:37', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4);
 
 -- --------------------------------------------------------
 
@@ -23389,7 +23846,7 @@ INSERT INTO `otros` (`idOtros`, `talla_camisa`, `talla_pantalon`, `talla_zapatos
 (88, 'L', '36', '41', 'NO', 0, 0, 1, NULL),
 (89, 'M', '32', '38', '', 1, 0, 0, NULL),
 (90, 'XL', '41', '41', '', 0, 0, 0, NULL),
-(91, 'M', '32', '40', '', 0, 0, 0, NULL),
+(91, 'M', '32', '40', '', 0, 0, 0, ''),
 (92, 'S', '06', '36', '', 1, 1, 0, NULL),
 (93, 'M', '30', '40', '', 0, 1, 0, NULL),
 (94, 'S', '8', '38', '', 0, 0, 0, NULL),
@@ -23413,7 +23870,8 @@ INSERT INTO `otros` (`idOtros`, `talla_camisa`, `talla_pantalon`, `talla_zapatos
 (112, 'M', '34', '39', '', 0, 0, 0, NULL),
 (113, 'L', '28', '39', '', 0, 0, 0, NULL),
 (114, 'XL', '30', '40', '', 0, 0, 0, '19'),
-(115, 'M', '10', '35', '', 0, 0, 0, NULL);
+(115, 'M', '10', '35', '', 0, 0, 0, NULL),
+(116, 'M', '14', '38', '', 0, 0, 0, '');
 
 -- --------------------------------------------------------
 
@@ -23449,7 +23907,7 @@ INSERT INTO `parentezco` (`idParentezco`, `nombre`) VALUES
 
 CREATE TABLE `pedido` (
   `idPedido` int(11) NOT NULL,
-  `documento` varchar(13) NOT NULL,
+  `documento` varchar(20) NOT NULL,
   `fecha_pedido` datetime NOT NULL,
   `total` varchar(8) NOT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT '0'
@@ -26638,7 +27096,34 @@ INSERT INTO `pedido` (`idPedido`, `documento`, `fecha_pedido`, `total`, `estado`
 (3227, '1017239142', '2019-04-30 07:19:37', '12600', 1),
 (3228, '32353491', '2019-04-30 07:26:58', '9100', 1),
 (3229, '43161988', '2019-04-30 07:27:25', '6000', 1),
-(3230, '43288005', '2019-04-30 07:29:04', '2000', 1);
+(3230, '43288005', '2019-04-30 07:29:04', '2000', 1),
+(3231, '1095791547', '2019-05-02 06:25:18', '11400', 1),
+(3232, '23917651', '2019-05-02 06:33:19', '1400', 1),
+(3233, '1020479554', '2019-05-02 06:33:22', '12700', 1),
+(3234, '43605625', '2019-05-02 06:35:06', '7000', 1),
+(3235, '1037587834', '2019-05-02 06:35:45', '1500', 1),
+(3236, '1001545147', '2019-05-02 06:37:53', '2000', 1),
+(3237, '1017125039', '2019-05-02 06:43:51', '2500', 1),
+(3238, '43271378', '2019-05-02 07:08:40', '17600', 1),
+(3239, '1152450553', '2019-05-02 07:14:36', '12600', 1),
+(3240, '1036598684', '2019-05-02 07:20:01', '2000', 1),
+(3241, '1039447684', '2019-05-02 07:26:06', '12600', 1),
+(3242, '1017239142', '2019-05-02 07:30:22', '1400', 1),
+(3243, '1128267430', '2019-05-02 07:38:19', '12600', 1),
+(3244, '955297213061995', '2019-05-02 07:40:57', '7900', 1),
+(3245, '43596807', '2019-05-02 07:44:01', '1200', 1),
+(3246, '15489896', '2019-05-03 06:05:17', '5200', 1),
+(3247, '43265824', '2019-05-03 06:08:58', '5500', 1),
+(3248, '1036651097', '2019-05-03 06:09:11', '3900', 1),
+(3249, '1096238261', '2019-05-03 06:15:43', '6800', 1),
+(3250, '15489917', '2019-05-03 06:41:46', '12600', 1),
+(3251, '98772784', '2019-05-03 06:43:57', '2800', 1),
+(3252, '1077453248', '2019-05-03 06:58:47', '2800', 1),
+(3253, '1095791547', '2019-05-03 06:58:49', '11400', 1),
+(3254, '1020479554', '2019-05-03 07:01:33', '2000', 1),
+(3255, '43288005', '2019-05-03 07:15:17', '5500', 1),
+(3256, '1037587834', '2019-05-03 07:15:32', '16600', 1),
+(3257, '1001545147', '2019-05-03 07:20:38', '1000', 1);
 
 -- --------------------------------------------------------
 
@@ -26648,7 +27133,7 @@ INSERT INTO `pedido` (`idPedido`, `documento`, `fecha_pedido`, `total`, `estado`
 
 CREATE TABLE `permiso` (
   `idPermiso` int(11) NOT NULL,
-  `documento` varchar(13) DEFAULT NULL,
+  `documento` varchar(20) DEFAULT NULL,
   `fecha_solicitud` datetime NOT NULL,
   `fecha_permiso` date NOT NULL,
   `idConcepto` tinyint(4) NOT NULL,
@@ -26812,7 +27297,8 @@ INSERT INTO `personal` (`idPersonal`, `direccion`, `barrio`, `comuna`, `idMunici
 (112, 'CL;30A;76;43;AP;201', 'Belen Rosales', '', 1, '4', 'Batriz Eugenia Escobar', '3007097227', '4', 3, '1.67', '74', 'bicicleta'),
 (113, '-;;;;-;', 'Santa Elena', '', 1, '2', 'Gloria Selene Bernal', '5381802', '1', 1, '1.84', '59', ''),
 (114, 'CL;57A;31;33;AP;304', 'Boston', '8', 1, '2', 'Sirley Fonnegra', '3004753774', '3', 3, '1.75', '65', ''),
-(115, 'CL;37a;84A;24;CA;2 piso', 'Simon Bolivar la Ame', '12', 1, '5', 'Miguel Antonio Escobar ', '3127593024', '2', 1, '1.50', '63', '');
+(115, 'CL;37a;84A;24;CA;2 piso', 'Simon Bolivar la Ame', '12', 1, '5', 'Miguel Antonio Escobar ', '3127593024', '2', 1, '1.50', '63', ''),
+(116, 'CR;45a;85;141;AP;3 piso', 'Las Esmeraldas', '', 1, '3', 'Maira Valencia', '3138704597', '9', 3, '1.62', '757', 'Escribe ');
 
 -- --------------------------------------------------------
 
@@ -27291,7 +27777,15 @@ INSERT INTO `personas_vive` (`idPersonas_vive`, `nombreC`, `idParentezco`, `celu
 (772, '', 6, '', '0000-00-00', 0, 13, '0'),
 (773, '', 4, '', '0000-00-00', 0, 13, '0'),
 (774, '', 4, '', '0000-00-00', 0, 12, '0'),
-(775, '', 7, '', '0000-00-00', 0, 12, '0');
+(775, '', 7, '', '0000-00-00', 0, 12, '0'),
+(776, '', 4, '', '0000-00-00', 0, 91, '0'),
+(777, '', 6, '', '0000-00-00', 0, 91, '0'),
+(778, '', 7, '', '0000-00-00', 0, 91, '0'),
+(779, '', 5, '', '0000-00-00', 0, 91, '0'),
+(780, '', 4, '', '0000-00-00', 0, 116, '0'),
+(781, '', 6, '', '0000-00-00', 0, 116, '0'),
+(782, '', 7, '', '0000-00-00', 0, 116, '1'),
+(783, '', 5, '', '0000-00-00', 0, 116, '0');
 
 -- --------------------------------------------------------
 
@@ -27597,7 +28091,7 @@ INSERT INTO `salarial` (`idSalarial`, `idPromedio_salario`, `idClasificacion_meg
 (88, 4, 0, '3000000', '3800000'),
 (89, 3, 0, '1560000', '1907032'),
 (90, 5, 0, '4500000', '5.000.000'),
-(91, 1, 0, '2300000', '2300000'),
+(91, 1, 0, '2300000', '2.300.000'),
 (92, 3, 0, '1800000', '2000000'),
 (93, 3, 0, '2500000', '3.000.000'),
 (94, 2, 0, '982800', '1309832'),
@@ -27621,7 +28115,8 @@ INSERT INTO `salarial` (`idSalarial`, `idPromedio_salario`, `idClasificacion_meg
 (112, 0, 0, '885907', '982.939'),
 (113, 1, 0, '828116', '925148'),
 (114, 1, 0, '828116', '925.148'),
-(115, 0, 0, '1000000', '1.097.032');
+(115, 0, 0, '1000000', '1.097.032'),
+(116, 2, 0, '1200000', '1.297.032');
 
 -- --------------------------------------------------------
 
@@ -27731,7 +28226,7 @@ INSERT INTO `salud` (`idSalud`, `fuma`, `alcohol`, `descripccion_emergencia`) VA
 (88, '0', 'RARA VEZ', ''),
 (89, '0', 'RARA VEZ', ''),
 (90, '', 'RARA VEZ', ''),
-(91, '0', 'RARA VEZ', ''),
+(91, '', 'RARA VEZ', ''),
 (92, '0', 'RARA VEZ', 'N/A'),
 (93, '', 'RARA VEZ', ''),
 (94, '0', 'RARA VEZ', ''),
@@ -27755,7 +28250,8 @@ INSERT INTO `salud` (`idSalud`, `fuma`, `alcohol`, `descripccion_emergencia`) VA
 (112, '', 'SEMANAL', ''),
 (113, '0', '', ''),
 (114, '', 'RARA VEZ', ''),
-(115, '', '0', 'Hipoglucemia, Disautonomia(desmayo): en caso de esto colocar los pies en tren de lembur y cuando reaccione darle un baso de agua y una cucharada de sal.,toma medicamento como: levotiroxina 75mg: control tiroides, Alérgica al tramadol.');
+(115, '', '0', 'Hipoglucemia, Disautonomia(desmayo): en caso de esto colocar los pies en tren de lembur y cuando reaccione darle un baso de agua y una cucharada de sal.,toma medicamento como: levotiroxina 75mg: control tiroides, Alérgica al tramadol.'),
+(116, '', 'RARA VEZ', '');
 
 -- --------------------------------------------------------
 
@@ -27894,7 +28390,8 @@ INSERT INTO `secundaria_basica` (`idSecundaria_basica`, `idEstado_civil`, `fecha
 (112, 2, '1948-05-20', 'Medellin', '4442652', '3014000871', 2, 15, 4),
 (113, 1, '2000-01-24', 'Medellin', '5381802', '3017176163', 1, 15, 4),
 (114, 1, '2001-01-04', 'Porce', '', '3003954845', 1, 14, 4),
-(115, 1, '1992-03-05', 'Itagui', '2976468', '3168664410', 5, 15, 4);
+(115, 1, '1992-03-05', 'Itagui', '2976468', '3168664410', 5, 15, 4),
+(116, 1, '1995-06-13', 'Venezuela ', '', '3215943380', 1, 15, 4);
 
 -- --------------------------------------------------------
 
@@ -27916,12 +28413,10 @@ INSERT INTO `tablet_piso` (`idtablet_piso`, `direccion`, `piso`) VALUES
 (2, '192.168.4.127', '5'),
 (3, '192.168.5.223', '1'),
 (4, '192.168.4.227', '4'),
-(5, '192.168.4.216', '5'),
-(6, '192.168.5.3', '5'),
+(5, '192.168.4.204', '5'),
 (7, '192.168.4.244', '4'),
 (8, '192.168.4.226', '4'),
 (9, '192.168.4.173', '2'),
-(10, '192.168.5.220', '5'),
 (11, '192.168.5.221', '1');
 
 -- --------------------------------------------------------
@@ -28544,7 +29039,7 @@ ALTER TABLE `actividad`
 -- AUTO_INCREMENT de la tabla `actividades_timpo_libre`
 --
 ALTER TABLE `actividades_timpo_libre`
-  MODIFY `idActividades_timpo_libre` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=712;
+  MODIFY `idActividades_timpo_libre` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=713;
 
 --
 -- AUTO_INCREMENT de la tabla `afp`
@@ -28562,13 +29057,13 @@ ALTER TABLE `area_trabajo`
 -- AUTO_INCREMENT de la tabla `asistencia`
 --
 ALTER TABLE `asistencia`
-  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8009;
+  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8230;
 
 --
 -- AUTO_INCREMENT de la tabla `auxilio`
 --
 ALTER TABLE `auxilio`
-  MODIFY `idAuxilio` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
+  MODIFY `idAuxilio` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=140;
 
 --
 -- AUTO_INCREMENT de la tabla `cargo`
@@ -28598,7 +29093,7 @@ ALTER TABLE `concepto`
 -- AUTO_INCREMENT de la tabla `configuracion`
 --
 ALTER TABLE `configuracion`
-  MODIFY `idConfiguracion` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `idConfiguracion` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `dias_festivos`
@@ -28610,7 +29105,7 @@ ALTER TABLE `dias_festivos`
 -- AUTO_INCREMENT de la tabla `empleado_horario`
 --
 ALTER TABLE `empleado_horario`
-  MODIFY `idEmpleado_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
+  MODIFY `idEmpleado_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
 
 --
 -- AUTO_INCREMENT de la tabla `empresa`
@@ -28622,7 +29117,7 @@ ALTER TABLE `empresa`
 -- AUTO_INCREMENT de la tabla `envio_pedido`
 --
 ALTER TABLE `envio_pedido`
-  MODIFY `idEnvio_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=893;
+  MODIFY `idEnvio_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=903;
 
 --
 -- AUTO_INCREMENT de la tabla `eps`
@@ -28646,13 +29141,13 @@ ALTER TABLE `estado_civil`
 -- AUTO_INCREMENT de la tabla `estado_empresarial`
 --
 ALTER TABLE `estado_empresarial`
-  MODIFY `idEstado_empresarial` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=186;
+  MODIFY `idEstado_empresarial` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=187;
 
 --
 -- AUTO_INCREMENT de la tabla `estudios`
 --
 ALTER TABLE `estudios`
-  MODIFY `idEstudios` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
+  MODIFY `idEstudios` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- AUTO_INCREMENT de la tabla `evento_laboral`
@@ -28670,7 +29165,7 @@ ALTER TABLE `examenes_medicos`
 -- AUTO_INCREMENT de la tabla `ficha_sd`
 --
 ALTER TABLE `ficha_sd`
-  MODIFY `idFicha_SD` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+  MODIFY `idFicha_SD` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
 
 --
 -- AUTO_INCREMENT de la tabla `grado_escolaridad`
@@ -28694,7 +29189,7 @@ ALTER TABLE `horario_trabajo`
 -- AUTO_INCREMENT de la tabla `h_laboral`
 --
 ALTER TABLE `h_laboral`
-  MODIFY `idH_laboral` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2551;
+  MODIFY `idH_laboral` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2627;
 
 --
 -- AUTO_INCREMENT de la tabla `incapacidad`
@@ -28712,13 +29207,13 @@ ALTER TABLE `indicador_rotacion`
 -- AUTO_INCREMENT de la tabla `laboral`
 --
 ALTER TABLE `laboral`
-  MODIFY `idLaboral` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
+  MODIFY `idLaboral` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- AUTO_INCREMENT de la tabla `lineas_pedido`
 --
 ALTER TABLE `lineas_pedido`
-  MODIFY `idLineas_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5381;
+  MODIFY `idLineas_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5424;
 
 --
 -- AUTO_INCREMENT de la tabla `momento`
@@ -28742,13 +29237,13 @@ ALTER TABLE `municipio`
 -- AUTO_INCREMENT de la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
-  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=346;
+  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=352;
 
 --
 -- AUTO_INCREMENT de la tabla `otros`
 --
 ALTER TABLE `otros`
-  MODIFY `idOtros` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+  MODIFY `idOtros` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
 
 --
 -- AUTO_INCREMENT de la tabla `parentezco`
@@ -28760,7 +29255,7 @@ ALTER TABLE `parentezco`
 -- AUTO_INCREMENT de la tabla `pedido`
 --
 ALTER TABLE `pedido`
-  MODIFY `idPedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3231;
+  MODIFY `idPedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3258;
 
 --
 -- AUTO_INCREMENT de la tabla `permiso`
@@ -28772,13 +29267,13 @@ ALTER TABLE `permiso`
 -- AUTO_INCREMENT de la tabla `personal`
 --
 ALTER TABLE `personal`
-  MODIFY `idPersonal` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+  MODIFY `idPersonal` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
 
 --
 -- AUTO_INCREMENT de la tabla `personas_vive`
 --
 ALTER TABLE `personas_vive`
-  MODIFY `idPersonas_vive` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=776;
+  MODIFY `idPersonas_vive` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=784;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
@@ -28814,19 +29309,19 @@ ALTER TABLE `rol`
 -- AUTO_INCREMENT de la tabla `salarial`
 --
 ALTER TABLE `salarial`
-  MODIFY `idSalarial` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+  MODIFY `idSalarial` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
 
 --
 -- AUTO_INCREMENT de la tabla `salud`
 --
 ALTER TABLE `salud`
-  MODIFY `idSalud` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+  MODIFY `idSalud` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
 
 --
 -- AUTO_INCREMENT de la tabla `secundaria_basica`
 --
 ALTER TABLE `secundaria_basica`
-  MODIFY `idSecundaria_basica` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+  MODIFY `idSecundaria_basica` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
 
 --
 -- AUTO_INCREMENT de la tabla `tablet_piso`

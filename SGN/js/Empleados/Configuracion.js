@@ -181,18 +181,24 @@ function registrarModificarConfiguracion() {
                 //1=Laboral 2=Desayuno y 3=Almuerzo
                 $.post(baseurl + 'Empleado/cConfiguracion/validarHoras', {
                     hora1: generarHoraValida($HIL.val()),
-                    hora2: generarHoraValida($HFL.val())
+                    hora2: generarHoraValida($HFL.val()),
+                    accion: 1
                 }, function(data) {
+                    console.log(data);
                     marcarCampoIncorrecto(data, 1);
-                    $.post(baseurl + 'Empleado/cConfiguracion/validarHoras', {
+                    $.post(baseurl + 'Empleado/cConfiguracion/validarHoras', {//Esto va a cambiar
                         hora1: generarHoraValida($HID.val()),
-                        hora2: generarHoraValida($HFD.val())
+                        hora2: generarHoraValida($HFD.val()),
+                        accion: 2
                     }, function(data) {
+                    console.log(data);
                         marcarCampoIncorrecto(data, 2);
-                        $.post(baseurl + 'Empleado/cConfiguracion/validarHoras', {
+                        $.post(baseurl + 'Empleado/cConfiguracion/validarHoras', {// Esto va a cambiar
                             hora1: generarHoraValida($HIA.val()),
-                            hora2: generarHoraValida($HFA.val())
+                            hora2: generarHoraValida($HFA.val()),
+                            accion: 2
                         }, function(data) {
+                        console.log(data);
                             marcarCampoIncorrecto(data, 3);
                             if (respuesta) {
                                 // console.log('Todos los campos estan validos');
