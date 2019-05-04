@@ -107,18 +107,21 @@ class cAsistencia extends CI_Controller
     $info['contra']=base64_encode($this->input->post('contra'));
     $info['lector']=$_SERVER['REMOTE_ADDR'];// ID del cliente que ingreso a la URL
 
-    $idHorario=$this->seleccionarIDHorarioEmpelado($info['contra'],1);//Consultar horario del empleado por contraseña unica.
+    // $idHorario=$this->seleccionarIDHorarioEmpelado($info['contra'],1);//Consultar horario del empleado por contraseña unica.
+    $idHorario=$this->seleccionarIDHorarioEmpeladoPrueba($info['contra'], 1);//Consultar horario del empleado por contraseña unica.
 
-    var_dump($idHorario);
+    if ($idHorario > 0) {
 
-    if ($idHorario>0) {
       $info['idHorario']=$idHorario;
       // 
       $documento=$this->mAsistencia->registrarAsistenciaM($info);
       // 
       echo $documento;
+
     }else{
+
       echo "-1";
+
     }
     
   }
@@ -163,7 +166,8 @@ class cAsistencia extends CI_Controller
   {
     $doc=$this->input->post('documento');
 
-    echo $this->seleccionarIDHorarioEmpelado($doc,0);
+    // echo $this->seleccionarIDHorarioEmpelado($doc,0);
+    echo $this->seleccionarIDHorarioEmpeladoPrueba($doc,0);
   }
 
   //... 
@@ -176,7 +180,7 @@ class cAsistencia extends CI_Controller
   }
 
   // Antes de ejecutar la toma de tiempo se debe ejecutar el buscador del horario que es pertinente para el día en curso.
-  public function seleccionarIDHorarioEmpelado($contra,$accion)
+  public function seleccionarIDHorarioEmpelado($contra,$accion)// Por el momento esta funcion no se va a utilizar
   {
     // accion=1 Consultar por contraseña del empleado
     // accion=0 consulta por el documento del empleado
@@ -196,57 +200,191 @@ class cAsistencia extends CI_Controller
     // ...
     foreach ($horarios as $horario) {//Simplificar el proceso de seleeccion del horario del día
       // ...
-      if (($horario->diaInicio==$horario->diaFin)) {//Cuando el dia de inicio y fin son iguales
-        $respuesta=$horario->idConfiguracion;
-        // echo "1------";
+      if (($horario->diaInicio == $horario->diaFin)) {//Cuando el dia de inicio y fin son iguales
+
+        $respuesta = $horario->idConfiguracion;
         break;
-      }elseif ($horario->diaInicio>=0 && $horario->diaFin<=6 && ($horario->diaFin>$horario->diaInicio)) {
+
+      }elseif ($horario->diaInicio >=0 && $horario->diaFin <= 6 && ($horario->diaFin > $horario->diaInicio)) {
         // echo "2------";
-        for ($i=$horario->diaInicio; $i <=$horario->diaFin; $i++) { 
+        for ($i = $horario->diaInicio; $i <=$horario->diaFin; $i++) {
+
           if ($i==$diaCurso) {
+
             $respuesta=$horario->idConfiguracion;
             break;
+
           }
+
         }
-      }elseif($horario->diaInicio>$horario->diaFin){//Cuando el dia de inicio es mayor que el día de fin
+      }elseif($horario->diaInicio > $horario->diaFin){//Cuando el dia de inicio es mayor que el día de fin
         // ...
         for ($i=0; $i < 7; $i++) {
-          if ($subIndice==0) {
-            # code...
-            $indice=number_format(($horario->diaInicio));
-            $subIndice=1;
+
+          if ($subIndice == 0) {
+
+            $indice = number_format(($horario->diaInicio));
+            $subIndice = 1;
+
           }else{
+
             $indice++;
+
           }
           // ...
-          if ($indice==$horario->diaFin) {
+          if ($indice == $horario->diaFin) {
+
             array_push($vEH,$indice);
             break;
+
           }else{
-            if ($indice<=6) {
+
+            if ($indice <= 6) {
+
               array_push($vEH,$indice);
+
             }else{
+
               if ($subIndice2==0) {
-                # code...
+
                 $indice=0;
                 $subIndice2=1;
+
               }
+
               array_push($vEH,$indice);
+
             }
+
           }
+
         }
         // ...
-        for ($i=0; $i < count($vEH); $i++) { 
-          if ($diaCurso==$vEH[$i]) {
+        for ($i=0; $i < count($vEH); $i++) {
+
+          if ($diaCurso == $vEH[$i]) {
+
             $respuesta=$horario->idConfiguracion;
             break;
+
           }
+
         }
         // ...
       } 
     }
 
     #echo $respuesta;
+
+    return $respuesta;
+  }
+
+  // Antes de ejecutar la toma de tiempo se debe ejecutar el buscador del horario que es pertinente para el día en curso.
+  public function seleccionarIDHorarioEmpeladoPrueba($contra,$accion)
+  {
+
+    // $contra = $_GET['contra'];
+    // $accion = $_GET['accion'];
+    // accion=1 Consultar por contraseña del empleado
+    // accion=0 consulta por el documento del empleado
+    $this->load->model('Empleado/mEmpleado_horario');
+    //horarios del empleado seleccionado
+    $horarios= $this->mEmpleado_horario->consultarDiasHorarioEmpleadoM($contra,$accion);
+    // Indice para reiniciar la lectura del vector cuando termine la longitud
+    $indice=0;
+    $subIndice=0;
+    $subIndice2=0;
+    // Indice del dia de la semana en curso el cual se va a validar para saber que horario se selecciona.
+    $diaCurso = (int)$this->mEmpleado_horario->diaEnCursoM();
+    // $diaCurso = 6;
+    // Vector donde van los indices de los días que fueron seleccionados
+    $vEH = array();
+    // ...
+    $respuesta=0;
+    // ...
+    foreach ($horarios as $horario) {//Simplificar el proceso de seleeccion del horario del día
+      // ...
+      // echo json_encode($horario);
+      // echo "<br>";
+      // // var_dump(((int)$horario->diaFin));
+      // ...
+      if (($horario->diaInicio == $horario->diaFin)) {//Cuando el dia de inicio y fin son iguales
+
+        // echo "1";
+        $respuesta = $horario->idConfiguracion;
+        break;
+
+      }elseif (($diaCurso >= ((int)$horario->diaInicio) && $diaCurso <= ((int)$horario->diaFin)) ||
+                ($diaCurso == ((int)$horario->diaInicio) && ((int)$horario->diaFin)) == -1) {// El día en curso esta entre los días estipulados del horario...
+
+        // echo "2";
+        $respuesta = $horario->idConfiguracion;
+        break;
+
+      }
+
+/*      elseif($horario->diaInicio > $horario->diaFin){//Cuando el dia de inicio es mayor que el día de fin // Por el momento no se va a utilizar esta forma de seleecionar horarios -> Pendiente
+        // echo "3";
+        // ...
+        for ($i=0; $i < 7; $i++) {
+
+          if ($subIndice == 0) {
+
+            $indice = ((int)$horario->diaInicio);
+            $subIndice = 1;
+
+          }else{
+
+            $indice++;
+
+          }
+          // ...
+          if ($indice == $horario->diaFin) {
+
+            array_push($vEH, $indice);
+            break;
+
+          }else{
+
+            if ($indice <= 6) {
+
+              array_push($vEH, $indice);
+
+            }else{
+
+              if ($subIndice2==0) {
+
+                $indice=0;
+                $subIndice2=1;
+
+              }
+
+              array_push($vEH, $indice);
+
+            }
+
+          }
+
+        }
+        // ...
+        for ($i=0; $i < count($vEH); $i++) {
+
+          if ($diaCurso == $vEH[$i]) {
+
+            $respuesta = $horario->idConfiguracion;
+            break;
+
+          }
+
+        }
+        break;
+        // ...
+      } */
+
+    }
+
+    // echo "<br>";
+    // echo $respuesta;
 
     return $respuesta;
   }

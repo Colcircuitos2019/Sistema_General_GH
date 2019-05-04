@@ -30,9 +30,13 @@
               </div>
             </div>
   <style type="text/css">
+    
     label strong{
+
       color: #FD0303;
+      
     }
+
   </style>
 <!-- Cuerpo -->
 <div class="box-body">

@@ -50,9 +50,13 @@ class mEmpleado_horario extends CI_Model
 	public function consultarDiasHorarioEmpleadoM($dato,$accion)
 	{
 		if ($accion==1) {//consulta el empleado por la contraseña
+
 			$query= $this->db->query("SELECT e.idConfiguracion,e.diaInicio,e.diaFin FROM empleado_horario e WHERE e.documento=(SELECT em.documento FROM empleado em WHERE em.contraseña='{$dato}') AND e.estado=1;");
+
 		}elseif($accion==0){//Consulta el empleado por el numero de documento de identidad
+
 			$query= $this->db->query("SELECT e.idConfiguracion,e.diaInicio,e.diaFin FROM empleado_horario e WHERE e.documento='{$dato}' AND e.estado=1;");
+			
 		}
 		
 		$result=$query->result();
