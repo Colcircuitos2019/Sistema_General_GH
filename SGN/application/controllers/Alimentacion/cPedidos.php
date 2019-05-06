@@ -17,7 +17,6 @@ class cPedidos extends CI_Controller
 		}else{
 		    $this->load->view('Alimentacion/Pedidos.php');
         $this->load->view('Layout/clausulas');
-		    // $this->session->sess_destroy();
 		}
 	}
 
@@ -28,7 +27,6 @@ class cPedidos extends CI_Controller
 		}else{
 			$this->load->view('Alimentacion/getorPedidos.php');
       $this->load->view('Layout/clausulas'); 
-			 // $this->session->sess_destroy();
 		}
 	}
 	public function pedidos1()
@@ -486,10 +484,17 @@ class cPedidos extends CI_Controller
       $objPHPExcel->getActiveSheet()->SetCellValue('C'.(2),'Fecha Fin');
       $objPHPExcel->getActiveSheet()->SetCellValue('C'.(3), $fechas['fecha2']);
       $objPHPExcel->getActiveSheet()->getStyle('C'.(2))->getFont()->setBold(true);
-
+      // ...
+      $objPHPExcel->getActiveSheet()->SetCellValue('K5', "Nombre Proveedor");
+      $objPHPExcel->getActiveSheet()->SetCellValue('L5', "Fecha Pedidos");
+      $objPHPExcel->getActiveSheet()->SetCellValue('M5', "Liquidación");
+      $objPHPExcel->getActiveSheet()->SetCellValue('N5', "Total");
+      $objPHPExcel->getActiveSheet()->getStyle('K5:N5')->getFont()->setBold(true);
+      // ...
       $proveedores = $this->mPedidos->consultarIDProveedores();
 
-      $i =8;
+      $i = 8;
+      $liquidacionProveedor = 6;
 
       foreach ($proveedores as $proveedor) {// Pendiente el total por fecha
         
@@ -568,15 +573,27 @@ class cPedidos extends CI_Controller
             // Consultar valores total de los pedidos de cada una de las fechas
             $informacionLiquidacionesFechas= $this->mPedidos->liquidarValorTotalProveedorRangofechasM($proveedor->idProveedor ,$fechas['fecha1'],$fechas['fecha2']);
 
+            $objPHPExcel->getActiveSheet()->SetCellValue('K'.$liquidacionProveedor, $proveedor->nombre);//Nombre del proveedor
+            $objPHPExcel->getActiveSheet()->SetCellValue('N'.$liquidacionProveedor, "$".(number_format($total)));//Total
+            $inicioCombinacion = $liquidacionProveedor;
+
             $inicio_header= $header;
 
             foreach ($informacionLiquidacionesFechas as $liquidacionProveedorFecha) {
 
                 $objPHPExcel->getActiveSheet()->SetCellValue('H'.$header, $liquidacionProveedorFecha->fecha);
                 $objPHPExcel->getActiveSheet()->SetCellValue('I'.$header, $liquidacionProveedorFecha->valor_fecha);
+                // ...
+                $objPHPExcel->getActiveSheet()->SetCellValue('L'.$liquidacionProveedor, $liquidacionProveedorFecha->fecha);//Fecha del pedido
+                $objPHPExcel->getActiveSheet()->SetCellValue('M'.$liquidacionProveedor, $liquidacionProveedorFecha->valor_fecha);//Liquidacion del dia
+                //...
                 $header++;
+                $liquidacionProveedor++;
 
             }
+
+            $objPHPExcel->getActiveSheet()->mergeCells('K'.$inicioCombinacion.':K'.($liquidacionProveedor-1));
+            $objPHPExcel->getActiveSheet()->mergeCells('N'.$inicioCombinacion.':N'.($liquidacionProveedor-1));
 
             $objPHPExcel->getActiveSheet()->getStyle('H'.($inicio_header-1).':I'.($header-1))->applyFromArray($estilo);
 
@@ -585,6 +602,8 @@ class cPedidos extends CI_Controller
           }
 
       }
+      // ...
+      $objPHPExcel->getActiveSheet()->getStyle('K5:N'.($liquidacionProveedor-1))->applyFromArray($estilo);
       // ...
       // $objPHPExcel->getActiveSheet()->SetCellValue('G'.($i),$total);//
 
@@ -600,7 +619,7 @@ class cPedidos extends CI_Controller
 
       exit;
 
-    }
+  }
 
     public function excelLiquidacionEmpleadoRangoFechas()
     { 

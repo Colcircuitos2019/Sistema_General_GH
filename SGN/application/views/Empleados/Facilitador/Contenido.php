@@ -81,8 +81,12 @@
           </div>
         </div>
         <div class="col-md-6 col-sm-12">
-          <label for="horaFinHorasExtra">Hora de finalización</label>
-          <input type="text" name="horario" class="form-group timepicker" data-tiempo="01:02:00" maxlength="8" id="horaFinHorasExtra">
+          <!-- <label for="horaFinHorasExtra">Hora de finalización</label> -->
+          <div class="input-group">
+            <span class="input-group-addon"><i class="glyphicon glyphicon-time"></i></span>
+            <!-- <input value="0" type="text" class="form-control" id="idEstadoL" style="text-align: center; font-weight: bold;" readonly="true"> -->
+            <input type="text" name="horario" class="form-control timepicker" data-tiempo="01:02:00" maxlength="8" id="horaFinHorasExtra" style="height: 2.3em;" placeholder=" Hora = HH:MM:SS">
+          </div>
         </div>
       </div>
     </div>
