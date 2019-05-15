@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:33066
--- Tiempo de generación: 15-05-2019 a las 19:46:23
+-- Tiempo de generación: 15-05-2019 a las 23:17:05
 -- Versión del servidor: 10.1.29-MariaDB
 -- Versión de PHP: 7.2.0
 
@@ -2897,14 +2897,14 @@ IF (TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'),horaI)>'00:05:00' OR accion=1) THEN
      #se consulta la hora de fin del evento de desayuno o almuerzo 
      SET horaF=(SELECT a.fin FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.inicio,'%Y-%m-%d') = CURDATE() AND a.idTipo_evento=evento);
      #se clasifica el tipo de estado del evento.
-     SET estadoA=(SELECT SI_FU_ClasificacionEstadoAsistencia(evento,horaI,horaF,idHorario));
+     SET estadoA=(SELECT SI_FU_ClasificacionEstadoAsistencia(evento, horaI, horaF, idHorario));
      #SELECT estadoA;
      #seleccione el tipo de evento
      IF evento=2 THEN
       #Desayuno
-          IF TIMEDIFF(horaF,horaI)>(SELECT c.tiempo_desayuno FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1)  THEN
+          IF TIMEDIFF(horaF, horaI) > (SELECT c.tiempo_desayuno FROM configuracion c WHERE c.idConfiguracion = idHorario AND c.estado=1 LIMIT 1)  THEN
              #Tiempo que se gasto el empleado en este evento de desayuno
-             SET tiempo=(SELECT TIMEDIFF(horaF,horaI));
+             SET tiempo=(SELECT TIMEDIFF(horaF, horaI));
           ELSE
              #Tiempo por defecto del desayuno.
             SET tiempo=(SELECT c.tiempo_desayuno FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);
@@ -2914,7 +2914,7 @@ IF (TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'),horaI)>'00:05:00' OR accion=1) THEN
          IF evento=3 THEN
             IF TIMEDIFF(horaF,horaI)>(SELECT c.tiempo_almuerzo FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1)  THEN
               #Tiempo que se gasto el empleado en este evento de almuerzo
-              SET tiempo=(SELECT TIMEDIFF(horaF,horaI));
+              SET tiempo=(SELECT TIMEDIFF(horaF, horaI));
             ELSE
               #Tiempo por defecto del almuerzo.
               SET tiempo=(SELECT c.tiempo_almuerzo FROM configuracion c WHERE c.idConfiguracion=idHorario AND c.estado=1 LIMIT 1);
@@ -3017,7 +3017,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ProcedimientoEventosNoAsistidos` (IN `doc` INT, IN `lector` TINYINT(2), IN `idHorario` TINYINT(2), IN `evento` TINYINT(1))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ProcedimientoEventosNoAsistidos` (IN `doc` INT, IN `lector` TINYINT(2), IN `idHorario` TINYINT(2), IN `evento` TINYINT(1), IN `fechaInicio` VARCHAR(10), IN `fechaFin` VARCHAR(10))  NO SQL
 BEGIN
 
 DECLARE horaF time;#Hora de fin del evento (Desayuno/Almuerzo)
@@ -3237,7 +3237,7 @@ IF doc!='' THEN
   SET permiso=(SELECT SE_FU_ValidacionPermisosEmpleadosAsistencia(doc, idHorario));#Validacion de existencia de permiso para el día de hoy.
   
   IF permiso=-1 or permiso=2 THEN # Va a continuar con la toma de los eventos normalmente
-    # Revisar procedimiento almacenado -> 14/05/2019
+
     #... en vez de validar la fecha, validamos la ultima asistencia junto al intervalo de hora del horario
 
     #IF EXISTS(SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.idTipo_evento=1 AND a.fecha_fin IS NOT null AND a.fecha_inicio IS NOT null AND a.fecha_inicio = CURDATE() OR a.fecha_inicio = SUBDATE(CURDATE(), INTERVAL 1 DAY))  THEN
@@ -3259,7 +3259,7 @@ IF doc!='' THEN
         ELSE
         #Horario Diurna.
 
-          SET fecha_fin_asistencia = (SELECT a.inicio FROM asistencia a WHERE a.idAsistencia = idAsistencia);
+          SET fecha_fin_asistencia = (SELECT DATE_FORMAT(a.inicio, '%Y-%m-%d') FROM asistencia a WHERE a.idAsistencia = idAsistencia);
         -- #Validacion la cantidad de eventos disponibles en el día...
         -- SET cantidad_eventos_que_aplican = (SELECT SI_FU_CantidadEventosQueAplicanHorario(idHorario));
         
@@ -3303,15 +3303,15 @@ IF doc!='' THEN
         #Validacion la cantidad de eventos disponibles en el día...
         SET cantidad_eventos_que_aplican = (SELECT SI_FU_CantidadEventosQueAplicanHorario(idHorario));
 
-        SET fecha_inicio_asistencia = (SELECT a.inicio FROM asistencia a WHERE a.idAsistencia = idAsistencia);
+        SET fecha_inicio_asistencia = (SELECT DATE_FORMAT(a.inicio, '%Y-%m-%d') FROM asistencia a WHERE a.idAsistencia = idAsistencia);
 
         #Valida que la cantidad de eventos que se programaron en el horario si se cumplan con la cantidad de eventos que se activaron.
-        IF (SELECT COUNT(*) FROM (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE (a.idTipo_evento = 2 OR a.idTipo_evento = 3) AND a.documento=doc AND (a.inicio BETWEEN fecha_inicio_asistencia AND fecha_fin_asistencia) AND a.fin is NOT null GROUP BY a.idTipo_evento) AS idEventos) = cantidad_eventos_que_aplican THEN
+        IF (SELECT COUNT(*) FROM (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE (a.idTipo_evento = 2 OR a.idTipo_evento = 3) AND a.documento=doc AND (DATE_FORMAT(a.inicio, '%Y-%m-%d') BETWEEN fecha_inicio_asistencia AND fecha_fin_asistencia) AND a.fin is NOT null GROUP BY a.idTipo_evento) AS idEventos) = cantidad_eventos_que_aplican THEN
 
          -- IF  (SELECT SI_FU_ValidacionCierreAsistencia(idHorario)) = 1  THEN # Si se puede cerrar la asistencia? # Actualizar -> pendiente
              #...
              #La hora del sistema tiene que ser 10 minutos igual o mayor a la diferencia del tiempo actual con el de la ultima asistencia.
-            IF (SELECT TIME_FORMAT(TIMEDIFF(now(),asi.fin),'%H:%i:%s') FROM asistencia asi WHERE asi.idAsistencia = (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.inicio is not null AND a.fin is not null)) >= '00:15:00' THEN
+            IF ((SELECT TIME_FORMAT(TIMEDIFF(now(),asi.fin),'%H:%i:%s') FROM asistencia asi WHERE asi.idAsistencia = (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.inicio is not null AND a.fin is not null)) >= '00:15:00') or (SELECT SI_FU_ValidacionCierreAsistencia(idHorario)) = 1 THEN ## La funcion puede ir o no
 
               #cierra el evento de asistencia Laboral!!!
               UPDATE asistencia a SET a.fin = now(), a.lectorF = lector, a.estado = 0 WHERE a.documento = doc AND a.idAsistencia = idAsistencia AND a.idConfiguracion = idHorario;
@@ -3396,7 +3396,7 @@ IF doc!='' THEN
     CALL SI_PA_CierreEventosAsistenciaOperarios(doc, 3, lector, idHorario, 1);#Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo. Pendiente
 
     #...
-    SET doc=permiso;
+    SET doc = permiso;
 
   END IF;
 
@@ -3467,7 +3467,7 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ValidacionEventosNoAsistidos` (IN `doc` VARCHAR(20), IN `lector` TINYINT, IN `idHorario` TINYINT(1))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ValidacionEventosNoAsistidos` (IN `doc` VARCHAR(20), IN `lector` TINYINT, IN `idHorario` TINYINT(1), IN `fechaInicio` VARCHAR(10), IN `fechaFin` VARCHAR(10))  NO SQL
 BEGIN
 #
 DECLARE horaF time;#Hora de fin del evento (Desayuno/Almuerzo)
@@ -3494,10 +3494,10 @@ END$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ValidacionExistenciaEventosQueAplican` (IN `doc` INT, IN `idEvento` TINYINT(1), IN `lector` INT, IN `idHorario` INT)  NO SQL
 BEGIN
 #Valida si se tiene alguna asistencia de algun evento (Desayuno o almuerzo)
-IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.inicio,'%d-%m-%Y') = CURDATE() AND a.idTipo_evento=idEvento) THEN 
+IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.inicio,'%Y-%m-%d') = CURDATE() AND a.idTipo_evento=idEvento) THEN 
   
     #Valida si la asistencia se encuentra en ejecucion o ya termino
-  IF EXISTS(SELECT * FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.inicio,'%d-%m-%Y') = CURDATE() AND a.fin is null AND a.idTipo_evento=idEvento) THEN
+  IF (SELECT COUNT(*) FROM (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.inicio,'%Y-%m-%d') = CURDATE() AND a.fin is null AND a.idTipo_evento=idEvento) AS avento) = 1 THEN
     
     CALL SI_PA_CierreEventosAsistenciaOperarios(doc, idEvento, lector, idHorario, 0);#Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo Pendiente
     
@@ -4096,9 +4096,9 @@ DECLARE horaF time;#Hora de fin del evento Desayuno o almuerzo
 DECLARE horaE time;#Tiempo del evento.
 #...
 #hora de inicio del evento.
-SET horaI= (SELECT a.hora_inicio FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=evento LIMIT 1);
+SET horaI= (SELECT a.inicio FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.inicio,'%Y-%m-%d')= CURDATE() AND a.idTipo_evento=evento LIMIT 1);
 #hora de fin del evento.
-SET horaF= (SELECT a.hora_fin FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y') AND a.idTipo_evento=evento LIMIT 1);
+SET horaF= (SELECT a.fin FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.fin,'%Y-%m-%d')= CURDATE() AND a.idTipo_evento=evento LIMIT 1);
 #Tiempo del evento
 IF evento=2 THEN
 #Desayuno
@@ -4111,13 +4111,14 @@ END IF;
 #SELECT TIMEDIFF(horaF,horaI),horaI,horaF;
 #...
 #Si la diferencia de tiempos es mayor al tiempo definido por el evento, se registra el desface del tiempo y si el tiempo es menor que al tiempo definido para el evento se registra el tiempo del evento.
-IF TIMEDIFF(horaF,horaI)>horaE THEN
+IF TIMEDIFF(horaF, horaI) > horaE THEN
   #se sobre paso del tiempo especificado del evento.
-  SET horaE=(SELECT TIMEDIFF(horaF,horaI));
+  SET horaE=(SELECT TIMEDIFF(horaF, horaI));
+
 END IF;
 #...
 #Se actualizar el tiempo de la asistencia.
-UPDATE asistencia a SET a.tiempo=horaE WHERE a.documento=doc AND a.idTipo_evento=evento AND DATE_FORMAT(a.fecha_inicio,'%d-%m-%Y')=DATE_FORMAT(now(),'%d-%m-%Y');
+UPDATE asistencia a SET a.tiempo=horaE WHERE a.documento=doc AND a.idTipo_evento = evento AND DATE_FORMAT(a.inicio,'%Y-%m-%d')= CURDATE();
 
 RETURN 1;#procedimiento ejecutado correctamente.
 
@@ -4137,22 +4138,41 @@ END$$
 
 CREATE DEFINER=`root`@`localhost` FUNCTION `SI_FU_ValidacionCierreAsistencia` (`idHorario` TINYINT(2)) RETURNS TINYINT(1) NO SQL
 BEGIN
-DECLARE horaFinAlmuerzo varchar(8);
-DECLARE horaInicioAlmuerzo varchar(8);
+DECLARE horaFinEvento varchar(8);
+DECLARE horaInicioEvento varchar(8);
 
-SET horaInicioAlmuerzo = (SELECT c.hora_inicio_almuerzo FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
-SET horaFinAlmuerzo = (SELECT c.hora_fin_almuerzo FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
+SET horaInicioEvento = (SELECT c.hora_inicio_almuerzo FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
+SET horaFinEvento = (SELECT c.hora_fin_almuerzo FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
 
 
-IF horaInicioAlmuerzo = '00:00:00' THEN
+IF horaInicioEvento = '00:00:00' OR horaFinEvento = '00:00:00' THEN
 #No aplica el evento del almuerzo
 
-  RETURN 1;#Si se puede cerrar la asistencia.
+SET horaInicioEvento = (SELECT c.hora_inicio_desayuno FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
+SET horaFinEvento = (SELECT c.hora_fin_desayuno FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
+
+  IF horaInicioEvento = '00:00:00' OR horaFinEvento THEN
+
+    RETURN 1;#Si se puede cerrar la asistencia.
+
+  ELSE
+
+  IF (TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'), horaFinEvento) > '00:10:00') = 1 THEN #Ya pasaron mas de 10 minutos despues de la hora del almuerzo?
+    
+      RETURN 1; 
+    
+    ELSE
+    
+      RETURN 0;
+    
+    END IF;
+
+  END IF;
 
 ELSE
 #Si aplica el evento del almuerzo
 
-  IF (TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'),horaFinAlmuerzo) > '00:10:00') = 1 THEN #Ya pasaron mas de 10 minutos despues de la hora del almuerzo?
+  IF (TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'), horaFinEvento) > '00:10:00') = 1 THEN #Ya pasaron mas de 10 minutos despues de la hora del almuerzo?
     
       RETURN 1; 
     
@@ -5025,9 +5045,8 @@ CREATE TABLE `asistencia` (
 --
 
 INSERT INTO `asistencia` (`idAsistencia`, `documento`, `idTipo_evento`, `inicio`, `fin`, `idEstado_asistencia`, `estado`, `lectorI`, `lectorF`, `tiempo`, `idConfiguracion`) VALUES
-(16, '1216727816', 1, '2019-05-15 12:17:45', NULL, 2, 1, 2, NULL, NULL, 1),
-(21, '1216727816', 2, '2019-05-15 12:44:56', '2019-05-15 12:44:56', 3, 0, 0, 0, '00:20:00', 1),
-(22, '1216727816', 3, '2019-05-15 12:44:56', NULL, 1, 1, 2, NULL, NULL, 1);
+(23, '1216727816', 1, '2019-05-15 15:14:16', NULL, 1, 1, 2, NULL, NULL, 4),
+(28, '1216727816', 2, '2019-05-15 15:32:34', NULL, 1, 1, 2, NULL, NULL, 4);
 
 -- --------------------------------------------------------
 
@@ -5348,7 +5367,7 @@ INSERT INTO `configuracion` (`idConfiguracion`, `nombre`, `hora_ingreso_empresa`
 (1, 'Primer horario laboral', '06:00:00', '16:30:00', '08:20:00', '09:31:00', '09:35:00', '13:15:00', '00:20:00', '00:40:00', 1),
 (2, 'Segundo horario laboral', '10:55:00', '20:00:00', '11:00:00', '14:00:00', '17:00:00', '19:00:00', '00:15:00', '00:40:00', 1),
 (3, 'Horario de los sabados', '06:00:00', '12:00:00', '08:30:00', '09:30:00', '10:00:00', '10:00:02', '00:15:00', '00:00:00', 1),
-(4, 'Prueba de desarrollo', '06:00:00', '16:30:00', '00:00:00', '00:00:00', '13:00:00', '15:40:00', '00:00:00', '00:40:00', 1);
+(4, 'Prueba de desarrollo', '15:18:00', '23:30:00', '15:18:00', '19:30:00', '20:00:00', '21:59:00', '00:20:00', '00:40:00', 1);
 
 -- --------------------------------------------------------
 
@@ -5647,7 +5666,7 @@ CREATE TABLE `empleado_horario` (
 --
 
 INSERT INTO `empleado_horario` (`idEmpleado_horario`, `documento`, `idConfiguracion`, `diaInicio`, `diaFin`, `estado`, `fechaInicio`, `fechaFin`) VALUES
-(19, '1216727816', 1, 1, 5, 1, '2018-10-24', NULL),
+(19, '1216727816', 4, 1, 5, 1, '2018-10-24', NULL),
 (20, '1216727816', 2, 5, -1, 0, '2018-10-25', NULL),
 (21, '1039457744', 1, 1, 6, 1, '2018-10-29', NULL),
 (22, '43265824', 1, 1, 5, 1, '2018-11-09', NULL),
@@ -5711,7 +5730,7 @@ INSERT INTO `empleado_horario` (`idEmpleado_horario`, `documento`, `idConfigurac
 (80, '1095791547', 1, 1, 5, 1, '2019-03-27', NULL),
 (81, '1095791547', 3, 6, -1, 0, '2019-04-06', NULL),
 (82, '98668402', 3, 6, -1, 1, '2019-04-06', NULL),
-(83, '1216727816', 4, 6, -1, 1, '2019-05-03', NULL);
+(83, '1216727816', 4, 6, -1, 0, '2019-05-03', NULL);
 
 -- --------------------------------------------------------
 
@@ -18615,7 +18634,7 @@ ALTER TABLE `area_trabajo`
 -- AUTO_INCREMENT de la tabla `asistencia`
 --
 ALTER TABLE `asistencia`
-  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=23;
+  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT de la tabla `auxilio`
