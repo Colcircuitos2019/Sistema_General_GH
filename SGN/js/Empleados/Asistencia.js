@@ -456,9 +456,9 @@ function consultarAsistenciaEventoDia(evento) {//tabla eventos desayunos del dia
             $('#cuerpoEvento'+evento).append('<tr>' + 
                                      '<td>' + row.documento + '</td>' +
                                      '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '</td>' + 
-                                     '<td>' + row.fecha_inicio+' '+ row.hora_inicio + '</td>' + 
+                                     '<td>' + row.inicio + '</td>' + 
                                      '<td>' + row.lectorI+ '</td>' + 
-                                     '<td>' + row.fecha_fin+' '+ row.hora_fin + '</td>' + 
+                                     '<td>' + row.fin+ '</td>' + 
                                      '<td>' + row.lectorF + '</td>' + 
                                      '<td>' + row.tiempo + '</td>' + 
                                    '</tr>');
