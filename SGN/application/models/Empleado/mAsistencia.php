@@ -12,9 +12,9 @@ class mAsistencia extends CI_Model
 	}
 	//Metodos
 	//Consulta todas las asistencias de algun empleado
-	public function asistenciaPorEmpleadoM($doc,$op,$fecha)
+	public function asistenciaPorEmpleadoM($doc, $op, $fecha, $idAsistencia)
 	{
-		$query=$this->db->query("CALL SE_PA_AsistenciaPorEmpleado('{$doc}', {$op}, '{$fecha}');");
+		$query=$this->db->query("CALL SE_PA_AsistenciaPorEmpleado('{$doc}', {$op}, '{$fecha}', {$idAsistencia});");
 		
 		$r=$query->result();
 

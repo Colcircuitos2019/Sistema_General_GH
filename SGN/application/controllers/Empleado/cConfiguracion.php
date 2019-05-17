@@ -70,6 +70,7 @@ class cConfiguracion extends CI_Controller
 		$horas['TA']= $this->input->post('TA');
 		$horas['ID']= $this->input->post('ID');
 		$horas['nombre']= $this->input->post('nombre');
+		$horas['tipo_horario']= $this->input->post('tipo_horario');
 
 		$res=$this->mConfiguracion->registrarActualizarConfiguracionM($horas);
 

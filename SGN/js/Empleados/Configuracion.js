@@ -8,6 +8,7 @@ var $HIA = $('#HIA');
 var $HFA = $('#HFA');
 var $TD = $('#TD');
 var $TA = $('#TA');
+var $tipo_horario = $('#tipo_horario');
 var $boton = $('#btnAcccion');
 var $div = $('#tablaHorarios');
 var con = 0;
@@ -213,6 +214,7 @@ function registrarModificarConfiguracion() {
 }
 
 function registrarActualizarConfiguracion() {
+
     $.post(baseurl + 'Empleado/cConfiguracion/actualizarConfiguracion', {
         HIL: $HIL.val(),
         HFL: $HFL.val(),
@@ -223,7 +225,8 @@ function registrarActualizarConfiguracion() {
         TD: $TD.val(),
         TA: $TA.val(),
         ID: $boton.val(),
-        nombre: $name.val()
+        nombre: $name.val(),
+        tipo_horario: $tipo_horario.find('option:selected')
     }, function(res) {
         if (res==1) {
             swal({
@@ -241,6 +244,7 @@ function registrarActualizarConfiguracion() {
             // Mensaje de alerta...
         }
     });
+
 }
 
 function generarHoraValida(hora) {

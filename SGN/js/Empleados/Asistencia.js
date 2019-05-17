@@ -32,9 +32,13 @@ $(document).ready(function() {
     //Tabla de reposte
     // Consultar asistencias por empleado
     $('#btnAsistenciaPorEmpleado').click(function() {
+
         if ($('#doc').val() != '') {
-            consultarAsistenciaEmpleado(0, $('#doc').val(), '', 0);
+
+            consultarAsistenciaEmpleado(0, $('#doc').val(), '', 0, 0);
+
         } else {
+
             swal({
                 position: 'center',
                 type: 'warning',
@@ -43,12 +47,19 @@ $(document).ready(function() {
                 showConfirmButton: false,
                 timer: 2500
             });
+
         }
+
     });
+
     $('#buscarAsistenciaFecha').click(function(event) {
+
         if ($fecha1.val() != '' || $fecha2.val() != '') {
+
             consultarAsistenciaRangoFechas();
+
         } else {
+
             swal({
                 position: 'center',
                 type: 'warning',
@@ -57,20 +68,27 @@ $(document).ready(function() {
                 showConfirmButton: false,
                 timer: 2500
             });
+
         }
+
     });
+
     // Consultar Asistencias por dia
     consultarAsistenciasDia();
+
     //Se ejecutara un segundo despues que la pagina haya cargado por completo.
     setInterval('consultarAsistenciasDia()', 15000); //Se actualiza cada 15s
+
     //Actualizar las asistencias diarias
     $('#ActualizarD').click(function(event) {
         consultarAsistenciasDia();
     });
+
     // 
     $('#tblAsistenciaEmpleadoDia').click(function(event) {
         console.log($('#tblAsistenciaEmpleadoDia').pague());
     });
+
     // ...
     $btnAsistencia.click(function(event) {
         switch (Number($(this).val())) {
@@ -133,7 +151,7 @@ function consultarAsistenciaRangoFechas() { //Tipo de busqueda, Documento y Fech
         $tabla4.html('<table class="display" id="tblFechas">' + '<thead id="Cabeza">' + '<th>ID</th>' + '<th>Documento</th>' + '<th>Nombre</th>' + '<th>Evento</th>' + '<th>Fecha Inicio</th>' + '<th>Hora inicio</th>' + '<th>Fecha fin</th>' + '<th>Hora fin</th>' + '<th>Estado</th>' + '<th>Detalle</th>' + '</thead>' + '<tbody id="cuerpoF">' + '</tbody>' + '</table>');
         // Agregar la informacion a la tabla
         $.each(result, function(index, row) {
-            $('#cuerpoF').append('<tr>' + '<th>' + row.idAsistencia + '</th>' + '<td>' + row.documento + '</td>' + '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' + '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + '<td>' + row.fecha_inicio + '</td>' + '<td>' + row.hora_inicio + '</td>' + '<td>' + row.fecha_fin + '</td>' + '<td>' + row.hora_fin + '</td>' + '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + '<td>' + '<button value="' + row.documento + ';' + row.fecha_inicio + '" type="button" onclick="mostrarDetalle(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '\')" class="btn btn-success "><span><i class="fas fa-eye"></i> ver' + '</span></button></td>' + '</tr>');
+            $('#cuerpoF').append('<tr>' + '<th>' + row.idAsistencia + '</th>' + '<td>' + row.documento + '</td>' + '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' + '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + '<td>' + row.fecha_inicio + '</td>' + '<td>' + row.hora_inicio + '</td>' + '<td>' + row.fecha_fin + '</td>' + '<td>' + row.hora_fin + '</td>' + '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + '<td>' + '<button value="' + row.documento + ';' + row.fecha_inicio + '" type="button" onclick="mostrarDetalle(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ','+ row.idAsistencia +')" class="btn btn-success "><span><i class="fas fa-eye"></i> ver' + '</span></button></td>' + '</tr>');
         });
         //Formato del data table
         $('#tblFechas').DataTable();
@@ -261,21 +279,38 @@ function tagEstado(estado) {
     }
     return mensaje;
 }
-//...
-function consultarAsistenciaEmpleado(i, doc, fecha, accion) { //Tipo de busqueda, Documento, Fecha, acccion
+//... Pendiente actualizar
+function consultarAsistenciaEmpleado(i, doc, fecha, accion, idAsistencia) { //Tipo de busqueda, Documento, Fecha, acccion
     var op = 0;
     var des = 0;
     $.post(baseurl + 'Empleado/cAsistencia/asistenciaPorEmpleado', {
         documento: doc,
         op: i,
-        fec: fecha
+        fec: fecha,
+        idAsistencia: idAsistencia
     }, function(data) {
         // Cast a json
         var result = JSON.parse(data);
         // Limpiar la tabla
         // $tabla5.empty();
         (i == 0 ? $tabla2 : $tabla3).empty();
-        (i == 0 ? $tabla2 : $tabla3).html('<table class="display"' + (i == 0 ? 'id="tblAsistenciaEmpleado"' : 'id="tblAsistenciaEmpleadoM"') + '>' + '<thead id="Cabeza">' + '<th>ID</th>' + (i == 0 ? '<th>Documento</th>' : '') + (i == 0 ? '<th>Nombre</th>' : '') + '<th>Evento</th>' + '<th>Fecha Inicio</th>' + '<th>Hora inicio</th>' + (i == 0 ? '' : '<th>LectorI</th>') + (i == 0 ? '' : '<th>Fecha fin</th>') + '<th>Hora fin</th>' + (i == 0 ? '' : '<th>LectorF</th>') + '<th>Estado</th>' + (i != 0 ? '<th>Tiempo</th>' : '') + (i == 0 ? '<th>Detalle</th>' : '') + '</thead>' + '<tbody ' + (i == 0 ? 'id="cuerpo"' : 'id="cuerpoM"') + '>' + '</tbody>' + '</table>');
+        (i == 0 ? $tabla2 : $tabla3).html('<table class="display"' + (i == 0 ? 'id="tblAsistenciaEmpleado"' : 'id="tblAsistenciaEmpleadoM"') + '>' +
+                                            '<thead id="Cabeza">' + 
+                                                '<th>ID</th>' + 
+                                                (i == 0 ? '<th>Documento</th>':'') + 
+                                                (i == 0 ? '<th>Nombre</th>' : '') + 
+                                                '<th>Evento</th>' + 
+                                                '<th>Inicio Evento</th>' +
+                                                (i == 0 ? '' : '<th>LectorI</th>') + 
+                                                '<th>Fin Evento</th>' + 
+                                                (i == 0 ? '' : '<th>LectorF</th>') + 
+                                                '<th>Estado</th>' +
+                                                (i != 0 ? '<th>Tiempo</th>' : '') + 
+                                                (i == 0 ? '<th>Detalle</th>' : '') + 
+                                            '</thead>' + 
+                                                '<tbody ' + (i == 0 ? 'id="cuerpo"' : 'id="cuerpoM"') + '>' + 
+                                                '</tbody>' + 
+                                        '</table>');
         // Agregar la informacion a la tabla
         $.each(result, function(index, row) {
             if (op == 0 && (i == 1 || i == 2)) {
@@ -295,7 +330,19 @@ function consultarAsistenciaEmpleado(i, doc, fecha, accion) { //Tipo de busqueda
                 des = 1;
             }
             // ...
-            (i == 0 ? $('#cuerpo') : $('#cuerpoM')).append('<tr>' + '<th data-idhorario="' + row.idConfiguracion + '">' + row.idAsistencia + '</th>' + (i == 0 ? '<td>' + row.documento + '</td>' : '') + (i == 0 ? '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' : '') + '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + '<td>' + row.fecha_inicio + '</td>' + '<td>' + (accion == 0 ? row.hora_inicio : '<input class="from-control inputAsistencia" maxlength="8" type="text" value="' + row.inicioOriginal + '">') + '</td>' + (i == 0 ? '' : '<td>' + row.lectorI + '</td>') + (i == 0 ? '' : '<td>' + (row.fecha_fin == null ? '-' : row.fecha_fin) + '</td>') + '<td>' + (accion == 0 ? (row.hora_fin == null ? '-' : row.hora_fin) : '<input class="from-control inputAsistencia" maxlength="8" type="text" value="' + (row.finOriginal == null ? '' : row.finOriginal) + '">') + '</td>' + (i == 0 ? '' : '<td>' + (row.lectorF == null ? '-' : row.lectorF) + '</td>') + '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + (i != 0 ? '<td>' + (row.horas == null ? '-' : row.horas) + '</td>' : '') + (i == 0 ? '<td>' + '<button value="' + row.documento + ';' + row.fecha_inicio + '" type="button" onclick="mostrarDetalle(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '\')" class="btn btn-success"><span><i class="fas fa-eye"></i> ver' + '</span></button></td>' : '') + '</tr>');
+            (i == 0 ? $('#cuerpo') : $('#cuerpoM')).append('<tr>' + 
+                                                                '<th data-idhorario="' + row.idConfiguracion + '">' + row.idAsistencia + '</th>' + 
+                                                                (i == 0 ? '<td>' + row.documento + '</td>' : '') + 
+                                                                (i == 0 ? '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' : '') + 
+                                                                '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + 
+                                                                '<td>' + (accion == 0 ? row.inicio : '<input class="from-control inputAsistencia" maxlength="8" type="text" value="' + row.inicio + '">') + '</td>' + 
+                                                                (i == 0 ? '' : '<td>' + row.lectorI + '</td>') + 
+                                                                '<td>' + (accion == 0 ? (row.fin == null ? '-' : row.fin) : '<input class="from-control inputAsistencia" maxlength="8" type="text" value="' + (row.fin == null ? '' : row.fin) + '">') + '</td>' +
+                                                                (i == 0 ? '' : '<td>' + (row.lectorF == null ? '-' : row.lectorF) + '</td>') + 
+                                                                '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + 
+                                                                (i != 0 ? '<td>' + (row.horas == null ? '-' : row.horas) + '</td>' : '') + 
+                                                                (i == 0 ? '<td>' + '<button value="' + row.documento + ';' + row.inicio + '" type="button" onclick="mostrarDetalle(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '\','+row.idAsistencia+')" class="btn btn-success"><span><i class="fas fa-eye"></i> ver' + '</span></button></td>' : '') + 
+                                                            '</tr>');
         });
         // ...
         if (i > 0 && accion == 0) {
@@ -362,19 +409,21 @@ function cerrarEventosLaboral(doc) {
     });
 }
 // 
-function mostrarDetalle(doc, nombre) {
+function mostrarDetalle(doc, nombre, idAsistencia) {
     var info = doc.split(';');
     $tituloModal.text('Detalle Asistencia:  ' + nombre);
-    consultarAsistenciaEmpleado(1, info[0], info[1], 0); //...Ultimo argumento es la accion
+    consultarAsistenciaEmpleado(1, info[0], info[1], 0, idAsistencia); //...Ultimo argumento es la accion
     consultarPermisosEmpleadosDia(info[0], formatoFecha(info[1]));
 }
+
 // 
 function mostrarDetalleDiario(doc, nombre) {
     $tituloModal.text('Detalle Asistencia:  ' + nombre);
-    consultarAsistenciaEmpleado(2, doc, '', 0);
+    consultarAsistenciaEmpleado(2, doc, '', 0, 0);
     consultarPermisosEmpleadosDia(doc, '');
     $('#detalleAsistencias').modal('show');
 }
+
 // Consulta todos los empleados que son operarios y su estado (ausente, presente)
 function consultarAsistenciasDia() {
     // var op = 0;

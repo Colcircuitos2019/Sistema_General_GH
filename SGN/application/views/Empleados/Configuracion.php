@@ -134,6 +134,19 @@
           </div>
         </div>
     </div><br>
+        <!-- Horario Almuerzo-->
+    <div class="form-group">
+        <label class="control-label col-sm-3"><strong>*</strong>Tipo de horario</label>
+        <div class="col-sm-3">
+          <select class="selectpicker show-tick form-control" id="tipo_horario">
+              <option value="0">Para asignar</option>
+              <option value="1">Por defecto</option>
+              <option value="2">Sabados por defecto</option>
+              <option value="3">Domingos por defecto</option>
+              <option value="4">Festivos por defecto</option>
+          </select>
+        </div>
+    </div><br>
     <div class="box-footer">
       <div class="pull-right">
         <button type="button" class="btn btn-primary" id="limpiarF">Limpiar</button>

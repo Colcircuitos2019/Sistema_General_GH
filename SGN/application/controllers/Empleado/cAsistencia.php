@@ -62,8 +62,9 @@ class cAsistencia extends CI_Controller
     $doc=$this->input->post('documento');
     $op=$this->input->post('op');
     $fecha=$this->input->post('fec');
+    $idAsistencia=$this->input->post('idAsistencia');
 
-    $res= $this->mAsistencia->asistenciaPorEmpleadoM($doc,$op,$fecha);
+    $res= $this->mAsistencia->asistenciaPorEmpleadoM($doc, $op, $fecha, $idAsistencia);
 
     echo json_encode($res);
   }
