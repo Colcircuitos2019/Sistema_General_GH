@@ -108,22 +108,15 @@ class cAsistencia extends CI_Controller
     $info['contra']=base64_encode($this->input->post('contra'));
     $info['lector']=$_SERVER['REMOTE_ADDR'];// ID del cliente que ingreso a la URL
 
-    // $idHorario=$this->seleccionarIDHorarioEmpelado($info['contra'],1);//Consultar horario del empleado por contraseña unica.
-    $idHorario=$this->seleccionarIDHorarioEmpeladoPrueba($info['contra'], 1);//Consultar horario del empleado por contraseña unica.
+    // $idHorario=$this->seleccionarIDHorarioEmpelado($info['contra'],1);//Consultar horario del empleado por contraseña unica. Eliminar este
+    $idHorario=$this->seleccionarIDHorarioEmpeladoPrueba($info['contra'], 1);//Consultar horario del empleado por contraseña unica. Este es el actual
 
-    if ($idHorario > 0) {
+    $info['idHorario'] = $idHorario;
+    // 
+    $documento = $this->mAsistencia->registrarAsistenciaM($info);
+    // 
+    echo $documento;
 
-      $info['idHorario']=$idHorario;
-      // 
-      $documento=$this->mAsistencia->registrarAsistenciaM($info);
-      // 
-      echo $documento;
-
-    }else{
-
-      echo "-1";
-
-    }
     
   }
 

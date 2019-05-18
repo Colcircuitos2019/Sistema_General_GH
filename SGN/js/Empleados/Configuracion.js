@@ -48,6 +48,7 @@ function consultarConfiguracion(idH) {
                          '<thead id="cabeza">' + 
                            '<th>Nombre</th>' + 
                            '<th>Estado</th>' + 
+                           '<th>tipo horario</th>' + 
                            '<th>Acciones</th>' +
                          '</thead>' + 
                          '<tbody id="cuerpoU">' + 
@@ -58,6 +59,7 @@ function consultarConfiguracion(idH) {
                 $('#cuerpoU').append('<tr>' + 
                                         '<td>' + row.nombre + '</td>' + 
                                         '<td>' + clasificarEstado(row.estado) + '</td>' +
+                                        '<td>' + row.tipo_horario + '</td>' +
                                         '<td>' + 
                                             '<button value="' + row.idConfiguracion + '" onclick="consultarConfiguracion(this.value)"  type="button" class="btn btn-primary btn-xs"><span><i class="far fa-edit"></i>Editar</span></button></p>' + 
                                             '<button value="' + row.idConfiguracion + '" type="button"' + clasificarBoton(row.estado) + '</span></button>' + '</td>' + '</tr>');
@@ -101,6 +103,9 @@ function consultarConfiguracion(idH) {
                 $TA.val(row.tiempo_almuerzo);
                 $name.val(row.nombre);
                 $boton.val(row.idConfiguracion);
+                $tipo_horario.find('option').attr('selected', false);
+                $tipo_horario.find('option[value="'+row.tipo_horario+'"]').attr('selected', true);
+                $tipo_horario.selectpicker('refresh');
                 $boton.text('Actualizar');
             });
             // ...
@@ -140,6 +145,8 @@ function limpiarFormulario() {
     $name.val('');
     $boton.val('0');
     $boton.text('Registrar');
+    $tipo_horario.find('option').attr('selected', false);
+    $tipo_horario.selectpicker('refresh');
 }
 
 function cambiarEstadoHorarioEmpleado(id) {
@@ -226,7 +233,7 @@ function registrarActualizarConfiguracion() {
         TA: $TA.val(),
         ID: $boton.val(),
         nombre: $name.val(),
-        tipo_horario: $tipo_horario.find('option:selected')
+        tipo_horario: $tipo_horario.find('option:selected').val()
     }, function(res) {
         if (res==1) {
             swal({

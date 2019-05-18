@@ -30,7 +30,7 @@ class mConfiguracion extends CI_Model
 
 	public function registrarActualizarConfiguracionM($horas)
 	{
-		$query=$this->db->query("CALL SE_PA_ActualizarConfiguracion('{$horas['HIL']}', '{$horas['HFL']}', '{$horas['HID']}', '{$horas['HFD']}', '{$horas['HIA']}', '{$horas['HFA']}', '{$horas['TD']}', '{$horas['TA']}', {$horas['ID']}, '{$horas['nombre']}');");
+		$query=$this->db->query("CALL SE_PA_ActualizarConfiguracion('{$horas['HIL']}', '{$horas['HFL']}', '{$horas['HID']}', '{$horas['HFD']}', '{$horas['HIA']}', '{$horas['HFA']}', '{$horas['TD']}', '{$horas['TA']}', {$horas['ID']}, '{$horas['nombre']}', {$horas['tipo_horario']});");
 		$res=$query->row();
 
 		return $res->respuesta;
