@@ -158,31 +158,87 @@
 </div>
 <!-- /Cuerpo -->
 </div>
-          <div class="box box-primary">
-            <div class="box-header">
-              <i class="fas fa-people-carry"></i>
-              <h3 class="box-title">Horarios de trabajo</h3>
-              <!-- Minimizar -->
-              <div class="pull-right box-tools">
-                <button type="button" class="btn btn-box-tool" data-widget="collapse">
-                  <i class="fa fa-minus"></i>
-                </button>
-              </div>
-            </div>
+
   <style type="text/css">
     label strong{
       color: #FD0303;
-    }
+    } 
   </style>
-<!-- Cuerpo -->
-<div class="box-body">
-  <div class="col-sm-12">
-    <div class="table-responsive" id="tablaHorarios">
-      
+
+    <div class="box box-primary">
+      <div class="box-header">
+        <i class="fas fa-people-carry"></i>
+        <h3 class="box-title">Horarios de trabajo</h3>
+        <!-- Minimizar -->
+        <div class="pull-right box-tools">
+          <button type="button" class="btn btn-box-tool" data-widget="collapse">
+            <i class="fa fa-minus"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="box-body">
+        <div class="col-sm-12">
+          <div class="table-responsive" id="tablaHorarios">
+            
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
-<!-- /Cuerpo -->
-</div>
+
+    <div class="box box-primary">
+      <div class="box-header">
+        <i class="fas fa-calendar-alt"></i>
+        <h3 class="box-title">Tiempo Teorico - Semanal</h3>
+        <!-- Minimizar -->
+        <div class="pull-right box-tools">
+          <button type="button" class="btn btn-box-tool" data-widget="collapse">
+            <i class="fa fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="box-body">
+        <div class="col-sm-12">
+        <form class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-sm-3"><strong>*</strong>Tiempo Laboral:</label>
+                <div class="col-sm-3">
+                  <div class="input-group">
+                     <input id="tiempo_laboral" type="text" maxlength="8" class="form-control input-small">
+                     <span class="input-group-addon">
+                      <i class="glyphicon glyphicon-time"></i>
+                    </span>
+                  </div>
+                </div>
+                <label class="control-label col-sm-3"><strong>*</strong>Tiempo Desayuno:</label>
+                <div class="col-sm-3">
+                  <div class="input-group">
+                     <input id="tiempo_desayuno" type="text" maxlength="8" class="form-control input-small">
+                     <span class="input-group-addon">
+                      <i class="glyphicon glyphicon-time"></i>
+                    </span>
+                  </div>
+                </div>
+              </div><br>
+            <div class="form-group">
+                <label class="control-label col-sm-3"><strong>*</strong>Tiempo Almuerzo:</label>
+                <div class="col-sm-3">
+                  <div class="input-group">
+                     <input id="tiempo_almuerzo" type="text" maxlength="8" class="form-control input-small">
+                     <span class="input-group-addon">
+                      <i class="glyphicon glyphicon-time"></i>
+                    </span>
+                  </div>
+                </div>
+            </div><br>
+            <div class="box-footer">
+              <div class="pull-right">
+                <button type="button" class="btn btn-warning" value="0" id="btnGestioTiempoTeorico">Actualizar</button>
+              </div>
+            </div>
+        </form>
+        </div>
+      </div>
+    </div>  
           <!-- Div 1 -->
         </section>

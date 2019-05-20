@@ -15,6 +15,8 @@ var con = 0;
 var respuesta = true;
 // Consulta las configuracion de los horarios de los eventos laborales
 consultarConfiguracion(0);
+//Consultar tiempos teoricos - semanal
+consultarTiemposTeoricos(); 
 // Cuando el DOM este cargado por completo el time piker se aplicara a los inputs
 $(document).ready(function() {
     //Cargar libreria del time piker
@@ -29,6 +31,10 @@ $(document).ready(function() {
     // Cuando se haga click en el boton de modificar configuracion
     $boton.click(function(event) {
         registrarModificarConfiguracion();
+    });
+
+    $("#btnGestioTiempoTeorico").click(function(event) {
+        actualizarTiemposTeoricos();
     });
     // ...
     $('#limpiarF').click(function(event) {
@@ -114,6 +120,58 @@ function consultarConfiguracion(idH) {
             },'slow');
         }
     });
+}
+
+function consultarTiemposTeoricos() {
+    $.post(baseurl+'Empleado/cConfiguracion/consultarTiemposTeoricos', function(data, textStatus, xhr) {
+        
+        var tiempos = JSON.parse(data);
+
+        $("#tiempo_laboral").val(tiempos.tiempo_laboral);
+        $("#tiempo_desayuno").val(tiempos.tiempo_desayuno);
+        $("#tiempo_almuerzo").val(tiempos.tiempo_almuerzo);
+ 
+    });
+}
+
+function actualizarTiemposTeoricos() {
+    swal({ //Mensaje de confirmacion para realizar la accion.
+        title: '¿Estas seguro?',
+        text: "Se actualizaran los tiempos teoricos semanales, ¿estas seguro de realizar esta acción?",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si'
+    }).then((result) => {
+
+        if (result) {
+
+            $.ajax({
+                url: baseurl+'Empleado/cConfiguracion/actualizarTiemposteoricos',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    tiempo_laboral: $("#tiempo_laboral").val(),
+                    tiempo_desayuno: $("#tiempo_desayuno").val(),
+                    tiempo_almuerzo: $("#tiempo_almuerzo").val()
+                },
+            })
+            .done(function(res) {
+
+                if (res) {
+                    swal("Realizado!!","Los tiempos teoricos semanales fueron actualizados correctamente.","success", {timer: 2000 ,button: false});
+                }
+
+            })
+            .fail(function() {
+                console.log("error");
+            });
+
+        }
+
+    });
+    
 }
 
 function clasificarEstado(estado) { //Clasifica el estado de cada proveedor

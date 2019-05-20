@@ -45,5 +45,21 @@ class mConfiguracion extends CI_Model
 		return $res->respuesta;
 	}
 
+	public function consultarTiemposTeoricosM()
+	{
+		$query= $this->db->query("SELECT t.tiempo_laboral, t.tiempo_desayuno, t.tiempo_almuerzo FROM tiempo_teorico_semanal t WHERE t.idtiempo_teorico_semanal = 1;");
+
+		$res = $query->row();
+
+		return $res;
+	}
+
+	public function actualizarTiemposteoricosM($tiempos)
+	{
+		$query= $this->db->query("UPDATE tiempo_teorico_semanal t SET t.tiempo_laboral = '{$tiempos['laboral']}', t.tiempo_desayuno = '{$tiempos['desayuno']}', t.tiempo_almuerzo = '{$tiempos['almuerzo']}'  WHERE t.idtiempo_teorico_semanal = 1;");
+
+		return 1;	
+	}
+
 }
  ?>

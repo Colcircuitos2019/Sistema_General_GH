@@ -87,5 +87,23 @@ class cConfiguracion extends CI_Controller
 		echo $res;
 	}
 
+	public function consultarTiemposTeoricos()
+	{
+		$res= $this->mConfiguracion->consultarTiemposTeoricosM();
+
+		echo json_encode($res);
+	}
+
+	public function actualizarTiemposteoricos()
+	{
+		$tiempos['laboral'] = $this->input->post("tiempo_laboral");
+		$tiempos['desayuno'] = $this->input->post("tiempo_desayuno");
+		$tiempos['almuerzo'] = $this->input->post("tiempo_almuerzo");
+	
+		$res= $this->mConfiguracion->actualizarTiemposteoricosM($tiempos);
+
+		echo json_encode($res);
+	}
+
 }
  ?>

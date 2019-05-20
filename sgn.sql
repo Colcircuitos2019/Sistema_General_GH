@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:33066
--- Tiempo de generación: 18-05-2019 a las 18:55:28
+-- Tiempo de generación: 20-05-2019 a las 19:40:05
 -- Versión del servidor: 10.1.29-MariaDB
 -- Versión de PHP: 7.2.0
 
@@ -3003,6 +3003,74 @@ END IF;
 #...
 END$$
 
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_CierreDeAsistenciaAbiertas` (IN `doc` VARCHAR(20))  NO SQL
+BEGIN
+
+DECLARE idAsistencia int;
+DECLARE idHorario tinyint;
+DECLARE fecha_inicio_asistencia varchar(20);
+DECLARE fecha_fin_asistencia varchar(20);
+
+SET idAsistencia = (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.idTipo_evento=1 AND a.inicio is not null AND a.fin is null AND a.estado = 1);
+
+IF idAsistencia IS NOT null THEN
+
+    SET idHorario = (SELECT a.idConfiguracion FROM asistencia a WHERE a.idAsistencia=idAsistencia);
+
+    SET fecha_inicio_asistencia = (SELECT a.inicio FROM asistencia a WHERE a.idAsistencia = idAsistencia);
+
+    IF (SELECT c.hora_ingreso_empresa FROM configuracion c WHERE c.idConfiguracion = idHorario) >= (SELECT c.hora_salida_empresa FROM configuracion c WHERE c.idConfiguracion = idHorario) THEN
+
+      #Horario Nocturno
+      SET fecha_fin_asistencia = (SELECT DATE_FORMAT(DATE_ADD(a.inicio, INTERVAL 1 DAY),'%Y-%m-%d') FROM asistencia a WHERE a.idAsistencia = idAsistencia);
+
+    ELSE
+
+      #Horario Diurna.
+      SET fecha_fin_asistencia = (SELECT DATE_FORMAT(a.inicio, '%Y-%m-%d') FROM asistencia a WHERE a.idAsistencia = idAsistencia);
+
+    END IF;
+
+    # Hora de salida de la empresa
+    SET fecha_fin_asistencia = (SELECT CONCAT(fecha_fin_asistencia, ' ', (SELECT c.hora_salida_empresa FROM configuracion c WHERE c.idConfiguracion = idHorario)));
+
+    IF TIMEDIFF(now(), fecha_fin_asistencia) > '08:00:00' THEN # La asistencia a pasado mas de 8 horas abierta o no tiene permiso de realizar tiempo extra. Pendiente
+      
+      #Cerrar la asistencia
+      IF (SELECT c.hora_inicio_desayuno FROM configuracion c WHERE c.idConfiguracion = idHorario) > '00:00:00' THEN
+
+        CALL SI_PA_ProcedimientoEventosNoAsistidos(doc, 0, idHorario, 2, fecha_inicio_asistencia, fecha_fin_asistencia); #Desayuno
+
+      END IF;
+
+      #...
+
+      IF (SELECT c.hora_inicio_almuerzo FROM configuracion c WHERE c.idConfiguracion = idHorario) > '00:00:00' THEN
+
+        CALL SI_PA_ProcedimientoEventosNoAsistidos(doc, 0, idHorario, 3, fecha_inicio_asistencia, fecha_fin_asistencia); #almuerzo
+
+      END IF;
+
+      # ...
+
+      #Cierra el evento de asistencia Laboral!!!
+      UPDATE asistencia a SET a.fin = fecha_fin_asistencia, a.lectorF = 0, a.estado = 0 WHERE a.idAsistencia = idAsistencia;
+      
+      #Acutualizar el estado del empleado en la empresa a 0=ausente
+      -- UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc; # Este campo en algun momento ya no se va a utilziar.
+      # ...
+      UPDATE asistencia a SET a.tiempo = (SELECT TIMEDIFF(fecha_fin_asistencia, fecha_inicio_asistencia)) WHERE a.idAsistencia = idAsistencia;
+      # ...
+      #CALL SI_PA_CalcularRegistrarHorasTrabajadas(doc, idHorario, 1 ,fecha_inicio_asistencia, fecha_fin_asistencia);# Actualizar -> Pendiente
+
+    END IF;
+
+END IF;
+
+-- SELECT idAsistencia;
+
+END$$
+
 CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_CierreEventosAsistenciaOperarios` (IN `doc` VARCHAR(20), IN `evento` TINYINT(1), IN `lector` INT, IN `idHorario` INT, IN `accion` INT, IN `horaInicioEvento` VARCHAR(20), IN `horaFinEvento` VARCHAR(20))  NO SQL
 BEGIN
 #accion me sirve para saber si tengo en cuenta los 5 minutos o no para cerrar la toma de tiempo
@@ -3078,9 +3146,9 @@ SELECT h.idH_laboral,e.documento,e.nombre1,e.nombre2,e.apellido1,e.apellido2,em.
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ConsultarTipoAlerta` (IN `documento` VARCHAR(20))  NO SQL
-BEGIN # Ponerle a que me muestre el nombre del emleado
+BEGIN # opcion de mejora Ponerle a que me muestre el nombre del emleado
 
-IF ((SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento = documento AND a.idTipo_evento = 1 AND a.inicio IS NOT null AND (TIME_FORMAT(TIMEDIFF(now(), a.fin),'%H:%i:%s') <= '08:00:00') OR a.fin IS null) is not null) = 1 THEN
+IF ((SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento = documento AND a.idTipo_evento = 1 AND a.inicio IS NOT null AND (TIME_FORMAT(TIMEDIFF(now(), a.fin),'%H:%i:%s') <= '08:00:00') AND a.fin IS NOT null) is not null) = 1 THEN
 	#Existe la asistencia de tipo laboral Cerrada.
 
 	SELECT asi.idTipo_evento,
@@ -3506,11 +3574,12 @@ IF doc!='' THEN
   IF permiso=-1 or permiso=2 THEN # Va a continuar con la toma de los eventos normalmente
 
     #... en vez de validar la fecha, validamos la ultima asistencia junto al intervalo de hora del horario
-
-    #IF EXISTS(SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.idTipo_evento=1 AND a.fecha_fin IS NOT null AND a.fecha_inicio IS NOT null AND a.fecha_inicio = CURDATE() OR a.fecha_inicio = SUBDATE(CURDATE(), INTERVAL 1 DAY))  THEN
     IF ((SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.idTipo_evento=1 AND a.fin IS NOT null AND a.inicio IS NOT null AND TIME_FORMAT(TIMEDIFF(now(), a.fin),'%H:%i:%s') <= '08:00:00') is not null) = 0  THEN
-    
-      #validamos si existe una asistenca de tipo laboral---------------------------------------------------------------------------------------------------------------------------------------------------------------6
+      
+      #Validar cierre de asistencia del día anterior.
+      CALL SI_PA_CierreDeAsistenciaAbiertas(doc);
+
+      #validamos si existe una asistenca de tipo laboral dentro del horario estipulado---------------------------------------------------------------------------------------------------------------------------------------------------------------6
       IF ((SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.idTipo_evento=1 AND a.inicio is not null AND a.fin IS null) is not null) = 1 THEN 
         #Validacion de cuantos eventos tiene en un dia de evento normal.-------------------------------------------------------------------------------------------------------------------------5
         
@@ -3528,8 +3597,6 @@ IF doc!='' THEN
         #Horario Diurna.
 
           SET fecha_fin_asistencia = (SELECT DATE_FORMAT(a.inicio, '%Y-%m-%d') FROM asistencia a WHERE a.idAsistencia = idAsistencia);
-        -- #Validacion la cantidad de eventos disponibles en el día...
-        -- SET cantidad_eventos_que_aplican = (SELECT SI_FU_CantidadEventosQueAplicanHorario(idHorario));
 
         END IF;
 
@@ -3545,15 +3612,16 @@ IF doc!='' THEN
         IF (SELECT COUNT(*) FROM (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE (a.idTipo_evento = 2 OR a.idTipo_evento = 3) AND a.documento=doc AND (DATE_FORMAT(a.inicio, '%Y-%m-%d') BETWEEN fecha_inicio_asistencia AND fecha_fin_asistencia) AND a.fin is NOT null GROUP BY a.idTipo_evento) AS idEventos) = cantidad_eventos_que_aplican THEN
 
          -- IF  (SELECT SI_FU_ValidacionCierreAsistencia(idHorario)) = 1  THEN # Si se puede cerrar la asistencia? # Actualizar -> pendiente
-             #...
-             #La hora del sistema tiene que ser 05 minutos igual o mayor a la diferencia del tiempo actual con el de la ultima asistencia.
-            IF ((SELECT TIME_FORMAT(TIMEDIFF(now(), asi.fin), '%H:%i:%s') FROM asistencia asi WHERE asi.idAsistencia = (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.inicio is not null AND a.fin is not null)) >= '00:05:00') or (SELECT SI_FU_ValidacionCierreAsistencia(idHorario)) = 1 THEN ## La funcion puede ir o no
+
+             #La hora del sistema menos la hora de inicio del ultimo evento tiene que ser igual o mayor a 5 minutos para poder cerrar la asistencia. 
+             # or (SELECT SI_FU_ValidacionCierreAsistencia(idHorario)) = 1
+            IF ((SELECT TIME_FORMAT(TIMEDIFF(now(), asi.inicio), '%H:%i:%s') FROM asistencia asi WHERE asi.idAsistencia = (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.inicio is not null AND a.fin is null)) >= '00:05:00') THEN
 
               #Cierra el evento de asistencia Laboral!!!
               UPDATE asistencia a SET a.fin = now(), a.lectorF = lector, a.estado = 0 WHERE a.documento = doc AND a.idAsistencia = idAsistencia AND a.idConfiguracion = idHorario;
               
               #Acutualizar el estado del empleado en la empresa a 0=ausente
-              UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc;
+              -- UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc;
 
               SET horaInicioEvento = (SELECT a.inicio FROM asistencia a WHERE a.idAsistencia = idAsistencia);
               SET horaFinEvento = (SELECT a.fin FROM asistencia a WHERE a.idAsistencia = idAsistencia);
@@ -3562,7 +3630,7 @@ IF doc!='' THEN
               # ...
               UPDATE asistencia a SET a.tiempo = tiempo WHERE a.idAsistencia = idAsistencia;
               # ...
-              CALL SI_PA_CalcularRegistrarHorasTrabajadas(doc, idHorario, 1 ,horaInicioEvento, horaFinEvento);# Actualizar -> Pendiente
+              CALL SI_PA_CalcularRegistrarHorasTrabajadas(doc, idHorario, 1, horaInicioEvento, horaFinEvento);# Actualizar -> Pendiente mandar el idAsistencia
               #...
 
              END IF;
@@ -3578,12 +3646,10 @@ IF doc!='' THEN
       ELSE
 
         # Validacion de horario 
-
         IF EXISTS(SELECT * FROM dias_festivos d WHERE d.fecha_dia = CURDATE()) THEN # esto va para el registrar asistencia de tipo laboral
 
             #Consulta el horario por defecto para los festivos
-
-            SET idHorario = (SELECT c.idConfiguracion FROM configuracion c WHERE c.tipo_horario=4 LIMIT 1);
+            SET idHorario = (SELECT c.idConfiguracion FROM configuracion c WHERE c.tipo_horario=4 LIMIT 1);# Horario por defecto para los días festivos.
 
           ELSE
 
@@ -3592,15 +3658,14 @@ IF doc!='' THEN
               #Valida el horario si el horario por defecto es para un día normal, un sabado o un domingo...
 
              CASE (DATE_FORMAT(CURDATE(),'%w')) 
-                WHEN '6' THEN SET idHorario =(SELECT MAX(c.idConfiguracion) FROM configuracion c WHERE c.tipo_horario = 2 LIMIT 1);
-                WHEN '0' THEN SET idHorario =(SELECT MAX(c.idConfiguracion) FROM configuracion c WHERE c.tipo_horario = 3 LIMIT 1);
+                WHEN '6' THEN SET idHorario =(SELECT MAX(c.idConfiguracion) FROM configuracion c WHERE c.tipo_horario = 2 LIMIT 1);# Horario por defecto para los sabados
+                WHEN '0' THEN SET idHorario =(SELECT MAX(c.idConfiguracion) FROM configuracion c WHERE c.tipo_horario = 3 LIMIT 1);# Horairio por defecto para los domingos
                 ELSE 
                   BEGIN
-                    SET idHorario =(SELECT MAX(c.idConfiguracion) FROM configuracion c WHERE c.tipo_horario = 1 LIMIT 1);
+                    SET idHorario =(SELECT MAX(c.idConfiguracion) FROM configuracion c WHERE c.tipo_horario = 1 LIMIT 1);# Horario por defecto para los días normales.
                   END;
               END CASE;
 
-              # si el horario es null se ba a coger el horario por defecto para los días normales...<Pendiente>
 
             END IF;
 
@@ -3616,7 +3681,7 @@ IF doc!='' THEN
           #Asistencia de tipo evento Laboral
           INSERT INTO `asistencia`(`documento`, `idTipo_evento`, `inicio`, `fin`, `idEstado_asistencia`, `estado`, `lectorI`,`idConfiguracion`) VALUES (doc, 1, now(), null, 1, 1, lector, idHorario);
           
-          UPDATE empleado e SET e.asistencia=1 WHERE e.documento=doc;#acutualizar el estado del empleado en la empresa 1=Presente
+          -- UPDATE empleado e SET e.asistencia=1 WHERE e.documento=doc;#acutualizar el estado del empleado en la empresa 1=Presente
        
           #Clasificaion del tipo de estado de la asistencia
           SET idAsistencia = (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento = doc AND a.idTipo_evento = 1 AND a.inicio is not null AND a.fin is null);
@@ -5272,7 +5337,12 @@ INSERT INTO `asistencia` (`idAsistencia`, `documento`, `idTipo_evento`, `inicio`
 (50, '1216727816', 3, '2019-05-14 13:21:25', '2019-05-14 14:05:55', 2, 0, 2, 2, '00:44:30', 4),
 (51, '1216727816', 1, '2019-05-17 16:41:36', '2019-05-18 09:21:53', 2, 0, 2, 2, '16:40:17', 4),
 (60, '1216727816', 2, '2019-05-18 03:00:00', '2019-05-18 03:00:00', 3, 0, 0, 0, '00:20:00', 4),
-(61, '1216727816', 3, '2019-05-18 08:27:55', '2019-05-18 08:34:00', 2, 0, 2, 2, '00:40:00', 4);
+(61, '1216727816', 3, '2019-05-18 08:27:55', '2019-05-18 08:34:00', 2, 0, 2, 2, '00:40:00', 4),
+(75, '1216727816', 1, '2019-05-19 08:41:21', '2019-05-19 16:30:00', 2, 0, 2, 0, '07:48:39', 1),
+(76, '1216727816', 2, '2019-05-19 10:30:00', '2019-05-19 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
+(79, '1216727816', 1, '2019-05-20 12:25:14', NULL, 2, 1, 2, NULL, NULL, 1),
+(80, '1216727816', 2, '2019-05-20 10:30:00', '2019-05-20 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
+(81, '1216727816', 3, '2019-05-20 12:38:30', NULL, 1, 1, 2, NULL, NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -5591,10 +5661,11 @@ CREATE TABLE `configuracion` (
 --
 
 INSERT INTO `configuracion` (`idConfiguracion`, `nombre`, `hora_ingreso_empresa`, `hora_salida_empresa`, `hora_inicio_desayuno`, `hora_fin_desayuno`, `hora_inicio_almuerzo`, `hora_fin_almuerzo`, `tiempo_desayuno`, `tiempo_almuerzo`, `estado`, `tipo_horario`) VALUES
-(1, 'Primer horario laboral', '06:00:00', '16:30:00', '08:20:00', '09:31:00', '09:35:00', '13:15:00', '00:20:00', '00:40:00', 1, 0),
+(1, 'Primer horario laboral', '06:00:00', '16:30:00', '08:00:00', '10:30:00', '12:20:00', '13:00:00', '00:20:00', '00:00:00', 1, 0),
 (2, 'Segundo horario laboral', '10:55:00', '20:00:00', '11:00:00', '14:00:00', '17:00:00', '19:00:00', '00:15:00', '00:40:00', 1, 0),
 (3, 'Horario de los sabados', '06:00:00', '12:00:00', '08:30:00', '09:30:00', '10:00:00', '10:00:02', '00:15:00', '00:40:00', 1, 2),
-(4, 'Prueba de desarrollo', '16:35:00', '09:30:00', '22:41:00', '03:00:00', '04:15:00', '08:34:00', '00:20:00', '00:40:00', 1, 0);
+(4, 'Prueba de desarrollo', '16:35:00', '09:30:00', '22:41:00', '03:00:00', '04:15:00', '08:34:00', '00:20:00', '00:40:00', 1, 0),
+(5, 'Horario días normales por defecto', '06:30:00', '17:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:20:00', '00:40:00', 1, 1);
 
 -- --------------------------------------------------------
 
@@ -5701,7 +5772,6 @@ CREATE TABLE `empleado` (
   `idEmpresa` tinyint(4) NOT NULL,
   `estado` tinyint(1) NOT NULL DEFAULT '1',
   `idRol` tinyint(4) DEFAULT '2',
-  `asistencia` tinyint(1) NOT NULL DEFAULT '0',
   `piso` varchar(1) NOT NULL DEFAULT '4',
   `fecha_expedicion` varchar(10) NOT NULL DEFAULT '',
   `lugar_expedicion` varchar(50) NOT NULL DEFAULT '',
@@ -5713,163 +5783,163 @@ CREATE TABLE `empleado` (
 -- Volcado de datos para la tabla `empleado`
 --
 
-INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellido2`, `genero`, `huella1`, `huella2`, `huella3`, `correo`, `contraseña`, `idEmpresa`, `estado`, `idRol`, `asistencia`, `piso`, `fecha_expedicion`, `lugar_expedicion`, `fecha_registro`, `idManufactura`) VALUES
-('1000633612', 'daniel', '', 'grajales', 'bernal', 1, 0, 0, 0, 'danigb24@gmail.com', 'MDIyNA==', 1, 1, 2, 0, '2', '26/01/2018', 'Rio Negro', '2019-03-26', 9),
-('1001545147', 'alex', 'alfonso', 'ospina', 'fonnegra', 1, 0, 0, 0, 'alexfonnegra04@gmail.com', 'OTk5OQ==', 1, 1, 1, 1, '2', '12-2-2015', 'Gomez plata', '2018-12-17', 0),
-('1006887114', 'Luiggy ', 'Jose ', 'Jimenez', 'Montes ', 1, 0, 0, 0, 'ljosejimenez@uniguajira.edu.co', 'MTMwMQ==', 1, 0, 1, 1, '4', '19/01/2009', 'Maicao', '2018-08-29', 0),
-('1007110815', 'Nedis', 'Omaris', 'Chavarria', '', 0, 0, 0, 0, 'sarachavarria020@gmail.com', 'MDExOQ==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1007310520', 'beatriz ', 'elena ', 'beltrán ', 'bedoya ', 0, 0, 0, 0, 'beatrizbeltranbedoya123@hotmail.com', 'MTcwMg==', 1, 0, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
-('1013537192', 'santiago ', '', 'villa', 'torres', 1, 0, 0, 0, 'santiagovillat@gmail.com', 'c3Z0NQ==', 1, 1, 1, 1, '4', '12/12/2010', 'medellin', '2018-08-29', 17),
-('1017125039', 'erika', 'yojana', 'jaramillo', 'zapata', 0, 0, 0, 0, 'erikaz12@hotmail.com', 'MDkxMw==', 3, 1, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
-('1017132272', 'Elizabeth ', '', 'Pulgarin', 'Álvarez ', 0, 0, 0, 0, 'elizabethlero@outlook.com', 'MjE3NA==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1017137065', 'john', 'jairo', 'lopez', 'colorado', 1, 0, 0, 0, 'johnbis86@hotmail.com', 'MTAxMg==', 2, 0, 1, 0, '4', '13/09/1986', 'Medellin', '2018-08-29', 0),
-('1017147712', 'Jorge', 'Alejandro', 'Arias', 'Guerrero', 1, 0, 0, 0, 'fonealejo88@hotmail.com', 'ODg5OQ==', 1, 0, 2, 0, '4', '', '', '2018-08-29', 0),
-('1017156424', 'Yazmin ', 'Andrea', 'Galeano ', 'Castañeda', 0, 0, 0, 0, 'yazmin1987@gmail.com', 'MTk4Nw==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('1017168135', 'Yenifer ', 'Andrea ', 'Jimenez ', 'Montoya', 0, 0, 0, 0, 'andreitajimenez16@hotmail.com', 'MTQ3Mg==', 3, 0, 1, 0, '4', '16/04/2006', 'MEDELLIN', '2018-08-29', 0),
-('1017171421', 'Yuliana', '', 'Gómez', 'Roldán', 0, 0, 0, 0, 'yulianagomezroldan@gmail', 'MDcwMg==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('1017179570', 'ISABEL', 'CRISTINA', 'ARENAS', 'CORTÉS', 0, 0, 0, 0, 's _hun_ly@hotmail.com', 'UEFTQQ==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1017180882', 'Sandra ', 'Yorley', 'Rincón ', 'Cifuentes ', 0, 0, 0, 0, 'sandritalamejor.22@gmail.com', 'MjAyMg==', 2, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1017187557', 'CATALINA', '', 'TABORDA', '', 0, 0, 0, 0, 'cata-labien@hotmail.com', 'MTIxOA==', 3, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('1017197869', 'Ximena', 'Catalina', 'Hinestroza', 'Ortega', 0, 0, 0, 0, 'otracata@gmail.com', 'c2duMQ==', 1, 0, 2, 0, '4', '', '', '2018-08-29', 0),
-('1017208475', 'mariana', '', 'cortés', 'ramirez', 0, 0, 0, 0, 'mariana.cortes@colcircuitos.com', 'MDYwMg==', 1, 0, 2, 0, '4', '', '', '2018-08-29', 0),
-('1017212362', 'Sindy', 'Johanna', 'Cano', 'Rojas', 0, 0, 0, 0, 'sindycanorojas@gmail.com', 'MjIwNw==', 1, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1017216447', 'luis ', 'andres', 'arboleda', 'higuita', 1, 0, 0, 0, 'luis.andreslds@hotmail.com', 'MzE3OQ==', 3, 0, 1, 1, '4', '17/03/1993', 'Medellín', '2018-08-29', 0),
-('1017219391', 'juan ', 'guillermo', 'sucerquia', 'velle', 1, 0, 0, 0, 'juanguillermo1994@hotmail.com', 'anU5NA==', 1, 1, 1, 0, '4', '23/05/2013', 'Medellin', '2018-08-29', 21),
-('1017225857', 'Sebastian', '', 'López', 'Camacho', 1, 0, 0, 0, 'lopex08@hotmail.com', 'NTM4NA==', 3, 1, 1, 1, '4', '11/12/2012', 'Medellin ', '2018-08-29', 0),
-('1017239142', 'Jaime', 'Omeiber', 'Velasquez', 'Madrid', 1, 0, 0, 0, 'jaimemadrid640@gmail.com', 'OTE0Mg==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('1017240253', 'Julian ', '', 'Rivera', 'Rojas', 1, 0, 0, 0, 'julianr.rojas@hotmail.com', 'MjM3MQ==', 2, 0, 2, 0, '4', '06/10/2014', 'Medellin', '2018-08-29', 0),
-('1020430141', 'Miguel', 'Alberto', 'Salazar', 'Loaiza', 1, 0, 0, 0, 'miguelbettoo@gmail.com', 'MDYxNQ==', 3, 0, 1, 0, '4', '04/04/1990', 'Bello', '2018-08-29', 0),
-('1020432053', 'Natalia', '', 'Molina', 'Giraldo', 0, 0, 0, 0, 'natissm17@gmail.com', 'MTcyOA==', 1, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1020446405', 'carolina', '', 'gómez ', 'gómez ', 0, 0, 0, 0, 'carolinagomez9112@gmail.com', 'MTIwMg==', 5, 1, 2, 0, '2', '12/03/1993', 'Mmedellín', '2018-08-29', 0),
-('1020457057', 'daniela', 'alejandra ', 'salazar', ' loaiza', 0, 0, 0, 0, 'daniela19942009@hotmail.es', 'MTgxOA==', 1, 1, 1, 1, '4', '12/12/2012', 'MEDELLIN', '2018-08-29', 0),
-('1020464577', 'sara', 'maria', 'aguirre', 'salazar', 0, 0, 0, 0, 'saraaguirres1994@gmail.com', 'NjI3OA==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1020479554', 'Sebastian', '', 'Gallego', 'Perez', 1, 0, 0, 0, 'gallegosebastian11042014@gmail.com', 'Nzg3NA==', 1, 1, 1, 0, '4', '', '', '2018-08-29', 0),
-('1022096414', 'manuel', '', 'posada ', 'calderon', 1, 0, 0, 0, 'manuel3811@hotmail.com', 'MjAxMA==', 4, 1, 2, 0, '2', '28/06/2010', 'Antioquia', '2018-08-29', 0),
-('1025632', 'Carlos', 'Ramiro', 'Gómez', 'Perez', 1, 0, 0, 0, '', 'MTIyNQ==', 3, 0, 1, 0, '4', '21/05/2014', 'Medellín', '2018-08-29', 0),
-('1026157576', 'BRAYAN', '', 'RESTREPO', 'COSSIO', 1, 0, 0, 0, 'brayan_97r@hotmail.com', 'MDM4OA==', 3, 0, 1, 0, '1', '', '', '2018-08-29', 0),
-('1028009266', 'Leanis', 'Natalia', 'Cordoba', 'Teran', 0, 0, 0, 0, 'leanis.cordoba@colcircuitos.com', 'MjQxNQ==', 1, 0, 2, 0, '4', '', '', '2018-08-29', 0),
-('1028016893', 'alejandra', '', 'usuga', 'rivera', 0, 0, 0, 0, 'aleja.2503@hotmail.com', 'MjUwMw==', 1, 1, 2, 0, '2', '01/06/2010', 'MEDELLIN', '2018-08-29', 0),
-('1035232892', 'LUISA', 'FERNANDA', 'GAVIRIA', 'SUAREZ', 0, 0, 0, 0, 'fgaviria46@gmail.com', 'MTExNw==', 3, 0, 2, 0, '4', '04/08/2014', 'BARBOSA', '2018-08-29', 0),
-('1035427628', 'Jesús ', 'Alberto', 'Giraldo', 'Echevarría ', 1, 0, 0, 0, 'jgiraldo42@gmail.com', 'MjAwMw==', 1, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1035879778', 'wilmar', '', 'palacios', 'castaño', 1, 0, 0, 0, 'WILMARPALACIOS98@GMAIL.COM', 'NTY3OA==', 1, 0, 1, 0, '4', '12/05/2017', 'Girardota', '2018-08-29', 0),
-('1035915735', 'Leidy', 'Tatiana', 'Jaramillo', 'Zapata', 0, 0, 0, 0, 'tatianajz-1601@hotmail.com', 'NzQyNA==', 1, 1, 1, 0, '4', '', '', '2018-08-29', 0),
-('1036598684', 'lina ', 'marcela ', 'galeano ', 'morales ', 0, 0, 0, 0, 'lmgm1230@gmail.com', 'MDIyNw==', 1, 1, 1, 1, '5', '01/04/2004', 'ITAGUI', '2018-08-29', 0),
-('1036601013', 'lady', 'johanna', 'puerta', 'acevedo', 0, 0, 0, 0, 'leidypuerta173@gmail.com', 'MTgwMg==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1036609702', 'Liliana', 'Andrea', 'Rendon', 'Caicedo', 0, 0, 0, 0, 'lianrendon@gmail.com', 'MTkzMg==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('1036612156', 'jhonatan ', '', 'gómez ', 'cano ', 1, 0, 0, 0, 'jhonatan', 'MTcxMg==', 3, 0, 1, 0, '4', '21/12/2005', 'Itagui', '2018-08-29', 0),
-('1036622270', 'LINA ', 'JOHANNA', 'YEPES', 'RIOS', 0, 0, 0, 0, 'Linayepesrios2403@gmail.com', 'TElOQQ==', 3, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('1036625052', 'carlos', 'alberto', 'rodriguez', 'pulgarin', 1, 0, 0, 0, 'albertico2319@gmail.com', 'NTI3OA==', 1, 1, 1, 1, '4', '10-08-2007', 'itagui', '2019-01-28', 0),
-('1036625105', 'Deisy', 'Johana', 'Alvarez', 'Toro', 0, 0, 0, 0, 'dejoalto@gmail.com', 'Mjc5Mw==', 1, 0, 2, 0, '4', '', '', '2018-08-29', 0),
-('1036629003', 'evelin ', 'andrea', 'cano', 'muñoz', 0, 0, 0, 0, 'evelincano1989@gmail.com', 'MTEwOQ==', 1, 1, 1, 0, '1', '15/02/2009', 'Envigado', '2018-08-29', 21),
-('1036634996', 'Simón', 'David', 'Muñetones', 'Morales', 1, 0, 0, 0, 'simon.munetones@tecrea.com.co', 'MDgxMg==', 4, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('1036650501', 'Daniela', '', 'Giraldo', 'Arias', 0, 0, 0, 0, 'danigir29@hotmail.com', 'MDEyOQ==', 1, 1, 2, 0, '1', '06-02-2012', 'Itagui', '2019-02-05', 0),
-('1036651097', 'cristian ', 'camilo', 'molina', 'bernal', 1, 0, 0, 0, 'cristianmolinab121@gmail.com', 'OTMxMg==', 1, 1, 1, 1, '4', '20-03-2000', 'itagui', '2018-08-29', 0),
-('1036680551', 'Laura', '', 'Hernandez', 'Caicedo', 0, 0, 0, 0, 'laurahc812@gmail.com', 'MDcxNQ==', 3, 0, 1, 1, '4', '26/02/2016', 'Itagui', '2018-08-29', 0),
-('1037581069', 'Humberto', '', 'Urrego', 'Pino', 1, 0, 0, 0, 'hurpi87@hotmail.com', 'aHUxNQ==', 1, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1037587834', 'heidy', 'jhoana', 'marulanda', 'restrepo', 0, 0, 0, 0, 'jhoana0425@hotmail.com', 'NzgzNA==', 1, 1, 1, 1, '4', '02/08/2000', 'Envigado', '2018-08-29', 0),
-('1037606721', 'luis', 'manuel', 'ochoa', 'henao', 1, 0, 0, 0, 'luisma78910@gmail.com', 'bG05MA==', 1, 1, 2, 0, '4', '20-03-2000', 'medellin', '2018-08-29', 0),
-('1037616343', 'julian', '', 'bustamante ', 'narvaez ', 1, 0, 0, 0, 'thejbte@gmail.com', 'Mjg3OQ==', 4, 1, 2, 0, '3', '16-01-2000', 'Medellin', '2019-02-01', 0),
-('1037631569', 'Julian', 'Esteban', 'Ramirez', 'Lopez', 1, 0, 0, 0, 'julian-2365@hotmail.com', 'MTEwNA==', 1, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1037949573', 'yuliana ', 'marcela ', 'jaramillo', 'zapata ', 0, 0, 0, 0, 'yulianamarcelaj@gmail.com', 'c2Fsbw==', 3, 1, 1, 1, '1', '16/01/2015', 'San Carlos ', '2018-08-29', 0),
-('1037949696', 'lady', 'geraldyn', 'gonzalez', 'ceballos', 0, 0, 0, 0, 'geral16gonza@gmail.com', 'MjQwOA==', 1, 1, 1, 1, '5', '11/12/2013', 'MEDELLIN', '2018-08-29', 0),
-('1039049115', 'ruben', 'dario', 'quirama', 'lopez', 1, 0, 0, 0, 'rubenkra@outlook.es', 'MTk5MQ==', 1, 1, 1, 1, '5', '2000-01_01', 'Pendiente', '2018-08-29', 0),
-('1039447684', 'Maria', 'Vanessa', 'García ', 'Gaviria', 0, 0, 0, 0, 'mariva2710@gmail.com', 'dmFuZQ==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('1039457744', 'esteban', 'luis', 'hernández ', 'meza', 1, 0, 0, 0, 'estebanluishernandezmeza@gmail.com', 'MTMwMg==', 3, 0, 1, 0, '4', '11-11-1998', 'medellin', '2018-08-29', 0),
-('1039464479', 'Camila', '', 'Aristizábal', 'Gómez', 0, 0, 0, 0, 'camila.aristizabal@tecrea.com.co', 'MTcwNQ==', 4, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('1040044905', 'josé ', 'daniel', 'grajales', 'carmona', 1, 0, 0, 0, 'josegraja@hotmail.com', 'MTAxOA==', 1, 1, 1, 0, '4', '11-11-1998', 'La ceja', '2018-08-29', 0),
-('1040757557', 'kevin ', 'daniel', 'meneses', 'ceballos', 1, 0, 0, 0, 'daniel271098@hotmail.com', 'MjcxMA==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1041151150', 'juan', 'pablo', 'vélez', 'arroyave', 1, 0, 0, 0, 'velezarroyave@gmail.com', 'MjYxMw==', 1, 0, 1, 0, '4', '16/08/1897', 'MEDELLIN', '2018-08-29', 0),
-('1044915764', 'JACKSON', '', 'AVILA', 'PAEZ', 1, 0, 0, 0, 'jackpower@hotmail.es', 'MjAxNg==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1046913982', 'ELIZABETH', '', 'URIBE', 'CEBALLOS', 0, 0, 0, 0, 'elizabethuribe033@hotmail.es', 'MjIyMw==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('1053769411', 'Carlos', 'Mario', 'Marin', 'Londoño', 1, 0, 0, 0, 'mario9411@hotmail.com', 'OTQxMQ==', 2, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1066743123', 'Oscar', 'De Jesús ', 'Causil', 'Montiel', 1, 0, 0, 0, 'oscarcmwork@hotmail.com', 'NzMxMA==', 2, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1077453248', 'arnold', 'david', 'chala', 'rivas', 1, 0, 0, 0, 'arnoldvip@hotmail.com', 'MDQwOQ==', 1, 1, 1, 1, '5', '12/12/2011', 'MEDELLIN', '2018-08-29', 0),
-('1078579715', 'maiber', 'david', 'gonzalez ', 'mercado', 1, 0, 0, 0, 'mader145@HOTMAI.com', 'MDMxNQ==', 1, 0, 2, 0, '4', '14/05/1989', 'MEDELLIN', '2018-08-29', 0),
-('1090523316', 'faiber', 'omar', 'atuesta', 'garcia', 1, 0, 0, 0, 'faiberatuesta@gmail.com', 'MTAxMw==', 1, 1, 1, 0, '4', '13/10/1998', 'Cucuta', '2018-08-29', 0),
-('1095791547', 'diego', 'armando', 'lopez', 'moreno', 1, 0, 0, 0, 'bukacats@hotmail.com', 'ODYxOQ==', 1, 1, 1, 1, '1', '2000-01-10', 'Pendiente', '2018-08-29', 0),
-('1096238261', 'Kelly', 'María', 'Villazón', 'Ramírez', 0, 0, 0, 0, 'kellyvillazon1@gmail.com', 'MTUzMQ==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('1125779563', 'JOSE', 'FERNANDO', 'ARBOLEDA', 'RAMIREZ', 1, 0, 0, 0, 'josefernando870@gmail.com', 'MDk4Nw==', 4, 1, 2, 0, '3', '', '', '2018-08-29', 0),
-('1128266934', 'Jhon', 'Fredy', 'Velez', 'Londoño', 1, 0, 0, 0, 'fredy.velez@colcircuitos.com', 'MDkyNA==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('1128267430', 'Carolina', '', 'Betancur', 'Zapata', 0, 0, 0, 0, 'carolina.betancur@colcircuitos.com', 'MTk4Ng==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('1128390700', 'alexander ', 'de jesús ', 'osorio', 'quintero', 1, 0, 0, 0, 'alex-8881@hotmail.com', 'ODg4OA==', 1, 0, 1, 1, '1', '2000-01-01', 'Pendiente', '2018-08-29', 0),
-('1128405581', 'jorge', 'luis', 'velasquez', 'rendon', 1, 0, 0, 0, 'jorgeluisvelasquez1987@gmail.com', 'MDcxNw==', 1, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1128422071', 'Daniel', 'Francisco', 'Calderon', 'Lebro', 1, 0, 0, 0, 'lebro.daniel@gmail.com', 'MTgwNw==', 2, 0, 1, 0, '4', '25/07/2007', 'Medellín ', '2018-08-29', 0),
-('1128430240', 'Christian', 'Camilo', 'Lara', 'Villa', 1, 0, 0, 0, 'km1lo8958@gmail.com', 'MTQxMg==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1128447453', 'Monica', 'Alejandra', 'Madrid ', 'Munera', 0, 0, 0, 0, 'monikmadrid67@gmail.com', 'MjEyOA==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1128450516', 'carolina', '', 'salinas', 'restrepo', 0, 0, 0, 0, 'palacio.2125@hotmail.com', 'MTI4OQ==', 2, 0, 1, 0, '4', '23/08/2007', 'MEDELLIN', '2018-08-29', 0),
-('1129045994', 'Jadder', 'Andres', 'Manyoma', 'Moreno', 1, 0, 0, 0, 'andres_elchikomoreno@hotmail.com', 'MjgwMQ==', 1, 0, 1, 0, '4', '28/01/1997', 'Unión Panamericana ', '2018-08-29', 0),
-('1143366120', 'MARTIN ', '', 'PEREZ', 'BELLO', 1, 0, 0, 0, 'martinperez0421@gmail.com', 'MDQyMQ==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1143991147', 'estefania ', '', 'lopez', 'beltran', 0, 0, 0, 0, 'stefaniialopez.dylan.123@gmail.com', 'MTE0Mw==', 1, 1, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
-('1152195364', 'Susana ', '', 'Escobar ', 'Alearcón', 0, 0, 0, 0, 'susana.escobar@hotmail.es', 'NTM5Mg==', 5, 1, 2, 0, '2', '05-04-2010', 'Medellín', '2019-04-22', 9),
-('1152206404', 'CAROLINA ', 'MARIA ', 'GOMEZ ', 'PEREZ', 0, 0, 0, 0, 'carogomez_94@hotmail.com', 'NTA2MA==', 4, 1, 2, 0, '3', '25/10/2012', 'MEDELLIN', '2019-01-11', 0),
-('1152210828', 'Paula', 'Andrea', 'Herrera', 'Alvarez', 0, 0, 0, 0, 'pau3018@hotmail.com', 'MTk5NQ==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('1152450553', 'juan', 'pablo', 'gonzalez', 'castrillon', 1, 0, 0, 0, 'jpgc17@hotmail.com', 'MzI0OQ==', 1, 1, 1, 1, '4', '12-12-2000', 'Medellín', '2018-08-29', 0),
-('1152697088', 'diana', 'marcela', 'patiño', 'cardona', 0, 0, 0, 0, 'diana.patino@colcircuitos.com', 'OTQyMg==', 1, 1, 2, 0, '4', '27/11/2012', 'Medellin', '2018-08-29', 0),
-('1152701919', 'ANDERSON', '', 'ASPRILLA ', 'AGUILAR', 1, 0, 0, 0, 'ANDERSON-ASPRILLA@HOTMAIL.COM', 'MTQxNA==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('1214721942', 'KELLY', 'DIANETH', 'GAVIRIA', 'TOBÓN', 0, 0, 0, 0, 'kelly1993gaviria@hotmail.com', 'MTIxNw==', 3, 0, 1, 0, '1', '', '', '2018-08-29', 0),
-('1214723132', 'yundry', 'tatiana', 'gomez', 'yagari', 0, 0, 0, 0, 'tatisgomez3017@gmail.com', 'MTk5Mg==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1214734202', 'Paula ', 'Marcela ', 'Noreña ', 'Jimenez ', 0, 0, 0, 0, 'paulita.1301@hotmail.com', 'MDcyMQ==', 3, 1, 2, 0, '2', '21/05/2014', 'Medellin', '2018-11-07', 0),
-('1216714526', 'Juan', '', 'Miranda', 'Aristizabal', 1, 0, 0, 0, 'juansma1004@hotmail.com', 'MTAwNA==', 3, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('1216714539', 'Maria ', 'Alejandra', 'Zuluaga', 'Rivera', 0, 0, 0, 0, 'alejandra.zuluaga@colciercuitos.com', 'MTIxNg==', 1, 1, 2, 0, '2', '27/12/2011', 'MEDELLIN', '2018-08-29', 0),
-('1216716458', 'sebastian', '', 'ramirez', 'corral', 1, 0, 0, 0, 'sebastos7d@gmail.com', 'ODg3OA==', 1, 1, 1, 1, '4', '03/09/2012', 'Medellín', '2018-08-29', 0),
-('1216718503', 'Kelly', 'Jhoana', 'Zapata', 'Hoyos', 0, 0, 0, 0, 'kelly-08-@hotmail.com', 'MjgwOA==', 3, 0, 1, 0, '1', '29/08/2013', 'Medellin', '2018-08-29', 0),
-('1216727816', 'juan', 'david', 'marulanda', 'paniagua', 1, 0, 0, 0, 'jdmarulanda0@gmail.com', 'MTIzNA==', 1, 1, 1, 0, '2', '2016-12-14', 'Medellin', '2018-11-02', 11),
-('15489896', 'ludimer', 'de jesus', 'urrego', 'durango', 1, 0, 0, 0, 'luguilugui82@outloock.es', 'MTU0OA==', 1, 1, 1, 1, '5', '05/02/1999', 'Urrao', '2018-08-29', 0),
-('15489917', 'Aicardo', 'Alexander', 'Montoya', 'Perez', 1, 0, 0, 0, 'alexmontoyap@yahoo.es', 'ODI1Nw==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('15515649', 'Andres', 'Felipe', 'Tobon', 'Gonzalez', 1, 0, 0, 0, 'atobongonzalez@gmail.com', 'MjgxMg==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('21424773', 'beatriz', 'elena', 'urrego', 'montes', 0, 0, 0, 0, 'bety-manuelita@hotmail.com', 'MDUwNQ==', 1, 1, 1, 0, '4', '', '', '2018-08-29', 0),
-('23917651', 'Dianneli', 'Patricia', 'Duran', 'Torres', 0, 0, 0, 0, 'dianneliduran22@gmail.com', 'MjIwMw==', 3, 1, 1, 0, '4', '05/04/2013', 'Venezuela ', '2018-08-29', 0),
-('26201420', 'Carmen', 'Milagro', 'Alvarez', 'Estrada', 0, 0, 0, 0, 'carmen15-17@hotmail.com', 'MTUxNw==', 1, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('32242675', 'Liliana', 'Maria', 'Restrepo', 'Ortíz', 0, 0, 0, 0, 'liliana.restrepo@colcircuitos.com', 'MjQxMg==', 1, 0, 2, 0, '4', '', '', '2018-08-29', 0),
-('32353491', 'janeth', 'viviana ', 'agudelo', 'zapata', 0, 0, 0, 0, 'janevia_0802@yahoo.es', 'NTUwOA==', 5, 1, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
-('42702332', 'mary', 'ladis', 'sanchez', 'sepulveda', 0, 0, 0, 0, 'maryladiz1501@gmail.com', 'MTYwMg==', 1, 1, 1, 1, '4', '20-03-2000', 'medellin', '2018-08-29', 0),
-('43161988', 'Yudi ', 'Andrea', 'Espinal ', 'López', 0, 0, 0, 0, 'yudyandreaespinal@hotmail.com', 'MDcxMA==', 5, 1, 2, 0, '1', '09/12/1995', 'Itagui', '2019-02-18', 13),
-('43189198', 'Doreley', '', 'Garcia', '', 0, 0, 0, 0, 'garciadoreley@gimail.com', 'ODA4MA==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('43263856', 'Paula ', 'Andrea', 'Lopez', 'Gutierrez', 0, 0, 0, 0, 'paulalopez.tdingenieria@gmail.com', 'MjAxNw==', 1, 1, 2, 0, '4', '19/03/1999', 'Medellín', '2019-01-25', 0),
-('43265824', 'alexandra', 'maria', 'palacio', 'ramirez', 0, 0, 0, 0, 'alexandra.814@hotmail.com', 'MDgxNA==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('43271378', 'Aracelly', '', 'Ospina', 'Rodriguez', 0, 0, 0, 0, 'aracellyospina@gmail.com', 'MjMwOQ==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('43288005', 'erika', 'natalia', 'ossa', 'ossa', 0, 0, 0, 0, 'naty0ossa@gmail.com', 'MTMyNw==', 1, 1, 1, 1, '1', '2000-01-01', 'Pendiente', '2018-08-29', 0),
-('43342456', 'MARIA', 'EUYENITH', 'DURANGO', 'LARREA', 0, 0, 0, 0, 'mdurangolar@uniminuto.edu.co', 'NTU0NA==', 3, 0, 1, 0, '4', '24/01/1987', 'Urrao', '2018-08-29', 0),
-('43542658', 'Rosalba ', '', 'Morales', 'Arenas ', 0, 0, 0, 0, 'equilibrio_rma@yahoo.es', 'NDM1NA==', 1, 1, 1, 1, '4', '14/12/1989', 'Medellin', '2018-12-11', 0),
-('43583398', 'VIVIANA', '', 'ECHAVARRIA', 'MACHADO', 0, 0, 0, 0, 'viviana@grupoinvertronica.com', 'NzQwMQ==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('43596807', 'SANDRA ', 'EUGENIA', 'ZULUAGA', 'CARDONA', 0, 0, 0, 0, 'sandrazuluagacardona@gmail.com', 'MDMyMg==', 1, 1, 2, 0, '2', '', '', '2018-08-29', 0),
-('43605625', 'nora', '', 'sanchez', 'rivera', 0, 0, 0, 0, 'norasanchezr1808@gmail.com', 'OTcxNw==', 1, 1, 1, 1, '4', '20-03-1993', 'medellin', '2018-08-29', 0),
-('43745709', 'DIANA ', '', 'GALLEGO', 'ALVAREZ ', 0, 0, 0, 0, 'dianagallego@hotmail.com', 'MDk0MQ==', 4, 0, 2, 0, '2', '', '', '2018-08-29', 0),
-('43749878', 'Gloria', 'Liliana', 'Vélez', 'Pérez', 0, 0, 0, 0, 'administrativa@colcircuitos.com', 'NzQ1OQ==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('43834287', 'ISABEL', 'CRISTINA', 'BERMUDEZ', 'ACEVEDO', 0, 0, 0, 0, 'acre_isabel@hotmail.com', 'ODU1Ng==', 3, 0, 1, 0, '5', '10/12/1994', 'ITAGUI', '2018-08-29', 0),
-('43841319', 'Monica', 'Alexandra ', 'Usma', 'Zapata', 0, 0, 0, 0, 'monicausmazapata@hotmail.com', 'MTIyMQ==', 1, 0, 2, 0, '4', '', '', '2018-08-29', 0),
-('43866346', 'sandra ', 'milena ', 'vasquez ', 'villegas ', 0, 0, 0, 0, 'sandravas79@hotmail.com', 'MDIwNQ==', 1, 1, 1, 1, '5', '03/09/1997', 'Envigado', '2018-11-13', 0),
-('43975208', 'gloria', 'amparo', 'jaramillo', 'zapata', 0, 0, 0, 0, 'gloria.jaramillo@colcircuitos.com', 'MDUyNQ==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('44006996', 'juliana', '', 'silva', 'rodelo', 0, 0, 0, 0, 'silvarodelojuliana@gmail.com', 'MDA4NQ==', 3, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('53146320', 'Jackeline ', '', 'Pulgarin', 'Bohorquez', 0, 0, 0, 0, 'jackeline.pulgarin@grupoinvertronica.com', 'bWFpbA==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('54253320', 'elvia', '', 'valoyes', 'cordoba', 0, 0, 0, 0, 'liyimen234@hotmail.com', 'MjgyMw==', 1, 1, 2, 0, '4', '20-03-1987', 'Quibdo', '2018-08-29', 0),
-('71055289', 'Jaime ', 'Alberto ', 'Bedoya', 'Garces', 1, 0, 0, 0, 'jaibega25@hotmail.com', 'MWEyYg==', 1, 1, 2, 0, '3', '04-07-2002', 'Betulia', '2019-01-31', 0),
-('71267825', 'Manuel', 'Yamid', 'Tangarife', 'Estrada', 1, 0, 0, 0, 'manuelyamid@hotmail.com', 'MzUzNQ==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('71268332', 'Adimaro', '', 'Montoya', 'Toro', 1, 0, 0, 0, 'adimaro.montoya@colcircuitos.com', 'MDIyOQ==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('71387038', 'juan', 'diego', 'villa', 'rojas', 1, 0, 0, 0, 'juandiego317_@hotmail.com', 'MDMxNw==', 2, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('71709575', 'mauricio', '', 'gómez ', 'vera', 1, 0, 0, 0, 'mauriciogomezvera@gmail.com', 'MjUxNg==', 4, 1, 2, 0, '3', '02-09-1987', 'Medellín', '2019-02-06', 18),
-('71752141', 'jose', 'sebastian', 'gonzalez', 'sanchez', 1, 0, 0, 0, 'josepsebastian171@yahoo.com', 'MTQ5Mg==', 3, 0, 1, 0, '4', '31/03/1993', 'MEDELLIN', '2018-08-29', 0),
-('71759957', 'walter', 'marcelo', 'ramos', 'rueda', 1, 0, 0, 0, 'mr.walter27@gmail.com', 'd3A0Mg==', 3, 0, 1, 0, '4', '20-06-1994', 'medellin', '2018-08-29', 0),
-('71765000', 'julio', 'cesar ', 'galeano', 'madrid', 1, 0, 0, 0, 'juio.galeano@colcircuitos.com', 'MTAxMQ==', 1, 1, 2, 0, '3', '12-01-1995', 'Medellín', '2019-02-04', 0),
-('71774995', 'Gabriel', 'Jaime', 'Velez', 'Perez', 1, 0, 0, 0, 'gabriel@colcircuitos.com', 'NTQzMw==', 1, 1, 2, 0, '2', '17-09-1995', 'Medellin', '2019-02-06', 12),
-('760579', 'higinio', 'alejandro', 'duarte', 'marquez', 1, 0, 0, 0, 'higinio.alejandro@gmail.com', 'MTg2Mg==', 1, 1, 1, 1, '4', '12-01-2000', 'Medellín', '2018-08-29', 0),
-('78758797', 'Rafael', 'Eduardo', 'Herrera', 'Mangones', 1, 0, 0, 0, 'rafael.herreram@tecrea.com.co', 'MTk4MA==', 4, 0, 2, 0, '4', '', '', '2018-08-29', 0),
-('80145967', 'jonathan', 'alvaro ', 'rojas ', 'beltran ', 1, 0, 0, 0, 'jonathanrb3@hotmail.com', 'ODkzMw==', 3, 1, 1, 1, '4', '10/01/2003', 'Bogotá', '2018-08-29', 0),
-('8102064', 'Adrian ', 'Felipe', 'Hernandez', 'Uribe', 1, 0, 0, 0, 'adrian.hernandez@colcircuitos.com', 'NzQ2MQ==', 1, 0, 2, 0, '2', '11/01/2002', 'Medellín', '2019-01-30', 0),
-('8106761', 'andres', 'felipe', 'berrio', 'cataño', 1, 0, 0, 0, 'andres.berrio@tecrea.com.co', 'NzU0OA==', 4, 0, 2, 0, '4', '13/06/1895', 'Medellin', '2018-08-29', 0),
-('8344177', 'FABIAN', 'aRNULFO', 'VELÉZ', 'MUÑOZ', 1, 0, 0, 0, 'fabianvm@hotmail.com', 'MDYyMQ==', 1, 1, 2, 0, '2', '21/06/1969', 'Envigado', '2019-03-07', 17),
-('8355460', 'Juan ', 'Camilo ', 'Herrera ', 'Pineda', 1, 0, 0, 0, 'camherrera837@hotmail.com', 'MTAxMA==', 4, 1, 2, 0, '3', '15/11/2001', 'Envigado', '2018-08-29', 0),
-('8433778', 'Fredy', 'Alejandro', 'Montoya', 'Isaza', 1, 0, 0, 0, 'complotminitk@hotmail.com', 'NTcxOQ==', 1, 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('9008773200219', 'Sara ', 'Maria ', 'Daboi', 'Ramirez', 0, 0, 0, 0, 'saradaboin@hotmail.com', 'MTMwOQ==', 3, 0, 1, 0, '1', '15/08/2017', 'Medellin', '2018-08-29', 0),
-('91279058', 'FABIO', '', 'CUBILLOS', 'VALENCIA', 1, 0, 0, 0, 'gerencia@tecrea.com.co', 'NTkxNQ==', 4, 0, 2, 0, '4', '', '', '2018-08-29', 0),
-('955297213061995', 'Maria', 'Angelica', 'Medina', 'Valencia', 0, 0, 0, 0, 'angelicamvalencia22@gmail.com', 'MDMwMg==', 4, 1, 2, 0, '3', '28-12-2018', 'Medellin', '2019-05-02', 0),
-('98558437', 'Fabian ', 'Fernando ', 'Vélez', 'Pérez', 1, 0, 0, 0, 'fernando@colcircuitos.com', 'MTQyMg==', 1, 1, 2, 0, '2', '30/07/1990', 'Envigado', '2019-03-13', 12),
-('98668402', 'andres', 'felipe', 'graciano', 'pareja', 1, 0, 0, 0, 'andresgp.c2c3@gmail.com', 'ODQwMg==', 1, 1, 1, 1, '1', '1998-01-01', 'Pendiente', '2018-08-29', 0),
-('98699433', 'andres', 'camilo', 'buitrago', 'gomez', 1, 0, 0, 0, 'andres.buitrago@colcircuitos.com', 'MjYwOA==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('98713751', 'Luis', 'Alberto', 'Marín', 'Castañeda', 1, 0, 0, 0, 'betbela@gmail.com', 'ODUxNQ==', 2, 0, 1, 0, '4', '', '', '2018-08-29', 0),
-('98765201', 'Edisson', 'Andres', 'Barahona', 'Castrillon', 1, 0, 0, 0, 'edisson.barahona@hotmail.com', 'NTE5Mw==', 1, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('98766299', 'Juan ', 'Camilo', 'Gomez', 'Cadavid', 1, 0, 0, 0, 'camilo.gomez@tecrea.com.co', 'cGVjaA==', 4, 1, 2, 0, '4', '', '', '2018-08-29', 0),
-('98772784', 'Anderson', 'Estevenson ', 'Tangarife ', 'Palacio', 1, 0, 0, 0, 'palacio.2125@hotmail.com', 'MjEyNQ==', 3, 1, 1, 1, '4', '09-01-2004', 'Medellín', '2018-08-29', 7);
+INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellido2`, `genero`, `huella1`, `huella2`, `huella3`, `correo`, `contraseña`, `idEmpresa`, `estado`, `idRol`, `piso`, `fecha_expedicion`, `lugar_expedicion`, `fecha_registro`, `idManufactura`) VALUES
+('1000633612', 'daniel', '', 'grajales', 'bernal', 1, 0, 0, 0, 'danigb24@gmail.com', 'MDIyNA==', 1, 1, 2, '2', '26/01/2018', 'Rio Negro', '2019-03-26', 9),
+('1001545147', 'alex', 'alfonso', 'ospina', 'fonnegra', 1, 0, 0, 0, 'alexfonnegra04@gmail.com', 'OTk5OQ==', 1, 1, 1, '2', '12-2-2015', 'Gomez plata', '2018-12-17', 0),
+('1006887114', 'Luiggy ', 'Jose ', 'Jimenez', 'Montes ', 1, 0, 0, 0, 'ljosejimenez@uniguajira.edu.co', 'MTMwMQ==', 1, 0, 1, '4', '19/01/2009', 'Maicao', '2018-08-29', 0),
+('1007110815', 'Nedis', 'Omaris', 'Chavarria', '', 0, 0, 0, 0, 'sarachavarria020@gmail.com', 'MDExOQ==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1007310520', 'beatriz ', 'elena ', 'beltrán ', 'bedoya ', 0, 0, 0, 0, 'beatrizbeltranbedoya123@hotmail.com', 'MTcwMg==', 1, 0, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
+('1013537192', 'santiago ', '', 'villa', 'torres', 1, 0, 0, 0, 'santiagovillat@gmail.com', 'c3Z0NQ==', 1, 1, 1, '4', '12/12/2010', 'medellin', '2018-08-29', 17),
+('1017125039', 'erika', 'yojana', 'jaramillo', 'zapata', 0, 0, 0, 0, 'erikaz12@hotmail.com', 'MDkxMw==', 3, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
+('1017132272', 'Elizabeth ', '', 'Pulgarin', 'Álvarez ', 0, 0, 0, 0, 'elizabethlero@outlook.com', 'MjE3NA==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1017137065', 'john', 'jairo', 'lopez', 'colorado', 1, 0, 0, 0, 'johnbis86@hotmail.com', 'MTAxMg==', 2, 0, 1, '4', '13/09/1986', 'Medellin', '2018-08-29', 0),
+('1017147712', 'Jorge', 'Alejandro', 'Arias', 'Guerrero', 1, 0, 0, 0, 'fonealejo88@hotmail.com', 'ODg5OQ==', 1, 0, 2, '4', '', '', '2018-08-29', 0),
+('1017156424', 'Yazmin ', 'Andrea', 'Galeano ', 'Castañeda', 0, 0, 0, 0, 'yazmin1987@gmail.com', 'MTk4Nw==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('1017168135', 'Yenifer ', 'Andrea ', 'Jimenez ', 'Montoya', 0, 0, 0, 0, 'andreitajimenez16@hotmail.com', 'MTQ3Mg==', 3, 0, 1, '4', '16/04/2006', 'MEDELLIN', '2018-08-29', 0),
+('1017171421', 'Yuliana', '', 'Gómez', 'Roldán', 0, 0, 0, 0, 'yulianagomezroldan@gmail', 'MDcwMg==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('1017179570', 'ISABEL', 'CRISTINA', 'ARENAS', 'CORTÉS', 0, 0, 0, 0, 's _hun_ly@hotmail.com', 'UEFTQQ==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1017180882', 'Sandra ', 'Yorley', 'Rincón ', 'Cifuentes ', 0, 0, 0, 0, 'sandritalamejor.22@gmail.com', 'MjAyMg==', 2, 0, 1, '4', '', '', '2018-08-29', 0),
+('1017187557', 'CATALINA', '', 'TABORDA', '', 0, 0, 0, 0, 'cata-labien@hotmail.com', 'MTIxOA==', 3, 1, 1, '4', '', '', '2018-08-29', 0),
+('1017197869', 'Ximena', 'Catalina', 'Hinestroza', 'Ortega', 0, 0, 0, 0, 'otracata@gmail.com', 'c2duMQ==', 1, 0, 2, '4', '', '', '2018-08-29', 0),
+('1017208475', 'mariana', '', 'cortés', 'ramirez', 0, 0, 0, 0, 'mariana.cortes@colcircuitos.com', 'MDYwMg==', 1, 0, 2, '4', '', '', '2018-08-29', 0),
+('1017212362', 'Sindy', 'Johanna', 'Cano', 'Rojas', 0, 0, 0, 0, 'sindycanorojas@gmail.com', 'MjIwNw==', 1, 0, 1, '4', '', '', '2018-08-29', 0),
+('1017216447', 'luis ', 'andres', 'arboleda', 'higuita', 1, 0, 0, 0, 'luis.andreslds@hotmail.com', 'MzE3OQ==', 3, 0, 1, '4', '17/03/1993', 'Medellín', '2018-08-29', 0),
+('1017219391', 'juan ', 'guillermo', 'sucerquia', 'velle', 1, 0, 0, 0, 'juanguillermo1994@hotmail.com', 'anU5NA==', 1, 1, 1, '4', '23/05/2013', 'Medellin', '2018-08-29', 21),
+('1017225857', 'Sebastian', '', 'López', 'Camacho', 1, 0, 0, 0, 'lopex08@hotmail.com', 'NTM4NA==', 3, 1, 1, '4', '11/12/2012', 'Medellin ', '2018-08-29', 0),
+('1017239142', 'Jaime', 'Omeiber', 'Velasquez', 'Madrid', 1, 0, 0, 0, 'jaimemadrid640@gmail.com', 'OTE0Mg==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('1017240253', 'Julian ', '', 'Rivera', 'Rojas', 1, 0, 0, 0, 'julianr.rojas@hotmail.com', 'MjM3MQ==', 2, 0, 2, '4', '06/10/2014', 'Medellin', '2018-08-29', 0),
+('1020430141', 'Miguel', 'Alberto', 'Salazar', 'Loaiza', 1, 0, 0, 0, 'miguelbettoo@gmail.com', 'MDYxNQ==', 3, 0, 1, '4', '04/04/1990', 'Bello', '2018-08-29', 0),
+('1020432053', 'Natalia', '', 'Molina', 'Giraldo', 0, 0, 0, 0, 'natissm17@gmail.com', 'MTcyOA==', 1, 0, 1, '4', '', '', '2018-08-29', 0),
+('1020446405', 'carolina', '', 'gómez ', 'gómez ', 0, 0, 0, 0, 'carolinagomez9112@gmail.com', 'MTIwMg==', 5, 1, 2, '2', '12/03/1993', 'Mmedellín', '2018-08-29', 0),
+('1020457057', 'daniela', 'alejandra ', 'salazar', ' loaiza', 0, 0, 0, 0, 'daniela19942009@hotmail.es', 'MTgxOA==', 1, 1, 1, '4', '12/12/2012', 'MEDELLIN', '2018-08-29', 0),
+('1020464577', 'sara', 'maria', 'aguirre', 'salazar', 0, 0, 0, 0, 'saraaguirres1994@gmail.com', 'NjI3OA==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1020479554', 'Sebastian', '', 'Gallego', 'Perez', 1, 0, 0, 0, 'gallegosebastian11042014@gmail.com', 'Nzg3NA==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('1022096414', 'manuel', '', 'posada ', 'calderon', 1, 0, 0, 0, 'manuel3811@hotmail.com', 'MjAxMA==', 4, 1, 2, '2', '28/06/2010', 'Antioquia', '2018-08-29', 0),
+('1025632', 'Carlos', 'Ramiro', 'Gómez', 'Perez', 1, 0, 0, 0, '', 'MTIyNQ==', 3, 0, 1, '4', '21/05/2014', 'Medellín', '2018-08-29', 0),
+('1026157576', 'BRAYAN', '', 'RESTREPO', 'COSSIO', 1, 0, 0, 0, 'brayan_97r@hotmail.com', 'MDM4OA==', 3, 0, 1, '1', '', '', '2018-08-29', 0),
+('1028009266', 'Leanis', 'Natalia', 'Cordoba', 'Teran', 0, 0, 0, 0, 'leanis.cordoba@colcircuitos.com', 'MjQxNQ==', 1, 0, 2, '4', '', '', '2018-08-29', 0),
+('1028016893', 'alejandra', '', 'usuga', 'rivera', 0, 0, 0, 0, 'aleja.2503@hotmail.com', 'MjUwMw==', 1, 1, 2, '2', '01/06/2010', 'MEDELLIN', '2018-08-29', 0),
+('1035232892', 'LUISA', 'FERNANDA', 'GAVIRIA', 'SUAREZ', 0, 0, 0, 0, 'fgaviria46@gmail.com', 'MTExNw==', 3, 0, 2, '4', '04/08/2014', 'BARBOSA', '2018-08-29', 0),
+('1035427628', 'Jesús ', 'Alberto', 'Giraldo', 'Echevarría ', 1, 0, 0, 0, 'jgiraldo42@gmail.com', 'MjAwMw==', 1, 0, 1, '4', '', '', '2018-08-29', 0),
+('1035879778', 'wilmar', '', 'palacios', 'castaño', 1, 0, 0, 0, 'WILMARPALACIOS98@GMAIL.COM', 'NTY3OA==', 1, 0, 1, '4', '12/05/2017', 'Girardota', '2018-08-29', 0),
+('1035915735', 'Leidy', 'Tatiana', 'Jaramillo', 'Zapata', 0, 0, 0, 0, 'tatianajz-1601@hotmail.com', 'NzQyNA==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('1036598684', 'lina ', 'marcela ', 'galeano ', 'morales ', 0, 0, 0, 0, 'lmgm1230@gmail.com', 'MDIyNw==', 1, 1, 1, '5', '01/04/2004', 'ITAGUI', '2018-08-29', 0),
+('1036601013', 'lady', 'johanna', 'puerta', 'acevedo', 0, 0, 0, 0, 'leidypuerta173@gmail.com', 'MTgwMg==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1036609702', 'Liliana', 'Andrea', 'Rendon', 'Caicedo', 0, 0, 0, 0, 'lianrendon@gmail.com', 'MTkzMg==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('1036612156', 'jhonatan ', '', 'gómez ', 'cano ', 1, 0, 0, 0, 'jhonatan', 'MTcxMg==', 3, 0, 1, '4', '21/12/2005', 'Itagui', '2018-08-29', 0),
+('1036622270', 'LINA ', 'JOHANNA', 'YEPES', 'RIOS', 0, 0, 0, 0, 'Linayepesrios2403@gmail.com', 'TElOQQ==', 3, 1, 1, '4', '', '', '2018-08-29', 0),
+('1036625052', 'carlos', 'alberto', 'rodriguez', 'pulgarin', 1, 0, 0, 0, 'albertico2319@gmail.com', 'NTI3OA==', 1, 1, 1, '4', '10-08-2007', 'itagui', '2019-01-28', 0),
+('1036625105', 'Deisy', 'Johana', 'Alvarez', 'Toro', 0, 0, 0, 0, 'dejoalto@gmail.com', 'Mjc5Mw==', 1, 0, 2, '4', '', '', '2018-08-29', 0),
+('1036629003', 'evelin ', 'andrea', 'cano', 'muñoz', 0, 0, 0, 0, 'evelincano1989@gmail.com', 'MTEwOQ==', 1, 1, 1, '1', '15/02/2009', 'Envigado', '2018-08-29', 21),
+('1036634996', 'Simón', 'David', 'Muñetones', 'Morales', 1, 0, 0, 0, 'simon.munetones@tecrea.com.co', 'MDgxMg==', 4, 1, 2, '4', '', '', '2018-08-29', 0),
+('1036650501', 'Daniela', '', 'Giraldo', 'Arias', 0, 0, 0, 0, 'danigir29@hotmail.com', 'MDEyOQ==', 1, 1, 2, '1', '06-02-2012', 'Itagui', '2019-02-05', 0),
+('1036651097', 'cristian ', 'camilo', 'molina', 'bernal', 1, 0, 0, 0, 'cristianmolinab121@gmail.com', 'OTMxMg==', 1, 1, 1, '4', '20-03-2000', 'itagui', '2018-08-29', 0),
+('1036680551', 'Laura', '', 'Hernandez', 'Caicedo', 0, 0, 0, 0, 'laurahc812@gmail.com', 'MDcxNQ==', 3, 0, 1, '4', '26/02/2016', 'Itagui', '2018-08-29', 0),
+('1037581069', 'Humberto', '', 'Urrego', 'Pino', 1, 0, 0, 0, 'hurpi87@hotmail.com', 'aHUxNQ==', 1, 0, 1, '4', '', '', '2018-08-29', 0),
+('1037587834', 'heidy', 'jhoana', 'marulanda', 'restrepo', 0, 0, 0, 0, 'jhoana0425@hotmail.com', 'NzgzNA==', 1, 1, 1, '4', '02/08/2000', 'Envigado', '2018-08-29', 0),
+('1037606721', 'luis', 'manuel', 'ochoa', 'henao', 1, 0, 0, 0, 'luisma78910@gmail.com', 'bG05MA==', 1, 1, 2, '4', '20-03-2000', 'medellin', '2018-08-29', 0),
+('1037616343', 'julian', '', 'bustamante ', 'narvaez ', 1, 0, 0, 0, 'thejbte@gmail.com', 'Mjg3OQ==', 4, 1, 2, '3', '16-01-2000', 'Medellin', '2019-02-01', 0),
+('1037631569', 'Julian', 'Esteban', 'Ramirez', 'Lopez', 1, 0, 0, 0, 'julian-2365@hotmail.com', 'MTEwNA==', 1, 0, 1, '4', '', '', '2018-08-29', 0),
+('1037949573', 'yuliana ', 'marcela ', 'jaramillo', 'zapata ', 0, 0, 0, 0, 'yulianamarcelaj@gmail.com', 'c2Fsbw==', 3, 1, 1, '1', '16/01/2015', 'San Carlos ', '2018-08-29', 0),
+('1037949696', 'lady', 'geraldyn', 'gonzalez', 'ceballos', 0, 0, 0, 0, 'geral16gonza@gmail.com', 'MjQwOA==', 1, 1, 1, '5', '11/12/2013', 'MEDELLIN', '2018-08-29', 0),
+('1039049115', 'ruben', 'dario', 'quirama', 'lopez', 1, 0, 0, 0, 'rubenkra@outlook.es', 'MTk5MQ==', 1, 1, 1, '5', '2000-01_01', 'Pendiente', '2018-08-29', 0),
+('1039447684', 'Maria', 'Vanessa', 'García ', 'Gaviria', 0, 0, 0, 0, 'mariva2710@gmail.com', 'dmFuZQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('1039457744', 'esteban', 'luis', 'hernández ', 'meza', 1, 0, 0, 0, 'estebanluishernandezmeza@gmail.com', 'MTMwMg==', 3, 0, 1, '4', '11-11-1998', 'medellin', '2018-08-29', 0),
+('1039464479', 'Camila', '', 'Aristizábal', 'Gómez', 0, 0, 0, 0, 'camila.aristizabal@tecrea.com.co', 'MTcwNQ==', 4, 1, 2, '4', '', '', '2018-08-29', 0),
+('1040044905', 'josé ', 'daniel', 'grajales', 'carmona', 1, 0, 0, 0, 'josegraja@hotmail.com', 'MTAxOA==', 1, 1, 1, '4', '11-11-1998', 'La ceja', '2018-08-29', 0),
+('1040757557', 'kevin ', 'daniel', 'meneses', 'ceballos', 1, 0, 0, 0, 'daniel271098@hotmail.com', 'MjcxMA==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1041151150', 'juan', 'pablo', 'vélez', 'arroyave', 1, 0, 0, 0, 'velezarroyave@gmail.com', 'MjYxMw==', 1, 0, 1, '4', '16/08/1897', 'MEDELLIN', '2018-08-29', 0),
+('1044915764', 'JACKSON', '', 'AVILA', 'PAEZ', 1, 0, 0, 0, 'jackpower@hotmail.es', 'MjAxNg==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1046913982', 'ELIZABETH', '', 'URIBE', 'CEBALLOS', 0, 0, 0, 0, 'elizabethuribe033@hotmail.es', 'MjIyMw==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('1053769411', 'Carlos', 'Mario', 'Marin', 'Londoño', 1, 0, 0, 0, 'mario9411@hotmail.com', 'OTQxMQ==', 2, 0, 1, '4', '', '', '2018-08-29', 0),
+('1066743123', 'Oscar', 'De Jesús ', 'Causil', 'Montiel', 1, 0, 0, 0, 'oscarcmwork@hotmail.com', 'NzMxMA==', 2, 0, 1, '4', '', '', '2018-08-29', 0),
+('1077453248', 'arnold', 'david', 'chala', 'rivas', 1, 0, 0, 0, 'arnoldvip@hotmail.com', 'MDQwOQ==', 1, 1, 1, '5', '12/12/2011', 'MEDELLIN', '2018-08-29', 0),
+('1078579715', 'maiber', 'david', 'gonzalez ', 'mercado', 1, 0, 0, 0, 'mader145@HOTMAI.com', 'MDMxNQ==', 1, 0, 2, '4', '14/05/1989', 'MEDELLIN', '2018-08-29', 0),
+('1090523316', 'faiber', 'omar', 'atuesta', 'garcia', 1, 0, 0, 0, 'faiberatuesta@gmail.com', 'MTAxMw==', 1, 1, 1, '4', '13/10/1998', 'Cucuta', '2018-08-29', 0),
+('1095791547', 'diego', 'armando', 'lopez', 'moreno', 1, 0, 0, 0, 'bukacats@hotmail.com', 'ODYxOQ==', 1, 1, 1, '1', '2000-01-10', 'Pendiente', '2018-08-29', 0),
+('1096238261', 'Kelly', 'María', 'Villazón', 'Ramírez', 0, 0, 0, 0, 'kellyvillazon1@gmail.com', 'MTUzMQ==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('1125779563', 'JOSE', 'FERNANDO', 'ARBOLEDA', 'RAMIREZ', 1, 0, 0, 0, 'josefernando870@gmail.com', 'MDk4Nw==', 4, 1, 2, '3', '', '', '2018-08-29', 0),
+('1128266934', 'Jhon', 'Fredy', 'Velez', 'Londoño', 1, 0, 0, 0, 'fredy.velez@colcircuitos.com', 'MDkyNA==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('1128267430', 'Carolina', '', 'Betancur', 'Zapata', 0, 0, 0, 0, 'carolina.betancur@colcircuitos.com', 'MTk4Ng==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('1128390700', 'alexander ', 'de jesús ', 'osorio', 'quintero', 1, 0, 0, 0, 'alex-8881@hotmail.com', 'ODg4OA==', 1, 0, 1, '1', '2000-01-01', 'Pendiente', '2018-08-29', 0),
+('1128405581', 'jorge', 'luis', 'velasquez', 'rendon', 1, 0, 0, 0, 'jorgeluisvelasquez1987@gmail.com', 'MDcxNw==', 1, 0, 1, '4', '', '', '2018-08-29', 0),
+('1128422071', 'Daniel', 'Francisco', 'Calderon', 'Lebro', 1, 0, 0, 0, 'lebro.daniel@gmail.com', 'MTgwNw==', 2, 0, 1, '4', '25/07/2007', 'Medellín ', '2018-08-29', 0),
+('1128430240', 'Christian', 'Camilo', 'Lara', 'Villa', 1, 0, 0, 0, 'km1lo8958@gmail.com', 'MTQxMg==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1128447453', 'Monica', 'Alejandra', 'Madrid ', 'Munera', 0, 0, 0, 0, 'monikmadrid67@gmail.com', 'MjEyOA==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1128450516', 'carolina', '', 'salinas', 'restrepo', 0, 0, 0, 0, 'palacio.2125@hotmail.com', 'MTI4OQ==', 2, 0, 1, '4', '23/08/2007', 'MEDELLIN', '2018-08-29', 0),
+('1129045994', 'Jadder', 'Andres', 'Manyoma', 'Moreno', 1, 0, 0, 0, 'andres_elchikomoreno@hotmail.com', 'MjgwMQ==', 1, 0, 1, '4', '28/01/1997', 'Unión Panamericana ', '2018-08-29', 0),
+('1143366120', 'MARTIN ', '', 'PEREZ', 'BELLO', 1, 0, 0, 0, 'martinperez0421@gmail.com', 'MDQyMQ==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1143991147', 'estefania ', '', 'lopez', 'beltran', 0, 0, 0, 0, 'stefaniialopez.dylan.123@gmail.com', 'MTE0Mw==', 1, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
+('1152195364', 'Susana ', '', 'Escobar ', 'Alearcón', 0, 0, 0, 0, 'susana.escobar@hotmail.es', 'NTM5Mg==', 5, 1, 2, '2', '05-04-2010', 'Medellín', '2019-04-22', 9),
+('1152206404', 'CAROLINA ', 'MARIA ', 'GOMEZ ', 'PEREZ', 0, 0, 0, 0, 'carogomez_94@hotmail.com', 'NTA2MA==', 4, 1, 2, '3', '25/10/2012', 'MEDELLIN', '2019-01-11', 0),
+('1152210828', 'Paula', 'Andrea', 'Herrera', 'Alvarez', 0, 0, 0, 0, 'pau3018@hotmail.com', 'MTk5NQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('1152450553', 'juan', 'pablo', 'gonzalez', 'castrillon', 1, 0, 0, 0, 'jpgc17@hotmail.com', 'MzI0OQ==', 1, 1, 1, '4', '12-12-2000', 'Medellín', '2018-08-29', 0),
+('1152697088', 'diana', 'marcela', 'patiño', 'cardona', 0, 0, 0, 0, 'diana.patino@colcircuitos.com', 'OTQyMg==', 1, 1, 2, '4', '27/11/2012', 'Medellin', '2018-08-29', 0),
+('1152701919', 'ANDERSON', '', 'ASPRILLA ', 'AGUILAR', 1, 0, 0, 0, 'ANDERSON-ASPRILLA@HOTMAIL.COM', 'MTQxNA==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('1214721942', 'KELLY', 'DIANETH', 'GAVIRIA', 'TOBÓN', 0, 0, 0, 0, 'kelly1993gaviria@hotmail.com', 'MTIxNw==', 3, 0, 1, '1', '', '', '2018-08-29', 0),
+('1214723132', 'yundry', 'tatiana', 'gomez', 'yagari', 0, 0, 0, 0, 'tatisgomez3017@gmail.com', 'MTk5Mg==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1214734202', 'Paula ', 'Marcela ', 'Noreña ', 'Jimenez ', 0, 0, 0, 0, 'paulita.1301@hotmail.com', 'MDcyMQ==', 3, 1, 2, '2', '21/05/2014', 'Medellin', '2018-11-07', 0),
+('1216714526', 'Juan', '', 'Miranda', 'Aristizabal', 1, 0, 0, 0, 'juansma1004@hotmail.com', 'MTAwNA==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
+('1216714539', 'Maria ', 'Alejandra', 'Zuluaga', 'Rivera', 0, 0, 0, 0, 'alejandra.zuluaga@colciercuitos.com', 'MTIxNg==', 1, 1, 2, '2', '27/12/2011', 'MEDELLIN', '2018-08-29', 0),
+('1216716458', 'sebastian', '', 'ramirez', 'corral', 1, 0, 0, 0, 'sebastos7d@gmail.com', 'ODg3OA==', 1, 1, 1, '4', '03/09/2012', 'Medellín', '2018-08-29', 0),
+('1216718503', 'Kelly', 'Jhoana', 'Zapata', 'Hoyos', 0, 0, 0, 0, 'kelly-08-@hotmail.com', 'MjgwOA==', 3, 0, 1, '1', '29/08/2013', 'Medellin', '2018-08-29', 0),
+('1216727816', 'juan', 'david', 'marulanda', 'paniagua', 1, 0, 0, 0, 'jdmarulanda0@gmail.com', 'MTIzNA==', 1, 1, 1, '2', '2016-12-14', 'Medellin', '2018-11-02', 11),
+('15489896', 'ludimer', 'de jesus', 'urrego', 'durango', 1, 0, 0, 0, 'luguilugui82@outloock.es', 'MTU0OA==', 1, 1, 1, '5', '05/02/1999', 'Urrao', '2018-08-29', 0),
+('15489917', 'Aicardo', 'Alexander', 'Montoya', 'Perez', 1, 0, 0, 0, 'alexmontoyap@yahoo.es', 'ODI1Nw==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('15515649', 'Andres', 'Felipe', 'Tobon', 'Gonzalez', 1, 0, 0, 0, 'atobongonzalez@gmail.com', 'MjgxMg==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('21424773', 'beatriz', 'elena', 'urrego', 'montes', 0, 0, 0, 0, 'bety-manuelita@hotmail.com', 'MDUwNQ==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('23917651', 'Dianneli', 'Patricia', 'Duran', 'Torres', 0, 0, 0, 0, 'dianneliduran22@gmail.com', 'MjIwMw==', 3, 1, 1, '4', '05/04/2013', 'Venezuela ', '2018-08-29', 0),
+('26201420', 'Carmen', 'Milagro', 'Alvarez', 'Estrada', 0, 0, 0, 0, 'carmen15-17@hotmail.com', 'MTUxNw==', 1, 0, 1, '4', '', '', '2018-08-29', 0),
+('32242675', 'Liliana', 'Maria', 'Restrepo', 'Ortíz', 0, 0, 0, 0, 'liliana.restrepo@colcircuitos.com', 'MjQxMg==', 1, 0, 2, '4', '', '', '2018-08-29', 0),
+('32353491', 'janeth', 'viviana ', 'agudelo', 'zapata', 0, 0, 0, 0, 'janevia_0802@yahoo.es', 'NTUwOA==', 5, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
+('42702332', 'mary', 'ladis', 'sanchez', 'sepulveda', 0, 0, 0, 0, 'maryladiz1501@gmail.com', 'MTYwMg==', 1, 1, 1, '4', '20-03-2000', 'medellin', '2018-08-29', 0),
+('43161988', 'Yudi ', 'Andrea', 'Espinal ', 'López', 0, 0, 0, 0, 'yudyandreaespinal@hotmail.com', 'MDcxMA==', 5, 1, 2, '1', '09/12/1995', 'Itagui', '2019-02-18', 13),
+('43189198', 'Doreley', '', 'Garcia', '', 0, 0, 0, 0, 'garciadoreley@gimail.com', 'ODA4MA==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('43263856', 'Paula ', 'Andrea', 'Lopez', 'Gutierrez', 0, 0, 0, 0, 'paulalopez.tdingenieria@gmail.com', 'MjAxNw==', 1, 1, 2, '4', '19/03/1999', 'Medellín', '2019-01-25', 0),
+('43265824', 'alexandra', 'maria', 'palacio', 'ramirez', 0, 0, 0, 0, 'alexandra.814@hotmail.com', 'MDgxNA==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('43271378', 'Aracelly', '', 'Ospina', 'Rodriguez', 0, 0, 0, 0, 'aracellyospina@gmail.com', 'MjMwOQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('43288005', 'erika', 'natalia', 'ossa', 'ossa', 0, 0, 0, 0, 'naty0ossa@gmail.com', 'MTMyNw==', 1, 1, 1, '1', '2000-01-01', 'Pendiente', '2018-08-29', 0),
+('43342456', 'MARIA', 'EUYENITH', 'DURANGO', 'LARREA', 0, 0, 0, 0, 'mdurangolar@uniminuto.edu.co', 'NTU0NA==', 3, 0, 1, '4', '24/01/1987', 'Urrao', '2018-08-29', 0),
+('43542658', 'Rosalba ', '', 'Morales', 'Arenas ', 0, 0, 0, 0, 'equilibrio_rma@yahoo.es', 'NDM1NA==', 1, 1, 1, '4', '14/12/1989', 'Medellin', '2018-12-11', 0),
+('43583398', 'VIVIANA', '', 'ECHAVARRIA', 'MACHADO', 0, 0, 0, 0, 'viviana@grupoinvertronica.com', 'NzQwMQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('43596807', 'SANDRA ', 'EUGENIA', 'ZULUAGA', 'CARDONA', 0, 0, 0, 0, 'sandrazuluagacardona@gmail.com', 'MDMyMg==', 1, 1, 2, '2', '', '', '2018-08-29', 0),
+('43605625', 'nora', '', 'sanchez', 'rivera', 0, 0, 0, 0, 'norasanchezr1808@gmail.com', 'OTcxNw==', 1, 1, 1, '4', '20-03-1993', 'medellin', '2018-08-29', 0),
+('43745709', 'DIANA ', '', 'GALLEGO', 'ALVAREZ ', 0, 0, 0, 0, 'dianagallego@hotmail.com', 'MDk0MQ==', 4, 0, 2, '2', '', '', '2018-08-29', 0),
+('43749878', 'Gloria', 'Liliana', 'Vélez', 'Pérez', 0, 0, 0, 0, 'administrativa@colcircuitos.com', 'NzQ1OQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('43834287', 'ISABEL', 'CRISTINA', 'BERMUDEZ', 'ACEVEDO', 0, 0, 0, 0, 'acre_isabel@hotmail.com', 'ODU1Ng==', 3, 0, 1, '5', '10/12/1994', 'ITAGUI', '2018-08-29', 0),
+('43841319', 'Monica', 'Alexandra ', 'Usma', 'Zapata', 0, 0, 0, 0, 'monicausmazapata@hotmail.com', 'MTIyMQ==', 1, 0, 2, '4', '', '', '2018-08-29', 0),
+('43866346', 'sandra ', 'milena ', 'vasquez ', 'villegas ', 0, 0, 0, 0, 'sandravas79@hotmail.com', 'MDIwNQ==', 1, 1, 1, '5', '03/09/1997', 'Envigado', '2018-11-13', 0),
+('43975208', 'gloria', 'amparo', 'jaramillo', 'zapata', 0, 0, 0, 0, 'gloria.jaramillo@colcircuitos.com', 'MDUyNQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('44006996', 'juliana', '', 'silva', 'rodelo', 0, 0, 0, 0, 'silvarodelojuliana@gmail.com', 'MDA4NQ==', 3, 1, 1, '4', '', '', '2018-08-29', 0),
+('53146320', 'Jackeline ', '', 'Pulgarin', 'Bohorquez', 0, 0, 0, 0, 'jackeline.pulgarin@grupoinvertronica.com', 'bWFpbA==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('54253320', 'elvia', '', 'valoyes', 'cordoba', 0, 0, 0, 0, 'liyimen234@hotmail.com', 'MjgyMw==', 1, 1, 2, '4', '20-03-1987', 'Quibdo', '2018-08-29', 0),
+('71055289', 'Jaime ', 'Alberto ', 'Bedoya', 'Garces', 1, 0, 0, 0, 'jaibega25@hotmail.com', 'MWEyYg==', 1, 1, 2, '3', '04-07-2002', 'Betulia', '2019-01-31', 0),
+('71267825', 'Manuel', 'Yamid', 'Tangarife', 'Estrada', 1, 0, 0, 0, 'manuelyamid@hotmail.com', 'MzUzNQ==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('71268332', 'Adimaro', '', 'Montoya', 'Toro', 1, 0, 0, 0, 'adimaro.montoya@colcircuitos.com', 'MDIyOQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('71387038', 'juan', 'diego', 'villa', 'rojas', 1, 0, 0, 0, 'juandiego317_@hotmail.com', 'MDMxNw==', 2, 0, 1, '4', '', '', '2018-08-29', 0),
+('71709575', 'mauricio', '', 'gómez ', 'vera', 1, 0, 0, 0, 'mauriciogomezvera@gmail.com', 'MjUxNg==', 4, 1, 2, '3', '02-09-1987', 'Medellín', '2019-02-06', 18),
+('71752141', 'jose', 'sebastian', 'gonzalez', 'sanchez', 1, 0, 0, 0, 'josepsebastian171@yahoo.com', 'MTQ5Mg==', 3, 0, 1, '4', '31/03/1993', 'MEDELLIN', '2018-08-29', 0),
+('71759957', 'walter', 'marcelo', 'ramos', 'rueda', 1, 0, 0, 0, 'mr.walter27@gmail.com', 'd3A0Mg==', 3, 0, 1, '4', '20-06-1994', 'medellin', '2018-08-29', 0),
+('71765000', 'julio', 'cesar ', 'galeano', 'madrid', 1, 0, 0, 0, 'juio.galeano@colcircuitos.com', 'MTAxMQ==', 1, 1, 2, '3', '12-01-1995', 'Medellín', '2019-02-04', 0),
+('71774995', 'Gabriel', 'Jaime', 'Velez', 'Perez', 1, 0, 0, 0, 'gabriel@colcircuitos.com', 'NTQzMw==', 1, 1, 2, '2', '17-09-1995', 'Medellin', '2019-02-06', 12),
+('760579', 'higinio', 'alejandro', 'duarte', 'marquez', 1, 0, 0, 0, 'higinio.alejandro@gmail.com', 'MTg2Mg==', 1, 1, 1, '4', '12-01-2000', 'Medellín', '2018-08-29', 0),
+('78758797', 'Rafael', 'Eduardo', 'Herrera', 'Mangones', 1, 0, 0, 0, 'rafael.herreram@tecrea.com.co', 'MTk4MA==', 4, 0, 2, '4', '', '', '2018-08-29', 0),
+('80145967', 'jonathan', 'alvaro ', 'rojas ', 'beltran ', 1, 0, 0, 0, 'jonathanrb3@hotmail.com', 'ODkzMw==', 3, 1, 1, '4', '10/01/2003', 'Bogotá', '2018-08-29', 0),
+('8102064', 'Adrian ', 'Felipe', 'Hernandez', 'Uribe', 1, 0, 0, 0, 'adrian.hernandez@colcircuitos.com', 'NzQ2MQ==', 1, 0, 2, '2', '11/01/2002', 'Medellín', '2019-01-30', 0),
+('8106761', 'andres', 'felipe', 'berrio', 'cataño', 1, 0, 0, 0, 'andres.berrio@tecrea.com.co', 'NzU0OA==', 4, 0, 2, '4', '13/06/1895', 'Medellin', '2018-08-29', 0),
+('8344177', 'FABIAN', 'aRNULFO', 'VELÉZ', 'MUÑOZ', 1, 0, 0, 0, 'fabianvm@hotmail.com', 'MDYyMQ==', 1, 1, 2, '2', '21/06/1969', 'Envigado', '2019-03-07', 17),
+('8355460', 'Juan ', 'Camilo ', 'Herrera ', 'Pineda', 1, 0, 0, 0, 'camherrera837@hotmail.com', 'MTAxMA==', 4, 1, 2, '3', '15/11/2001', 'Envigado', '2018-08-29', 0),
+('8433778', 'Fredy', 'Alejandro', 'Montoya', 'Isaza', 1, 0, 0, 0, 'complotminitk@hotmail.com', 'NTcxOQ==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('9008773200219', 'Sara ', 'Maria ', 'Daboi', 'Ramirez', 0, 0, 0, 0, 'saradaboin@hotmail.com', 'MTMwOQ==', 3, 0, 1, '1', '15/08/2017', 'Medellin', '2018-08-29', 0),
+('91279058', 'FABIO', '', 'CUBILLOS', 'VALENCIA', 1, 0, 0, 0, 'gerencia@tecrea.com.co', 'NTkxNQ==', 4, 0, 2, '4', '', '', '2018-08-29', 0),
+('955297213061995', 'Maria', 'Angelica', 'Medina', 'Valencia', 0, 0, 0, 0, 'angelicamvalencia22@gmail.com', 'MDMwMg==', 4, 1, 2, '3', '28-12-2018', 'Medellin', '2019-05-02', 0),
+('98558437', 'Fabian ', 'Fernando ', 'Vélez', 'Pérez', 1, 0, 0, 0, 'fernando@colcircuitos.com', 'MTQyMg==', 1, 1, 2, '2', '30/07/1990', 'Envigado', '2019-03-13', 12),
+('98668402', 'andres', 'felipe', 'graciano', 'pareja', 1, 0, 0, 0, 'andresgp.c2c3@gmail.com', 'ODQwMg==', 1, 1, 1, '1', '1998-01-01', 'Pendiente', '2018-08-29', 0),
+('98699433', 'andres', 'camilo', 'buitrago', 'gomez', 1, 0, 0, 0, 'andres.buitrago@colcircuitos.com', 'MjYwOA==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('98713751', 'Luis', 'Alberto', 'Marín', 'Castañeda', 1, 0, 0, 0, 'betbela@gmail.com', 'ODUxNQ==', 2, 0, 1, '4', '', '', '2018-08-29', 0),
+('98765201', 'Edisson', 'Andres', 'Barahona', 'Castrillon', 1, 0, 0, 0, 'edisson.barahona@hotmail.com', 'NTE5Mw==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('98766299', 'Juan ', 'Camilo', 'Gomez', 'Cadavid', 1, 0, 0, 0, 'camilo.gomez@tecrea.com.co', 'cGVjaA==', 4, 1, 2, '4', '', '', '2018-08-29', 0),
+('98772784', 'Anderson', 'Estevenson ', 'Tangarife ', 'Palacio', 1, 0, 0, 0, 'palacio.2125@hotmail.com', 'MjEyNQ==', 3, 1, 1, '4', '09-01-2004', 'Medellín', '2018-08-29', 7);
 
 -- --------------------------------------------------------
 
@@ -5893,8 +5963,8 @@ CREATE TABLE `empleado_horario` (
 --
 
 INSERT INTO `empleado_horario` (`idEmpleado_horario`, `documento`, `idConfiguracion`, `diaInicio`, `diaFin`, `estado`, `fechaInicio`, `fechaFin`) VALUES
-(19, '1216727816', 4, 1, 5, 1, '2018-10-24', NULL),
-(20, '1216727816', 2, 5, -1, 0, '2018-10-25', NULL),
+(19, '1216727816', 4, 1, 5, 0, '2018-10-24', NULL),
+(20, '1216727816', 1, 1, 5, 0, '2018-10-25', NULL),
 (21, '1039457744', 1, 1, 6, 1, '2018-10-29', NULL),
 (22, '43265824', 1, 1, 5, 1, '2018-11-09', NULL),
 (23, '1037587834', 1, 1, 5, 1, '2018-11-09', NULL),
@@ -7513,7 +7583,10 @@ CREATE TABLE `h_laboral` (
 INSERT INTO `h_laboral` (`idH_laboral`, `documento`, `idEvento_laboral`, `fecha_laboral`, `numero_horas`, `Estado`, `descripcion`, `horas_aceptadas`, `horas_rechazadas`) VALUES
 (4, '1216727816', 1, '2019-05-15', '-05:30:0', 1, NULL, '-05:30:0', '0'),
 (5, '1216727816', 2, '2019-05-15', '21:21:00', 0, NULL, '0', '0'),
-(6, '1216727816', 1, '2019-05-17', '01:55:49', 1, NULL, '01:55:49', '0');
+(6, '1216727816', 1, '2019-05-17', '01:55:49', 1, NULL, '01:55:49', '0'),
+(7, '1216727816', 1, '2019-05-19', '09:00:00', 1, NULL, '09:00:00', '0'),
+(8, '1216727816', 2, '2019-05-19', '14:07:00', 0, NULL, '0', '0'),
+(9, '1216727816', 1, '2019-05-20', '00:00:02', 1, NULL, '00:00:02', '0');
 
 -- --------------------------------------------------------
 
@@ -13538,7 +13611,8 @@ INSERT INTO `notificacion` (`idNotificacion`, `fecha`, `comentario`, `leido`, `i
 (354, '2019-05-14 07:10:07', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
 (355, '2019-05-15 08:43:30', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
 (356, '2019-05-16 14:12:38', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
-(357, '2019-05-17 12:46:04', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4);
+(357, '2019-05-17 12:46:04', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
+(358, '2019-05-20 06:30:15', 'El dia de hoy 0 llego/aron tarde...', 0, 7, 4);
 
 -- --------------------------------------------------------
 
@@ -18230,6 +18304,26 @@ INSERT INTO `tablet_piso` (`idtablet_piso`, `direccion`, `piso`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `tiempo_teorico_semanal`
+--
+
+CREATE TABLE `tiempo_teorico_semanal` (
+  `idtiempo_teorico_semanal` int(11) NOT NULL,
+  `tiempo_laboral` varchar(8) NOT NULL,
+  `tiempo_desayuno` varchar(8) NOT NULL,
+  `tiempo_almuerzo` varchar(8) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- Volcado de datos para la tabla `tiempo_teorico_semanal`
+--
+
+INSERT INTO `tiempo_teorico_semanal` (`idtiempo_teorico_semanal`, `tiempo_laboral`, `tiempo_desayuno`, `tiempo_almuerzo`) VALUES
+(1, '47:30:00', '01:40:00', '03:20:00');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `tipo_auxilio`
 --
 
@@ -18785,6 +18879,12 @@ ALTER TABLE `tablet_piso`
   ADD PRIMARY KEY (`idtablet_piso`);
 
 --
+-- Indices de la tabla `tiempo_teorico_semanal`
+--
+ALTER TABLE `tiempo_teorico_semanal`
+  ADD PRIMARY KEY (`idtiempo_teorico_semanal`);
+
+--
 -- Indices de la tabla `tipo_auxilio`
 --
 ALTER TABLE `tipo_auxilio`
@@ -18865,7 +18965,7 @@ ALTER TABLE `area_trabajo`
 -- AUTO_INCREMENT de la tabla `asistencia`
 --
 ALTER TABLE `asistencia`
-  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=82;
 
 --
 -- AUTO_INCREMENT de la tabla `auxilio`
@@ -18901,7 +19001,7 @@ ALTER TABLE `concepto`
 -- AUTO_INCREMENT de la tabla `configuracion`
 --
 ALTER TABLE `configuracion`
-  MODIFY `idConfiguracion` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `idConfiguracion` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT de la tabla `dias_festivos`
@@ -18997,7 +19097,7 @@ ALTER TABLE `horario_trabajo`
 -- AUTO_INCREMENT de la tabla `h_laboral`
 --
 ALTER TABLE `h_laboral`
-  MODIFY `idH_laboral` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `idH_laboral` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT de la tabla `incapacidad`
@@ -19045,7 +19145,7 @@ ALTER TABLE `municipio`
 -- AUTO_INCREMENT de la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
-  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=358;
+  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=359;
 
 --
 -- AUTO_INCREMENT de la tabla `otros`
@@ -19136,6 +19236,12 @@ ALTER TABLE `secundaria_basica`
 --
 ALTER TABLE `tablet_piso`
   MODIFY `idtablet_piso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT de la tabla `tiempo_teorico_semanal`
+--
+ALTER TABLE `tiempo_teorico_semanal`
+  MODIFY `idtiempo_teorico_semanal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT de la tabla `tipo_auxilio`

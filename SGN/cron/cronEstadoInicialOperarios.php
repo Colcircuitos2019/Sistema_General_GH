@@ -1,6 +1,5 @@
 <?php 
-// Esto puede estar pendiente a cambios cuando el sistema permita horarios de un día para otro
-
+# Esto ya no se va a utilizar más!
 $conexion= conexion();
 
 $operarios=$conexion->query("CALL SE_PA_ConsultarOperariosEstadoInicialAsistencia()");//Consulta a los empleados y su estado de asistencia y la hora en que llego en su ultimo evento laboral del día en cuerzo.
