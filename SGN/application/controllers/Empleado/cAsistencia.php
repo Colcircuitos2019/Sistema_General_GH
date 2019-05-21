@@ -409,6 +409,16 @@ class cAsistencia extends CI_Controller
     echo json_encode($res); 
   }
 
+  public function gestionTiempoExtraAsistencia()
+  {
+
+    $idAsistencia = $this->input->post('idAsistencia');
+
+    $res = $this->mAsistencia->gestionTiempoExtraAsistenciaM($idAsistencia);
+
+    echo json_encode($res); 
+  }
+
   public function aceptarHorasExtrarEmpleado()
   {
     $info['documento']=$this->input->post('documento');

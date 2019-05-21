@@ -7,6 +7,7 @@
         Asistencias
         <small>Desktop</small>
       </h1>
+
 <!--       <ol class="breadcrumb">
         <li><a href="#"><i class="fas fa-desktop"></i> Home</a></li>
         <li class="active">Dashboard</li>
@@ -61,9 +62,11 @@
             <!-- Tabla de todos los empelados -->
             <div class="col-sm-12">
               <div class="form-group">
-                <div class="table-responsive" id="tblAsistenciaDia">
-                 <!-- Tabla -->
-                </div>
+                <form id="myForm">
+                  <div class="table-responsive" id="tblAsistenciaDia">
+                   <!-- Tabla -->
+                  </div>
+                </form>
                 <div class="col-sm-12">
                   <!-- <button type="button" class="btn btn-primary" name="Actualizar" id="ActualizarD"><span>Actualizar</span></button> -->
                 </div>          
@@ -83,6 +86,15 @@
                     <option value="4">Piso 4</option>
                     <option value="5">Piso 5</option>
                 </select>
+              </div>
+              <div class="col-sm-3">
+                <label for="HoraSalidaTiempoExtra"> Hora de salida tiempo extra:</label>
+                <div class="input-group bootstrap-timepicker timepicker">
+                   <input id="HoraSalidaTiempoExtra" type="text" maxlength="8" class="form-control input-small timepicker" align="center">
+                   <span class="input-group-addon" onclick="gestionarHoraSalidaTiempoExtra();">
+                    <i class="glyphicon glyphicon-time"></i>
+                  </span>
+                </div>
               </div>
               <a class="pull-right" href="<?= base_url();?>Empleado/cAsistencia/generarPDFAsistencias" target="_blank">Generar PDF Asistencias</a>
             </div>

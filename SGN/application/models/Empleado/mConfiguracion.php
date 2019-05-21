@@ -54,9 +54,25 @@ class mConfiguracion extends CI_Model
 		return $res;
 	}
 
+	public function consultarHoraSalidaTiempoExtraM()
+	{
+		$query= $this->db->query("SELECT t.hora FROM hora_salida_tiempo_extra t WHERE t.idhora_salida_tiempo_extra=1;");
+
+		$res = $query->row();
+
+		return $res->hora;
+	}
+
 	public function actualizarTiemposteoricosM($tiempos)
 	{
 		$query= $this->db->query("UPDATE tiempo_teorico_semanal t SET t.tiempo_laboral = '{$tiempos['laboral']}', t.tiempo_desayuno = '{$tiempos['desayuno']}', t.tiempo_almuerzo = '{$tiempos['almuerzo']}'  WHERE t.idtiempo_teorico_semanal = 1;");
+
+		return 1;	
+	}
+
+	public function gestionarHoraSalidaTiempoExtraM($hora)
+	{
+		$query= $this->db->query("UPDATE hora_salida_tiempo_extra t SET t.hora = '{$hora}' WHERE t.idhora_salida_tiempo_extra=1;");
 
 		return 1;	
 	}

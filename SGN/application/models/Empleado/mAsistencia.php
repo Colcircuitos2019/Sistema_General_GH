@@ -28,7 +28,18 @@ class mAsistencia extends CI_Model
 		$r=$query->result();
 
 		return $r;		
-	}
+	} 
+
+    //Se encarga de gestionar la asistencia que va a tener tiempo extra...
+    public function gestionTiempoExtraAsistenciaM($idAsistencia)
+    {
+        $query=$this->db->query("CALL SI_PA_GestionDeTiempoExtraAsistencias({$idAsistencia});");
+
+        $r=$query->row();
+
+        return $r->respuesta;      
+    }
+
 // Se encarga de consultar las asistencias por fecha
     public function asistenciasPorFechasM($info)
     {

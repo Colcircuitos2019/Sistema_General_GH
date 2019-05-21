@@ -73,8 +73,20 @@ $(document).ready(function() {
 
     });
 
+    $('.timepicker').timepicker({
+        minuteStep: 1,
+        template: 'modal',
+        appendWidgetTo: 'body',
+        showSeconds: true,
+        showMeridian: false,
+        defaultTime: false
+    });
+
     // Consultar Asistencias por dia
     consultarAsistenciasDia();
+
+    // ...
+    consultarHoraSalidaTiempoExtra();
 
     //Se ejecutara un segundo despues que la pagina haya cargado por completo.
     setInterval('consultarAsistenciasDia()', 15000); //Se actualiza cada 15s
@@ -136,6 +148,46 @@ function generarReportePorPisoPDF(elemento) {
         window.open(baseurl + 'Empleado/cAsistencia/generarPDFAsistencias?piso=' + $(elemento).find('option:selected').val(), '_blank');
     }
 }
+
+function consultarHoraSalidaTiempoExtra() {
+
+    $.post(baseurl+'Empleado/cConfiguracion/consultarHoraSalidaTiempoExtra', function(data, textStatus, xhr) {
+
+        $('#HoraSalidaTiempoExtra').val(data);
+
+    });
+
+}
+
+function gestionarHoraSalidaTiempoExtra() {
+     
+    swal({ //Mensaje de confirmacion para realizar la accion.
+        title: '¿Estas seguro?',
+        text: "Se actualizara la hora de salida del tiempo extra.",
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Si'
+    }).then((result) => {
+
+        if (result) {
+
+            $.post(baseurl+'Empleado/cConfiguracion/gestionarHoraSalidaTiempoExtra', 
+                {
+                    hora: $('#HoraSalidaTiempoExtra').val()
+                }, function(data, textStatus, xhr) {
+
+                    swal('Realizado!','El horario fue modificado.','success',{timer: 2000, button: false});
+
+            });
+
+        }
+
+    });    
+
+}
+
 // 
 function consultarAsistenciaRangoFechas() { //Tipo de busqueda, Documento y Fecha
     // debugger;
@@ -424,6 +476,17 @@ function mostrarDetalleDiario(doc, nombre) {
     $('#detalleAsistencias').modal('show');
 }
 
+function gestionTiempoExtraAsistencia(idAsistencia) {
+    $.post(baseurl+'Empleado/cAsistencia/gestionTiempoExtraAsistencia', 
+        {
+            idAsistencia: idAsistencia
+        }, function(data, textStatus, xhr) {
+
+            console.log(data);
+
+    });
+}
+
 // Consulta todos los empleados que son operarios y su estado (ausente, presente)
 function consultarAsistenciasDia() {
     // var op = 0;
@@ -434,11 +497,38 @@ function consultarAsistenciasDia() {
         var result = JSON.parse(data);
         // Limpiar la tabla
         $tabla1.empty();
-        $tabla1.html('<table class="display" id="tblAsistenciaEmpleadoDia">' + '<thead id="Cabeza">' + '<th>Documento</th>' + '<th>Nombre</th>' + '<th>Localización</th>' + '<th>Estado</th>' + '<th>Hora llegada</th>' + '<th>Hora salida</th>' + '<th>Accion</th>' + '</thead>' + '<tbody id="cuerpoDia">' + '</tbody>' + '</table>');
+        $tabla1.html('<table class="display" id="tblAsistenciaEmpleadoDia">' +
+                        '<thead id="Cabeza">' + 
+                            '<th>¿Tiempo Extra?</th>' + 
+                            '<th>Documento</th>' + 
+                            '<th>Nombre</th>' + 
+                            '<th>Localización</th>' + 
+                            '<th>Estado</th>' + 
+                            '<th>Hora llegada</th>' + 
+                            '<th>Hora salida</th>' + 
+                            '<th>Accion</th>' + 
+                        '</thead>' +
+                        '<tbody id="cuerpoDia">' +
+                        '</tbody>' + 
+                    '</table>');
         // Agregar la informacion a la tabla
         $.each(result, function(index, row) {
             //                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   //Se puede cerrar una asistencia si el empleado esta de permiso Salida e ingreso? Preguntar
-            $('#cuerpoDia').append('<tr>' + '<td>' + row.documento + '</td>' + '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '</td>' + '<td>' + 'Piso-' + row.piso + '</td>' + '<td>' + clasificarStatus(row.asistencia) + '</td>' + '<td>' + (row.horaLlegada === null ? "-" : row.horaLlegada) + '</td>' +'<td>' + (row.horaSalida === null ? "-" : row.horaSalida) + '</td>' + '<td>' + '<button value="' + row.documento + '" type="button" onclick="mostrarDetalleDiario(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '\')" class="btn btn-success"' + (row.asistencia == 0 ? 'disabled' : '') + '><span><i class="fas fa-eye"></i> ver' + '</span></button>' + '&nbsp;&nbsp;' + ((row.asistencia == 1 || row.asistencia == 1) ? ('<button value="' + row.documento + '" type="button" onclick="cerrarEventosLaboral(this.value);" class="btn btn-danger"><span><i class="fas fa-times-circle"></i> Cerrar' + '</span></button>') : ('')) + '</td>' + '</tr>');
+            $('#cuerpoDia').append('<tr>' + 
+                                    // '<td for="'+row.documento+'" alaing="center"><input type="checkbox" value="" id="'+row.documento+'"></td>' + 
+                                    '<td aling="center"> <div class="checkbox">'+
+                                        '<label style="font-size: 1.2em">'+
+                                            '<input type="checkbox" '+(row.tiempoExtra==1?"checked":"")+' '+ (row.asistencia == 1?"onchange=\"gestionTiempoExtraAsistencia(this.value)\"":"disabled")+' value="'+(row.idAsistencia != null?row.idAsistencia:"")+'">'+
+                                            '<span class="cr"><i class="cr-icon fa fa-check"></i></span>'+  
+                                        '</label>'+
+                                    '</div></td>' + 
+                                    '<td>' + row.documento + '</td>' + 
+                                    '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '</td>' + 
+                                    '<td>' + 'Piso-' + row.piso + '</td>' + 
+                                    '<td>' + clasificarStatus(row.asistencia) + '</td>' +
+                                    '<td>' + (row.horaLlegada === null ? "-" : row.horaLlegada) + '</td>' +
+                                    '<td>' + (row.horaSalida === null ? "-" : row.horaSalida) + '</td>' + 
+                                    '<td>' + '<button value="' + row.documento + '" type="button" onclick="mostrarDetalleDiario(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '\')" class="btn btn-success"' + (row.asistencia == 0 ? 'disabled' : '') + '><span><i class="fas fa-eye"></i> ver' + '</span></button>' + '&nbsp;&nbsp;' + ((row.asistencia == 1 || row.asistencia == 1) ? ('<button value="' + row.documento + '" type="button" onclick="cerrarEventosLaboral(this.value);" class="btn btn-danger"><span><i class="fas fa-times-circle"></i> Cerrar' + '</span></button>') : ('')) + '</td>' + '</tr>');
         });
         //Formato del data table
         $('#tblAsistenciaEmpleadoDia').DataTable(configDataTable());

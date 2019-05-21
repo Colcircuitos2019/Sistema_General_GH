@@ -105,5 +105,22 @@ class cConfiguracion extends CI_Controller
 		echo json_encode($res);
 	}
 
+	public function consultarHoraSalidaTiempoExtra()
+	{
+		$hora= $this->mConfiguracion->consultarHoraSalidaTiempoExtraM();
+
+		echo $hora;
+	}
+
+	public function gestionarHoraSalidaTiempoExtra()
+	{
+		$hora = $this->input->post("hora");
+
+		$res= $this->mConfiguracion->gestionarHoraSalidaTiempoExtraM($hora);
+
+		echo $res;
+
+	}
+
 }
  ?>
