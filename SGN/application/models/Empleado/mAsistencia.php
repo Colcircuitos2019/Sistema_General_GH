@@ -99,7 +99,7 @@ class mAsistencia extends CI_Model
     // Se encarga de modificar la informacion de las asistencias de los empleados
     public function modificarAsistenciaEmpleadoManualM($info)
     {
-        $query=$this->db->query("SELECT SE_FU_ModificarAsistencaEmpleado({$info['IDA']},'{$info['HoraInicio']}','{$info['HoraFin']}',{$info['Evento']}) as respuesta;");
+        $query=$this->db->query("SELECT SE_FU_ModificarAsistencaEmpleado({$info['idAsistencia']},'{$info['HoraInicio']}','{$info['HoraFin']}',{$info['Evento']}) as respuesta;");
 
         $r=$query->row();
 
@@ -108,9 +108,10 @@ class mAsistencia extends CI_Model
         return $r->respuesta;         
     }
     // Se encarga de actualizar las horas normales trabajadas o horas extras trabajadas en las asistencias.
-    public function actualizarTiempoTotalLaboradoDiaM($documento,$horario,$fecha)
+    public function actualizarTiempoTotalLaboradoDiaM($info)
     {
-        $query=$this->db->query("CALL SI_PA_CalcularRegistrarHorasTrabajadas('{$documento}',{$horario},'{$fecha}',2);");
+        // $info['idHorario'], 2, $info['fechaInicio'], $info['fechaFin'], $info['idAsistencia']}
+        $query=$this->db->query("CALL SI_PA_CalcularRegistrarHorasTrabajadas({$info['idHorario']}, 2, '{$info['fechaInicio']}', '{$info['fechaFin']}', {$info['idAsistencia']});"); // ID Horario, accion, fechaInicio, FechaFin, idAsistencia.
 
         $r=$query->row();
 
@@ -129,9 +130,9 @@ class mAsistencia extends CI_Model
     }
 
     // Consulta las horas trabajadas por empleado y dia.
-    public function consultarHorasTrabajadasDiaM($info)
+    public function consultarHorasTrabajadasDiaM($idAsistencia)
     {
-    	$query=$this->db->query("CALL SI_PA_ConsultarHorasDeTrabajo('{$info['documento']}', '{$info['fecha']}');");
+    	$query=$this->db->query("CALL SI_PA_ConsultarHorasDeTrabajo({$idAsistencia});");
 
 		$r=$query->result();
 

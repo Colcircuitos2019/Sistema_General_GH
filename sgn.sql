@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:33066
--- Tiempo de generación: 21-05-2019 a las 22:26:05
+-- Tiempo de generación: 22-05-2019 a las 23:31:20
 -- Versión del servidor: 10.1.29-MariaDB
 -- Versión de PHP: 7.2.0
 
@@ -174,7 +174,7 @@ SELECT datediff(fechaF, fechaI) DIV 7 + (CASE WHEN @Minimo = @DiaSemana THEN 1 E
 
 END$$
 
-CREATE DEFINER=`` PROCEDURE `prueba1` (IN `contra` VARCHAR(20), IN `lector` TINYINT(1), IN `idHorario` TINYINT(1))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `prueba1` (IN `contra` VARCHAR(20), IN `lector` TINYINT(1), IN `idHorario` TINYINT(1))  NO SQL
 BEGIN
 
     IF EXISTS(SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento='1216727816' AND a.idTipo_evento=1 AND a.fecha_fin IS NOT null AND a.fecha_inicio IS NOT null AND a.fecha_inicio >= CURDATE())  THEN
@@ -190,38 +190,68 @@ BEGIN
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `prueba3` (IN `idHorario` INT)  NO SQL
-BEGIN
+CREATE DEFINER=`root`@`localhost` PROCEDURE `prueba3` (IN `idHorario` INT, IN `fechaInicioLaboral` VARCHAR(10), IN `fechaFinLaboral` VARCHAR(10), IN `idAsistencia` INT, IN `doc` VARCHAR(20))  NO SQL
+BEGIN#pendiente por realizar revision de registros....
+#Función para clasificar el tipo de evento de horas laborales "SE_FU_ClasificarEventoHorasTrabajadas" Por ahora no se va a implementar
+#Preguntar si se redondea los tiempos más de horas normales trabajadas.
+/*
+fechaInicioLaboral
+fechaFinLaboral
+fechaAsitencia ->Eliminar parametro
 
-  IF EXISTS(SELECT * FROM dias_festivos d WHERE d.fecha_dia = CURDATE()) THEN # esto va para el registrar asistencia de tipo laboral
+Hasta acá llegue el día de hoy 21-05-2019
 
-    #Consulta el horario por defecto para los festivos
+*/
+#...
+DECLARE tiempoLaboralTeorico varchar(8);
+DECLARE horasTrabajadas time;
+DECLARE horasExtras time;
+DECLARE tiempo time;
+DECLARE idAsistencia_evento int;
+DECLARE estadoEvento tinyint(1);
 
-    SET idHorario = (SELECT c.idConfiguracion FROM configuracion c WHERE c.tipo_horario=4 LIMIT 1);
+#Validar que las horas laborales del dia en curso no esten registradas para poder hacer el calculo
+IF !(EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral = DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d'))) THEN # Acciones 1=Automatico 2=Manual
 
-  ELSE
+  #Horas trabajadas sin subtraerle los tiempos de descanso (Desayuno/Almuerzo).
+  SET horasTrabajadas = (SELECT a.tiempo FROM asistencia a WHERE a.idAsistencia = idAsistencia);
+  
+  #Aplica el desayuno?
 
-    IF idHorario = 0  THEN #Si no tiene un horario asignado o el día en cuerso es un festivo o sabado o domingo.
+  SET idAsistencia_evento = (SELECT a.idAsistencia FROM asistencia a WHERE a.idTipo_evento = 2 AND (a.inicio BETWEEN (SELECT asi.inicio FROM asistencia asi WHERE asi.idAsistencia = idAsistencia) AND (SELECT asi.fin FROM asistencia asi WHERE asi.idAsistencia = idAsistencia)));
 
-      #Valida el horario si el horario por defecto es para un día normal, un sabado o un domingo...
+  IF (idAsistencia_evento is not null) THEN
 
-     CASE (DATE_FORMAT(CURDATE(),'%w')) 
-        WHEN '6' THEN SET idHorario =(SELECT MAX(c.idConfiguracion) FROM configuracion c WHERE c.tipo_horario = 2 LIMIT 1);
-        WHEN '0' THEN SET idHorario =(SELECT MAX(c.idConfiguracion) FROM configuracion c WHERE c.tipo_horario = 3 LIMIT 1);
-        ELSE 
-          BEGIN
-            SET idHorario =(SELECT MAX(c.idConfiguracion) FROM configuracion c WHERE c.tipo_horario = 1 LIMIT 1);
-          END;
-      END CASE;
+    #Tiempo del desayuno
+    SET tiempo = (SELECT a.tiempo FROM asistencia a WHERE a.idAsistencia = idAsistencia_evento);
 
-
-    END IF;
+    #se resta el tiempo del desayuno.
+    SET horasTrabajadas = (SUBTIME(horasTrabajadas, tiempo));
 
   END IF;
 
-SELECT idHorario;
+  SET idAsistencia_evento = (SELECT a.idAsistencia FROM asistencia a WHERE a.idTipo_evento = 3 AND (a.inicio BETWEEN (SELECT asi.inicio FROM asistencia asi WHERE asi.idAsistencia = idAsistencia) AND (SELECT asi.fin FROM asistencia asi WHERE asi.idAsistencia = idAsistencia)));
 
-END$$
+  #Aplica el almuerzo?
+  IF idAsistencia_evento is not null THEN
+
+    #Tiempo del almuerzo.
+    SET tiempo = (SELECT a.tiempo FROM asistencia a WHERE a.idAsistencia = idAsistencia_evento);#Tiempo del almuerzo.
+
+    #Se resta el tiempo del almuerzo y este es el tiempo total trabajado normal. (Normalmente se trabajan 9.5(09:30:00) horas diarias).
+    SET horasTrabajadas = (SUBTIME(horasTrabajadas, tiempo));
+
+  END IF;
+  
+  # ...
+
+  SET tiempoLaboralTeorico = (SELECT SI_FU_CalcularTiempoTeorico(idHorario, DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d'), DATE_FORMAT(fechaFinLaboral,'%Y-%m-%d')));
+  
+ SELECT tiempoLaboralTeorico, horasTrabajadas;
+ 
+ END IF;
+ 
+ END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `SA_PA_CambiarEstadoPedido` ()  NO SQL
 BEGIN
@@ -2904,7 +2934,7 @@ SELECT 1 AS respuesta;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_CalcularRegistrarHorasTrabajadas` (IN `doc` VARCHAR(13), IN `idHorario` TINYINT(1), IN `accion` TINYINT(1), IN `fechaInicioLaboral` VARCHAR(20), IN `fechaFinLaboral` VARCHAR(20), IN `idAsistencia` INT)  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_CalcularRegistrarHorasTrabajadas` (IN `idHorario` TINYINT(1), IN `accion` TINYINT(1), IN `fechaInicioLaboral` VARCHAR(20), IN `fechaFinLaboral` VARCHAR(20), IN `idAsistencia` INT)  NO SQL
 BEGIN#pendiente por realizar revision de registros....
 #Función para clasificar el tipo de evento de horas laborales "SE_FU_ClasificarEventoHorasTrabajadas" Por ahora no se va a implementar
 #Preguntar si se redondea los tiempos más de horas normales trabajadas.
@@ -2912,6 +2942,9 @@ BEGIN#pendiente por realizar revision de registros....
 fechaInicioLaboral
 fechaFinLaboral
 fechaAsitencia ->Eliminar parametro
+
+Hasta acá llegue el día de hoy 21-05-2019
+
 */
 #...
 DECLARE tiempoLaboralTeorico varchar(8);
@@ -2922,7 +2955,7 @@ DECLARE idAsistencia_evento int;
 DECLARE estadoEvento tinyint(1);
 
 #Validar que las horas laborales del dia en curso no esten registradas para poder hacer el calculo
-IF !(EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral = DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d'))) OR (accion=2) THEN # Acciones 1=Automatico 2=Manual
+IF !(EXISTS(SELECT * FROM h_laboral h WHERE h.idAsistencia = idAsistencia)) OR (accion=2) THEN # Acciones 1=Automatico 2=Manual
 
   #Horas trabajadas sin subtraerle los tiempos de descanso (Desayuno/Almuerzo).
   SET horasTrabajadas = (SELECT a.tiempo FROM asistencia a WHERE a.idAsistencia = idAsistencia);
@@ -2969,10 +3002,8 @@ IF !(EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral 
     ELSE   
 
       # corte de tiempo hasta la hora estipulada para el fin laboral.
-      SET horasTrabajadas = tiempoLaboralTeorico;
-
       #Eliminar tiempo extra...
-      DELETE FROM h_laboral  WHERE documento = doc AND fecha_laboral = DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d') AND idEvento_laboral = 2;
+      DELETE FROM h_laboral  WHERE idAsistencia = idAsistencia AND idEvento_laboral = 2;
 
     END IF;
 
@@ -2980,15 +3011,15 @@ IF !(EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral 
 
     # Gestión de tiempo normal...
     #Existen las horas normales para esta fecha ya registradas?
-    IF EXISTS(SELECT * FROM h_laboral h WHERE h.documento = doc AND h.fecha_laboral = DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d') AND h.idEvento_laboral=1) THEN # Actualizar
+    IF EXISTS(SELECT * FROM h_laboral h WHERE h.idAsistencia = idAsistencia AND h.idEvento_laboral=1) THEN # Actualizar
 
-      UPDATE h_laboral h SET h.numero_horas = horasTrabajadas , h.horas_aceptadas = horasTrabajadas WHERE h.documento = doc AND h.fecha_laboral = DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d') AND h.idEvento_laboral=1;
-    
+      UPDATE h_laboral h SET h.numero_horas = horasTrabajadas , h.horas_aceptadas = horasTrabajadas WHERE h.idAsistencia = idAsistencia AND h.idEvento_laboral=1;
+      -- SELECT 1;
     ELSE #Registrar
 
       # Se ingresa esta información a la base de datos. Horas trabajadas normales. Clasificar recargo horas
-      INSERT INTO `h_laboral`(`documento`, `idEvento_laboral`, `fecha_laboral`, `numero_horas`, `Estado`, `horas_aceptadas`, `horas_rechazadas`) VALUES (doc, 1, DATE_FORMAT(fechaInicioLaboral, '%Y-%m-%d'), horasTrabajadas, 1, horasTrabajadas, '0');
-    
+      INSERT INTO `h_laboral`(`idAsistencia`, `idEvento_laboral`, `numero_horas`, `Estado`, `horas_aceptadas`, `horas_rechazadas`) VALUES (idAsistencia, 1, horasTrabajadas, 1, horasTrabajadas, '0');
+
     END IF;
 
     #...
@@ -2997,15 +3028,16 @@ IF !(EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral 
     IF (horasExtras is not null) AND horasExtras > '00:10:00' THEN
 
       #Existen las horas normales para esta fecha ya registradas?
-      IF EXISTS(SELECT * FROM h_laboral h WHERE h.documento = doc AND h.fecha_laboral = DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d') AND h.idEvento_laboral=2) THEN
+      IF EXISTS(SELECT * FROM h_laboral h WHERE h.idAsistencia = idAsistencia AND h.idEvento_laboral=2) THEN
 
-        UPDATE h_laboral h SET h.numero_horas = horasTrabajadas , h.horas_aceptadas = horasTrabajadas WHERE h.documento = doc AND h.fecha_laboral = DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d') AND h.idEvento_laboral=1;
-      
+        UPDATE h_laboral h SET h.numero_horas = horasTrabajadas , h.horas_aceptadas = horasTrabajadas WHERE h.idAsistencia = idAsistencia AND h.idEvento_laboral=1;
+        -- SELECT 2;
       ELSE #Registrar
 
         # Se ingresa esta información a la base de datos. Horas trabajadas normales. Clasificar recargo horas
-          INSERT INTO `h_laboral`(`documento`, `idEvento_laboral`, `fecha_laboral`, `numero_horas`, `Estado`) VALUES (doc, 2, DATE_FORMAT(fechaInicioLaboral, '%Y-%m-%d'), (SELECT SE_FU_RedondiarTiempo(horasExtras)), 0);
+          INSERT INTO `h_laboral`(`idAsistencia`, `idEvento_laboral`, `numero_horas`, `Estado`) VALUES (idAsistencia, 2, (SELECT SE_FU_RedondiarTiempo(horasExtras)), 0);
       
+
       END IF;
 
     END IF;
@@ -3023,19 +3055,19 @@ IF !(EXISTS(SELECT * FROM h_laboral h WHERE h.documento=doc AND h.fecha_laboral 
     # ...
 
     #Existen las horas normales para esta fecha ya registradas?
-    IF EXISTS(SELECT * FROM h_laboral h WHERE h.documento = doc AND h.fecha_laboral = DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d') AND h.idEvento_laboral=1) THEN 
+    IF EXISTS(SELECT * FROM h_laboral h WHERE h.idAsistencia = idAsistencia AND h.idEvento_laboral=1) THEN 
 
-      UPDATE h_laboral h SET h.numero_horas = (SELECT SE_FU_RedondiarTiempo(horasExtras)), h.horas_aceptadas=0, h.Estado=0,h.horas_rechazadas=0 WHERE h.documento=doc AND h.fecha_laboral=DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d') AND h.idEvento_laboral=2;
-
+      UPDATE h_laboral h SET h.numero_horas = horasTrabajadas, h.horas_aceptadas = horasTrabajadas WHERE h.idAsistencia = idAsistencia AND h.idEvento_laboral=1;
+      -- SELECT 3;
     ELSE
 
-      INSERT INTO `h_laboral`(`documento`, `idEvento_laboral`, `fecha_laboral`, `numero_horas`, `Estado`, `horas_aceptadas`, `horas_rechazadas`) VALUES (doc, 1, DATE_FORMAT(fechaInicioLaboral, '%Y-%m-%d'), horasTrabajadas, 1, horasTrabajadas, '0');
+      INSERT INTO `h_laboral`(`idAsistencia`, `idEvento_laboral`, `numero_horas`, `Estado`, `horas_aceptadas`, `horas_rechazadas`) VALUES (idAsistencia, 1, horasTrabajadas, 1, horasTrabajadas, '0');
 
     END IF;
 
     # ...
 
-    DELETE FROM h_laboral  WHERE documento = doc AND fecha_laboral = DATE_FORMAT(fechaInicioLaboral,'%Y-%m-%d') AND idEvento_laboral = 2;
+    DELETE FROM h_laboral  WHERE idAsistencia = idAsistencia AND idEvento_laboral = 2; # Eliminar las horas extra...
 
 
   END IF;
@@ -3075,7 +3107,7 @@ IF idAsistencia IS NOT null THEN
     # Hora de salida de la empresa
     SET fecha_fin_asistencia = (SELECT CONCAT(fecha_fin_asistencia, ' ', (SELECT c.hora_salida_empresa FROM configuracion c WHERE c.idConfiguracion = idHorario)));
 
-    IF TIMEDIFF(now(), fecha_fin_asistencia) > '08:00:00' THEN # La asistencia a pasado mas de 8 horas abierta o no tiene permiso de realizar tiempo extra. Pendiente
+    IF TIMEDIFF(now(), fecha_fin_asistencia) > '07:00:00' THEN # La asistencia a pasado mas de 8 horas abierta o no tiene permiso de realizar tiempo extra. Pendiente
       
       #Cerrar la asistencia
       IF (SELECT c.hora_inicio_desayuno FROM configuracion c WHERE c.idConfiguracion = idHorario) > '00:00:00' THEN
@@ -3102,7 +3134,7 @@ IF idAsistencia IS NOT null THEN
       # ...
       UPDATE asistencia a SET a.tiempo = (SELECT TIMEDIFF(fecha_fin_asistencia, fecha_inicio_asistencia)) WHERE a.idAsistencia = idAsistencia;
       # ...
-      #CALL SI_PA_CalcularRegistrarHorasTrabajadas(doc, idHorario, 1 ,fecha_inicio_asistencia, fecha_fin_asistencia);# Actualizar -> Pendiente
+      CALL SI_PA_CalcularRegistrarHorasTrabajadas(idHorario, 1 ,fecha_inicio_asistencia, fecha_fin_asistencia, idAsistencia);# Actualizar
 
     END IF;
 
@@ -3172,10 +3204,10 @@ SELECT MAX(a.idAsistencia),e.documento, e.nombre1,e.nombre2,e.apellido1,e.apelli
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ConsultarHorasDeTrabajo` (IN `doc` VARCHAR(13), IN `fecha` VARCHAR(25))  NO SQL
+CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ConsultarHorasDeTrabajo` (IN `idAsistencia` VARCHAR(20))  NO SQL
 BEGIN
 
-SELECT h.idEvento_laboral,h.numero_horas AS numero_horas, h.horas_aceptadas, h.horas_rechazadas,h.descripcion FROM h_laboral h WHERE h.documento=doc AND DATE_FORMAT(h.fecha_laboral,'%d-%m-%Y')=fecha AND h.Estado=1;
+SELECT h.idEvento_laboral,h.numero_horas AS numero_horas, h.horas_aceptadas, h.horas_rechazadas,h.descripcion FROM h_laboral h WHERE h.idAsistencia = idAsistencia AND h.Estado=1;
 
 END$$
 
@@ -3691,7 +3723,7 @@ IF doc!='' THEN
               # ...
               UPDATE asistencia a SET a.tiempo = tiempo WHERE a.idAsistencia = idAsistencia;
               # ...
-              CALL SI_PA_CalcularRegistrarHorasTrabajadas(doc, idHorario, 1, horaInicioEvento, horaFinEvento, idAsistencia);# Actualizar
+              CALL SI_PA_CalcularRegistrarHorasTrabajadas(idHorario, 1, horaInicioEvento, horaFinEvento, idAsistencia);# Actualizar
               #...
 
              END IF;
@@ -4055,43 +4087,63 @@ END IF;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` FUNCTION `SE_FU_ModificarAsistencaEmpleado` (`ida` INT, `horaInicio` VARCHAR(20), `horaFin` VARCHAR(20), `evento` TINYINT(1)) RETURNS TINYINT(1) NO SQL
+CREATE DEFINER=`root`@`localhost` FUNCTION `SE_FU_ModificarAsistencaEmpleado` (`idAsistencia` INT, `horaInicio` VARCHAR(20), `horaFin` VARCHAR(20), `evento` TINYINT(1)) RETURNS TINYINT(1) NO SQL
 BEGIN
 #DECLARE tiempoT varchar(8);
 DECLARE tiempoEvento varchar(8);
 DECLARE estadoA tinyint(1);
 
 #Clasificar estado
-SET estadoA=(SELECT SI_FU_ClasificacionEstadoAsistencia(evento,(SELECT DATE_FORMAT(horaInicio,'%H:%i:%S')),(SELECT DATE_FORMAT(horaFin,'%H:%i:%S')),(SELECT a.idConfiguracion FROM asistencia a WHERE a.idAsistencia=ida LIMIT 1)));#Tiene que hacer obligatoriamente la modificacion por diferencia de fechas completas no solo por horas.
+
+IF (SELECT a.idEstado_asistencia FROM asistencia a WHERE a.idAsistencia = idAsistencia) != 3 THEN
+
+	SET estadoA=(SELECT SI_FU_ClasificacionEstadoAsistencia(evento, horaInicio, horaFin, (SELECT a.idConfiguracion FROM asistencia a WHERE a.idAsistencia=idAsistencia LIMIT 1)));#Tiene que hacer obligatoriamente la modificacion por diferencia de fechas completas no solo por horas.
+
+ELSE
+
+	SET estadoA = 3;
+	
+END IF;
 
 IF horaInicio!='' AND horaFin!='' THEN
 
-IF evento=2 or evento=3 THEN#Desayuno o almuerzo
-  #...
-  IF evento=2 THEN #Desayuno
-   SET tiempoEvento=(SELECT c.tiempo_desayuno FROM configuracion c WHERE c.idConfiguracion=(SELECT a.idConfiguracion FROM asistencia a WHERE a.idAsistencia=ida LIMIT 1) AND c.estado=1 LIMIT 1);
-  ELSE #Almuerzo
-  	SET tiempoEvento=(SELECT c.tiempo_almuerzo FROM configuracion c WHERE c.idConfiguracion=(SELECT a.idConfiguracion FROM asistencia a WHERE a.idAsistencia=ida LIMIT 1) AND c.estado=1 LIMIT 1);
-  END IF;
-  #...
-  IF TIMEDIFF(horaFin,horaInicio)>tiempoEvento THEN
-     #Tiempo que se gasto el empleado en este evento de desayuno
-     SET tiempoEvento=(SELECT TIMEDIFF(horaFin,horaInicio)); #Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo
-  END IF;
-ELSE#Evento laboral
- #Realiza la diferencia de tiempo.
- SET tiempoEvento= (SELECT TIMEDIFF(horaFin,horaInicio));
-END IF;
-#...
-UPDATE asistencia a SET a.hora_inicio=(SELECT DATE_FORMAT(horaInicio,'%H:%i:%S')), a.hora_fin=(SELECT DATE_FORMAT(horaFin,'%H:%i:%S')), a.fecha_inicio=(SELECT DATE_FORMAT(horaInicio,'%Y-%m-%d')), a.fecha_fin= (SELECT DATE_FORMAT(horaFin,'%Y-%m-%d')), a.tiempo=tiempoEvento,a.idEstado_asistencia=estadoA WHERE a.idAsistencia=ida AND a.idTipo_evento=evento;
+	IF evento=2 or evento=3 THEN#Desayuno o almuerzo
+  	#...
+ 		IF evento=2 THEN #Desayuno
+  
+   			SET tiempoEvento=(SELECT c.tiempo_desayuno FROM configuracion c WHERE c.idConfiguracion=(SELECT a.idConfiguracion FROM asistencia a WHERE a.idAsistencia=idAsistencia LIMIT 1) AND c.estado=1 LIMIT 1);
+   
+  		ELSE #Almuerzo
+  
+  			SET tiempoEvento=(SELECT c.tiempo_almuerzo FROM configuracion c WHERE c.idConfiguracion=(SELECT a.idConfiguracion FROM asistencia a WHERE a.idAsistencia=idAsistencia LIMIT 1) AND c.estado=1 LIMIT 1);
+    
+  		END IF;
+  	#...
+  		IF TIMEDIFF(horaFin,horaInicio) > tiempoEvento THEN
+  
+      	#Tiempo que se gasto el empleado en este evento de desayuno
+      	SET tiempoEvento=(SELECT TIMEDIFF(horaFin,horaInicio)); #Esto se tiene que hacer con las fechas de los días en que se realizo la toma de tiempo
+     
+  		END IF;
+  
+	ELSE#Evento laboral
+
+ 	#Realiza la diferencia de tiempo.
+ 	SET tiempoEvento= (SELECT TIMEDIFF(horaFin, horaInicio));
+ 	
+	END IF;
+	#...
+	UPDATE asistencia a SET a.inicio = horaInicio, a.fin = horaFin, a.tiempo=tiempoEvento, a.idEstado_asistencia = estadoA WHERE a.idAsistencia=idAsistencia AND a.idTipo_evento=evento;
 #...
 ELSE
-#No realiza la diferencia de tiempo.
-UPDATE asistencia a SET a.hora_inicio=(SELECT DATE_FORMAT(horaInicio,'%H:%i:%S')), a.fecha_inicio=(SELECT DATE_FORMAT(horaInicio,'%Y-%m-%d')),a.fecha_fin=null,a.hora_fin=null,a.tiempo=null,a.lectorF=null,a.idEstado_asistencia=estadoA WHERE a.idAsistencia=ida AND a.idTipo_evento=evento;
+
+	#No realiza la diferencia de tiempo.
+	UPDATE asistencia a SET a.inicio = horaInicio, a.fin = null,a.tiempo=null, a.lectorF=null, a.idEstado_asistencia = estadoA WHERE a.idAsistencia=idAsistencia AND a.idTipo_evento=evento;
+
 #...
 END IF; 
 
-RETURN 1;
+	RETURN 1;
 
 END$$
 
@@ -5412,7 +5464,7 @@ CREATE TABLE `asistencia` (
 --
 
 INSERT INTO `asistencia` (`idAsistencia`, `documento`, `idTipo_evento`, `inicio`, `fin`, `idEstado_asistencia`, `estado`, `lectorI`, `lectorF`, `tiempo`, `idConfiguracion`) VALUES
-(35, '1216727816', 1, '2019-05-15 21:12:38', '2019-05-16 16:32:57', 2, 0, 2, 2, '19:20:19', 4),
+(35, '1216727816', 1, '2019-05-15 21:12:38', '2019-05-16 16:30:57', 2, 0, 2, 2, '19:18:19', 4),
 (42, '1216727816', 2, '2019-05-15 23:40:00', '2019-05-16 02:30:00', 2, 0, 0, 2, '02:50:00', 4),
 (45, '1216727816', 3, '2019-05-16 15:00:57', '2019-05-16 15:15:16', 1, 0, 2, 2, '00:40:00', 4),
 (46, '1216727816', 1, '2019-05-14 12:46:04', '2019-05-14 15:46:23', 2, 0, 2, 2, '03:00:19', 4),
@@ -5423,12 +5475,15 @@ INSERT INTO `asistencia` (`idAsistencia`, `documento`, `idTipo_evento`, `inicio`
 (61, '1216727816', 3, '2019-05-18 08:27:55', '2019-05-18 08:34:00', 2, 0, 2, 2, '00:40:00', 4),
 (75, '1216727816', 1, '2019-05-19 08:41:21', '2019-05-19 16:30:00', 2, 0, 2, 0, '07:48:39', 1),
 (76, '1216727816', 2, '2019-05-19 10:30:00', '2019-05-19 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(79, '1216727816', 1, '2019-05-20 08:25:14', '2019-05-20 16:30:00', 2, 0, 2, 0, '04:04:46', 1),
-(80, '1216727816', 2, '2019-05-20 10:30:00', '2019-05-20 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(81, '1216727816', 3, '2019-05-20 12:38:30', '2019-05-20 13:00:00', 2, 0, 2, 0, '00:21:30', 1),
-(84, '1216727816', 1, '2019-05-21 07:11:22', '2019-05-21 15:13:21', 2, 0, 2, 2, '08:01:59', 1),
+(79, '1216727816', 1, '2019-05-20 06:29:14', '2019-05-20 16:30:00', 2, 0, 2, 0, '10:00:46', 1),
+(80, '1216727816', 2, '2019-05-20 10:30:00', '2019-05-20 10:30:00', 1, 0, 0, 0, '00:20:00', 1),
+(81, '1216727816', 3, '2019-05-20 12:38:30', '2019-05-20 13:00:00', 1, 0, 2, 0, '00:40:00', 1),
+(84, '1216727816', 1, '2019-05-21 07:11:22', '2019-05-21 16:30:00', 2, 0, 2, 0, '09:18:38', 1),
 (85, '1216727816', 2, '2019-05-21 10:04:45', '2019-05-21 10:30:00', 2, 0, 2, 2, '00:25:15', 1),
-(86, '1216727816', 3, '2019-05-21 12:43:17', '2019-05-21 13:00:00', 2, 0, 2, 2, '00:40:00', 1);
+(86, '1216727816', 3, '2019-05-21 12:43:17', '2019-05-21 13:00:00', 2, 0, 2, 2, '00:40:00', 1),
+(91, '1216727816', 1, '2019-05-22 06:30:00', '2019-05-22 13:42:14', 2, 0, 2, 2, '07:12:14', 1),
+(92, '1216727816', 2, '2019-05-22 10:30:00', '2019-05-22 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
+(93, '1216727816', 3, '2019-05-22 13:00:00', '2019-05-22 13:00:00', 3, 0, 0, 0, '00:40:00', 1);
 
 -- --------------------------------------------------------
 
@@ -6049,7 +6104,7 @@ CREATE TABLE `empleado_horario` (
 --
 
 INSERT INTO `empleado_horario` (`idEmpleado_horario`, `documento`, `idConfiguracion`, `diaInicio`, `diaFin`, `estado`, `fechaInicio`, `fechaFin`) VALUES
-(19, '1216727816', 4, 1, 5, 0, '2018-10-24', NULL),
+(19, '1216727816', 5, 1, 5, 0, '2018-10-24', NULL),
 (20, '1216727816', 1, 1, 5, 0, '2018-10-25', NULL),
 (21, '1039457744', 1, 1, 6, 1, '2018-10-29', NULL),
 (22, '43265824', 1, 1, 5, 1, '2018-11-09', NULL),
@@ -7670,9 +7725,8 @@ INSERT INTO `hora_salida_tiempo_extra` (`idhora_salida_tiempo_extra`, `hora`) VA
 
 CREATE TABLE `h_laboral` (
   `idH_laboral` int(11) NOT NULL,
-  `documento` varchar(20) NOT NULL,
+  `idAsistencia` int(11) NOT NULL,
   `idEvento_laboral` tinyint(4) NOT NULL,
-  `fecha_laboral` date NOT NULL,
   `numero_horas` varchar(8) NOT NULL,
   `Estado` tinyint(1) NOT NULL,
   `descripcion` varchar(100) DEFAULT NULL,
@@ -7684,8 +7738,11 @@ CREATE TABLE `h_laboral` (
 -- Volcado de datos para la tabla `h_laboral`
 --
 
-INSERT INTO `h_laboral` (`idH_laboral`, `documento`, `idEvento_laboral`, `fecha_laboral`, `numero_horas`, `Estado`, `descripcion`, `horas_aceptadas`, `horas_rechazadas`) VALUES
-(11, '1216727816', 1, '2019-05-21', '09:30:00', 1, NULL, '09:30:00', '0');
+INSERT INTO `h_laboral` (`idH_laboral`, `idAsistencia`, `idEvento_laboral`, `numero_horas`, `Estado`, `descripcion`, `horas_aceptadas`, `horas_rechazadas`) VALUES
+(17, 84, 1, '08:13:23', 1, NULL, '08:13:23', '0'),
+(18, 35, 1, '15:48:19', 1, NULL, '15:48:19', '0'),
+(19, 79, 1, '09:00:46', 1, NULL, '09:00:46', '0'),
+(20, 91, 1, '04:12:29', 1, NULL, '04:12:29', '0');
 
 -- --------------------------------------------------------
 
@@ -13712,7 +13769,8 @@ INSERT INTO `notificacion` (`idNotificacion`, `fecha`, `comentario`, `leido`, `i
 (356, '2019-05-16 14:12:38', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
 (357, '2019-05-17 12:46:04', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
 (358, '2019-05-20 06:30:15', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
-(359, '2019-05-21 06:51:19', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4);
+(359, '2019-05-21 06:51:19', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
+(360, '2019-05-22 06:49:04', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4);
 
 -- --------------------------------------------------------
 
@@ -18409,15 +18467,16 @@ INSERT INTO `tablet_piso` (`idtablet_piso`, `direccion`, `piso`) VALUES
 
 CREATE TABLE `tiempo_extra` (
   `idtiempo_extra` int(11) NOT NULL,
-  `idAsistencia` int(11) NOT NULL
+  `idAsistencia` int(11) NOT NULL,
+  `hora_fin_tiempo_extra` varchar(8) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Volcado de datos para la tabla `tiempo_extra`
 --
 
-INSERT INTO `tiempo_extra` (`idtiempo_extra`, `idAsistencia`) VALUES
-(8, 84);
+INSERT INTO `tiempo_extra` (`idtiempo_extra`, `idAsistencia`, `hora_fin_tiempo_extra`) VALUES
+(8, 84, NULL);
 
 -- --------------------------------------------------------
 
@@ -18835,9 +18894,9 @@ ALTER TABLE `hora_salida_tiempo_extra`
 -- Indices de la tabla `h_laboral`
 --
 ALTER TABLE `h_laboral`
-  ADD PRIMARY KEY (`idH_laboral`,`documento`,`idEvento_laboral`),
+  ADD PRIMARY KEY (`idH_laboral`,`idAsistencia`,`idEvento_laboral`),
   ADD KEY `fk_H_laboral_Evento_laboral1_idx` (`idEvento_laboral`),
-  ADD KEY `fk_H_laboral_Empleado1_idx` (`documento`);
+  ADD KEY `fk_H_laboral_Asistencia_idx` (`idAsistencia`);
 
 --
 -- Indices de la tabla `incapacidad`
@@ -19096,7 +19155,7 @@ ALTER TABLE `area_trabajo`
 -- AUTO_INCREMENT de la tabla `asistencia`
 --
 ALTER TABLE `asistencia`
-  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
+  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
 
 --
 -- AUTO_INCREMENT de la tabla `auxilio`
@@ -19234,7 +19293,7 @@ ALTER TABLE `hora_salida_tiempo_extra`
 -- AUTO_INCREMENT de la tabla `h_laboral`
 --
 ALTER TABLE `h_laboral`
-  MODIFY `idH_laboral` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `idH_laboral` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de la tabla `incapacidad`
@@ -19282,7 +19341,7 @@ ALTER TABLE `municipio`
 -- AUTO_INCREMENT de la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
-  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=360;
+  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=361;
 
 --
 -- AUTO_INCREMENT de la tabla `otros`
@@ -19378,7 +19437,7 @@ ALTER TABLE `tablet_piso`
 -- AUTO_INCREMENT de la tabla `tiempo_extra`
 --
 ALTER TABLE `tiempo_extra`
-  MODIFY `idtiempo_extra` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `idtiempo_extra` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT de la tabla `tiempo_teorico_semanal`
@@ -19517,7 +19576,7 @@ ALTER TABLE `ficha_sd`
 -- Filtros para la tabla `h_laboral`
 --
 ALTER TABLE `h_laboral`
-  ADD CONSTRAINT `fk_H_laboral_Empleado1` FOREIGN KEY (`documento`) REFERENCES `empleado` (`documento`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+  ADD CONSTRAINT `fk_H_laboral_Asistencia` FOREIGN KEY (`idAsistencia`) REFERENCES `asistencia` (`idAsistencia`) ON DELETE NO ACTION ON UPDATE NO ACTION,
   ADD CONSTRAINT `fk_H_laboral_Evento_laboral1` FOREIGN KEY (`idEvento_laboral`) REFERENCES `evento_laboral` (`idEvento_laboral`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --

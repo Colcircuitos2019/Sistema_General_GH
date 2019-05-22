@@ -127,31 +127,34 @@ class cAsistencia extends CI_Controller
     // ...
     $i=0;
     $horario=0;
-    $fecha='';
+    $info = [];
     $respuesta;
     // ...
     foreach ($v as $asistencia) {
       $respuesta= $this->mAsistencia->modificarAsistenciaEmpleadoManualM($asistencia);
       // ...
-      if ($horario==0) {
-          $horario=$asistencia['Horario'];//Se asigna el horario...
-      }
-      // ...
       if ($asistencia['Evento']==1 && $asistencia['HoraFin']!='') {//Evento laboral
-          $fecha=$asistencia['HoraFin'];//Cuando sea un evento laboral      
+          $info['fechaInicio'] = $asistencia['HoraInicio'];//Hora inicio del evento laboral      
+          $info['fechaFin'] = $asistencia['HoraFin'];//Hora fin de un evento laboral laboral      
+          $info['idAsistencia'] = $asistencia['idAsistencia'];//Identificador de la asistencia
+          $info['idHorario']=$asistencia['Horario'];//Identificador del horario     
       }
       // ...
       if ($asistencia['HoraInicio']!='' && $asistencia['HoraFin']!='') {
+
        $i++;//Si al final de recorrer el ciclo esta variable es igual a 3, se calculara el tiempo total laborado...
+
       }
       // ...
     }
+
     // ...
     if ($i==3) {//Se va actualizar el tiempo total laboral.
-      $respuesta=$this->mAsistencia->actualizarTiempoTotalLaboradoDiaM($documento,$horario,$fecha);
-      // var_dump($fecha);
+
+      $respuesta = $this->mAsistencia->actualizarTiempoTotalLaboradoDiaM($info);
+
     }
-    // var_dump($v);
+
     echo $respuesta;
   }
 
@@ -394,10 +397,9 @@ class cAsistencia extends CI_Controller
 
   public function consultarHorasTrabajadasDia()
   {
-    $info['documento']=$this->input->post('documento');
-    $info['fecha']=$this->input->post('fecha');
+    $idAsistencia=$this->input->post('idAsistencia');
 
-    $res=$this->mAsistencia->consultarHorasTrabajadasDiaM($info);
+    $res=$this->mAsistencia->consultarHorasTrabajadasDiaM($idAsistencia);
 
     echo json_encode($res); 
   }

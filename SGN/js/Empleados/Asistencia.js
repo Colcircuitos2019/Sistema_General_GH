@@ -106,11 +106,11 @@ $(document).ready(function() {
         switch (Number($(this).val())) {
             case 2:
                 // asistencia diaria
-                consultarAsistenciaEmpleado(2, $(this).data('documento'), '', 1);
+                consultarAsistenciaEmpleado(2, $(this).data('documento'), '', 1, 0);
                 break;
             case 1:
                 // Asistencias pasadas
-                consultarAsistenciaEmpleado(1, $(this).data('documento'), $(this).data('fecha'), 1);
+                consultarAsistenciaEmpleado(1, $(this).data('documento'), $(this).data('fecha'), 1, $btnAsistencia.data('idAsistencia'));
                 break;
         }
     });
@@ -210,10 +210,9 @@ function consultarAsistenciaRangoFechas() { //Tipo de busqueda, Documento y Fech
     });
 }
 // Consulta las horas laborales trabajadas por dia
-function consultarHorasTrabajadasDia(doc, fecha) {
+function consultarHorasTrabajadasDia(idAsistencia) {
     $.post(baseurl + 'Empleado/cAsistencia/consultarHorasTrabajadasDia', {
-        documento: doc,
-        fecha: fecha
+        idAsistencia: idAsistencia
     }, function(data) {
         var result = JSON.parse(data);
         $horasNormales.val(0);
@@ -243,40 +242,47 @@ function modificarAsistenciasEmpleado(doc, fecha) { //
     var horaFin = '';
     $tabla3.find('tbody tr').each(function(index, row) {
         // Validar que la hora fin ingresada sea mayor a la hora de inicio ingresada manualmente
-        horaInicio = $.trim($(row).find('td').eq(2).find('input').val());
-        horaFin = $.trim($(row).find('td').eq(5).find('input').val());
+        horaInicio = $.trim($(row).find('td').eq(1).find('input').val());
+        horaFin = $.trim($(row).find('td').eq(3).find('input').val());
         v.push({
-            'IDA': $(row).find('th').first().text(), //ID Asistencia
-            'HoraInicio': (horaInicio == '' ? '' : formatoFecha($(row).find('td').eq(1).text()) + ' ' + horaInicio), //Input hora inicio asistencia
-            'HoraFin': (horaFin == '' ? '' : formatoFecha($(row).find('td').eq(4).text()) + ' ' + horaFin), //Input hora fin asistencia
+            'idAsistencia': $(row).find('th').first().text(), //ID Asistencia
+            'HoraInicio': horaInicio, //Input hora inicio asistencia
+            'HoraFin': horaFin, //Input hora fin asistencia
             'Evento': $(row).find('td').eq(0).find('span').data('idevento'), // Evento de la asistencia
             'Horario': $(row).find('th').first().data('idhorario')
         });
     });
-    // console.log(v);
     // ...
     $.post(baseurl + 'Empleado/cAsistencia/modificarAsistenciaEmpleadoManual', {
         info: v,
         documento: doc
     }, function(data) {
+
         if (data == 1) {
+           
             swal('Realizado!', 'La asistencia fue modificada correctamente.', 'success');
+
             $tituloModal.find('small').hide('slow', function() {
+
                 $(this).remove();
+
             });
             // 
             switch (Number($btnAsistencia.val())) {
                 case 2:
                     // asistencia diaria
-                    consultarAsistenciaEmpleado(2, $btnAsistencia.data('documento'), '', 0);
+                    consultarAsistenciaEmpleado(2, $btnAsistencia.data('documento'), '', 0, 0);
                     break;
                 case 1:
                     // Asistencias pasadas
-                    consultarAsistenciaEmpleado(1, $btnAsistencia.data('documento'), $btnAsistencia.data('fecha'), 0);
+                    consultarAsistenciaEmpleado(1, $btnAsistencia.data('documento'), $btnAsistencia.data('fecha'), 0, $btnAsistencia.data('idAsistencia'));
                     break;
             }
+
         } else {
+
             swal('Error!', 'Ocurrio un error en la ejecuación e esta acción', 'error');
+        
         }
     });
     // ...
@@ -332,7 +338,7 @@ function tagEstado(estado) {
     return mensaje;
 }
 //... Pendiente actualizar
-function consultarAsistenciaEmpleado(i, doc, fecha, accion, idAsistencia) { //Tipo de busqueda, Documento, Fecha, acccion
+function consultarAsistenciaEmpleado(i, doc, fecha, accion, idAsistencia) { //Tipo de busqueda, Documento, Fecha, acccion (Pendiente modificar)
     var op = 0;
     var des = 0;
     $.post(baseurl + 'Empleado/cAsistencia/asistenciaPorEmpleado', {
@@ -365,10 +371,11 @@ function consultarAsistenciaEmpleado(i, doc, fecha, accion, idAsistencia) { //Ti
                                         '</table>');
         // Agregar la informacion a la tabla
         $.each(result, function(index, row) {
+
             if (op == 0 && (i == 1 || i == 2)) {
                 // consultarHorasRealizadosEmpleadoFecha(row.documento, row.fecha_inicio);
                 if (i == 1) {
-                    consultarHorasTrabajadasDia(row.documento, row.fecha_inicio);
+                    consultarHorasTrabajadasDia(row.idAsistencia);
                     $divHorasTrabajadas.show();
                 } else if (i == 2) {
                     $divHorasTrabajadas.hide();
@@ -377,8 +384,8 @@ function consultarAsistenciaEmpleado(i, doc, fecha, accion, idAsistencia) { //Ti
             }
             // ...
             if (des == 0) {
-                $btnAsistencia.data('fecha', row.fecha_inicio);
-                $btnModificarAsistencia.data('fecha', row.fecha_inicio);
+                $btnAsistencia.data('fecha', row.inicio);
+                $btnModificarAsistencia.data('fecha', row.inicio);
                 des = 1;
             }
             // ...
@@ -387,9 +394,9 @@ function consultarAsistenciaEmpleado(i, doc, fecha, accion, idAsistencia) { //Ti
                                                                 (i == 0 ? '<td>' + row.documento + '</td>' : '') + 
                                                                 (i == 0 ? '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' : '') + 
                                                                 '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + 
-                                                                '<td>' + (accion == 0 ? row.inicio : '<input class="from-control inputAsistencia" maxlength="8" type="text" value="' + row.inicio + '">') + '</td>' + 
+                                                                '<td>' + (accion == 0 ? row.inicio : '<input class="from-control inputAsistencia" maxlength="20" type="text" value="' + row.inicio + '">') + '</td>' + 
                                                                 (i == 0 ? '' : '<td>' + row.lectorI + '</td>') + 
-                                                                '<td>' + (accion == 0 ? (row.fin == null ? '-' : row.fin) : '<input class="from-control inputAsistencia" maxlength="8" type="text" value="' + (row.fin == null ? '' : row.fin) + '">') + '</td>' +
+                                                                '<td>' + (accion == 0 ? (row.fin == null ? '-' : row.fin) : (row.fin == null ? '-' : '<input class="from-control inputAsistencia" maxlength="20" type="text" value="' + (row.fin == null ? '' : row.fin) + '">')) + '</td>' +
                                                                 (i == 0 ? '' : '<td>' + (row.lectorF == null ? '-' : row.lectorF) + '</td>') + 
                                                                 '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + 
                                                                 (i != 0 ? '<td>' + (row.horas == null ? '-' : row.horas) + '</td>' : '') + 
@@ -465,6 +472,7 @@ function mostrarDetalle(doc, nombre, idAsistencia) {
     var info = doc.split(';');
     $tituloModal.text('Detalle Asistencia:  ' + nombre);
     consultarAsistenciaEmpleado(1, info[0], info[1], 0, idAsistencia); //...Ultimo argumento es la accion
+    $btnAsistencia.data('idAsistencia', idAsistencia)
     consultarPermisosEmpleadosDia(info[0], formatoFecha(info[1]));
 }
 
@@ -528,7 +536,7 @@ function consultarAsistenciasDia() {
                                     '<td>' + clasificarStatus(row.asistencia) + '</td>' +
                                     '<td>' + (row.horaLlegada === null ? "-" : row.horaLlegada) + '</td>' +
                                     '<td>' + (row.horaSalida === null ? "-" : row.horaSalida) + '</td>' + 
-                                    '<td>' + '<button value="' + row.documento + '" type="button" onclick="mostrarDetalleDiario(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '\')" class="btn btn-success"' + (row.asistencia == 0 ? 'disabled' : '') + '><span><i class="fas fa-eye"></i> ver' + '</span></button>' + '&nbsp;&nbsp;' + ((row.asistencia == 1 || row.asistencia == 1) ? ('<button value="' + row.documento + '" type="button" onclick="cerrarEventosLaboral(this.value);" class="btn btn-danger"><span><i class="fas fa-times-circle"></i> Cerrar' + '</span></button>') : ('')) + '</td>' + '</tr>');
+                                    '<td>' + '<button value="' + row.documento + '" type="button" onclick="mostrarDetalleDiario(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '\')" class="btn btn-success"' + (row.asistencia == 0 ? 'disabled' : '') + '><span><i class="fas fa-eye"></i> ver' + '</span></button>' + '&nbsp;&nbsp;' + (row.asistencia == 1 ? ('<button value="' + row.documento + '" type="button" onclick="cerrarEventosLaboral(this.value);" class="btn btn-danger"><span><i class="fas fa-times-circle"></i> Cerrar' + '</span></button>') : ('')) + '</td>' + '</tr>');
         });
         //Formato del data table
         $('#tblAsistenciaEmpleadoDia').DataTable(configDataTable());
@@ -654,7 +662,7 @@ function valida(e) {
     return patron.test(tecla_final);
 }
 //Se encarga de darle un formato estandar a la fecha que es YYYY-MM-DD
-function formatoFecha(fecha) {
+function formatoFecha(fecha) { // esto se va a eliminar por que ya no se necesita...
     var v = fecha.split('-');
     return v[2] + '-' + v[1] + '-' + v[0];
 }
