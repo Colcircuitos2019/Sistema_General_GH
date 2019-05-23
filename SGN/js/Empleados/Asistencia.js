@@ -203,7 +203,7 @@ function consultarAsistenciaRangoFechas() { //Tipo de busqueda, Documento y Fech
         $tabla4.html('<table class="display" id="tblFechas">' + '<thead id="Cabeza">' + '<th>ID</th>' + '<th>Documento</th>' + '<th>Nombre</th>' + '<th>Evento</th>' + '<th>Fecha Inicio</th>' + '<th>Hora inicio</th>' + '<th>Fecha fin</th>' + '<th>Hora fin</th>' + '<th>Estado</th>' + '<th>Detalle</th>' + '</thead>' + '<tbody id="cuerpoF">' + '</tbody>' + '</table>');
         // Agregar la informacion a la tabla
         $.each(result, function(index, row) {
-            $('#cuerpoF').append('<tr>' + '<th>' + row.idAsistencia + '</th>' + '<td>' + row.documento + '</td>' + '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' + '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + '<td>' + row.fecha_inicio + '</td>' + '<td>' + row.hora_inicio + '</td>' + '<td>' + row.fecha_fin + '</td>' + '<td>' + row.hora_fin + '</td>' + '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + '<td>' + '<button value="' + row.documento + ';' + row.fecha_inicio + '" type="button" onclick="mostrarDetalle(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ','+ row.idAsistencia +')" class="btn btn-success "><span><i class="fas fa-eye"></i> ver' + '</span></button></td>' + '</tr>');
+            $('#cuerpoF').append('<tr>' + '<th>' + row.idAsistencia + '</th>' + '<td>' + row.documento + '</td>' + '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' + '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + '<td>' + row.fecha_inicio + '</td>' + '<td>' + row.hora_inicio + '</td>' + '<td>' + row.fecha_fin + '</td>' + '<td>' + row.hora_fin + '</td>' + '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + '<td>' + '<button value="' + row.documento + ';' + row.fecha_inicio + '" type="button" onclick="mostrarDetalle(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ','+ row.idAsistencia +'\','+row.idAsistencia+')" class="btn btn-success "><span><i class="fas fa-eye"></i> ver' + '</span></button></td>' + '</tr>');
         });
         //Formato del data table
         $('#tblFechas').DataTable();
@@ -223,13 +223,16 @@ function consultarHorasTrabajadasDia(idAsistencia) {
         $textDecrip.val('');
         $.each(result, function(index, row) {
             // Validar que tipo de horas son, horas normales o horas extras
-            if (row.idEvento_laboral == 1) {
-                $horasNormales.val(row.numero_horas);
-            } else if (row.idEvento_laboral == 2) {
-                $horasExtras.val(row.numero_horas);
-                $horasAceptadas.val(row.horas_aceptadas);
-                $horasRechazadas.val(row.horas_rechazadas);
-                $textDecrip.val(row.descripcion);
+            switch(Number(row.idEvento_laboral)){
+                case 1: // Horas trabajadas normales
+                    $horasNormales.val(row.numero_horas);    
+                    break;
+                case 2: // Horas trabajadas extra
+                    $horasExtras.val(row.numero_horas);
+                    $horasAceptadas.val(row.horas_aceptadas);
+                    $horasRechazadas.val(row.horas_rechazadas);
+                    $textDecrip.val(row.descripcion);                    
+                    break;
             }
         });
     });

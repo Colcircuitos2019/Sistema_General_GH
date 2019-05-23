@@ -1,4 +1,5 @@
 <?php 
+# Esta tarea programada se va a ejecutar todos los días a las 4:35 PM y a las 11:30 PM.
 
 # Consultar todos los operarios que tengan una 
 

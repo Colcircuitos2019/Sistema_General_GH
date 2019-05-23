@@ -1,0 +1,1 @@
+C:\xampp\php\php.exe -f C:\xampp\htdocs\Sistema_General_GH\cronCierreDeAsistenciasAbiertas.php

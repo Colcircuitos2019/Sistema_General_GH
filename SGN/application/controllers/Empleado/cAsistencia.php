@@ -113,9 +113,9 @@ class cAsistencia extends CI_Controller
 
     $info['idHorario'] = $idHorario;
     // 
-    $documento = $this->mAsistencia->registrarAsistenciaM($info);
+    $infoOperario = $this->mAsistencia->registrarAsistenciaM($info);
     // 
-    echo $documento;
+    echo json_encode($infoOperario);
 
     
   }

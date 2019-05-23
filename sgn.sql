@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:33066
--- Tiempo de generación: 22-05-2019 a las 23:31:20
+-- Tiempo de generación: 23-05-2019 a las 23:34:38
 -- Versión del servidor: 10.1.29-MariaDB
 -- Versión de PHP: 7.2.0
 
@@ -3104,10 +3104,11 @@ IF idAsistencia IS NOT null THEN
 
     END IF;
 
-    # Hora de salida de la empresa
-    SET fecha_fin_asistencia = (SELECT CONCAT(fecha_fin_asistencia, ' ', (SELECT c.hora_salida_empresa FROM configuracion c WHERE c.idConfiguracion = idHorario)));
 
-    IF TIMEDIFF(now(), fecha_fin_asistencia) > '07:00:00' THEN # La asistencia a pasado mas de 8 horas abierta o no tiene permiso de realizar tiempo extra. Pendiente
+    # Hora de salida de la empresa
+    SET fecha_fin_asistencia = (SELECT CONCAT(fecha_fin_asistencia, ' ', (SELECT c.hora_salida_empresa FROM configuracion c WHERE c.idConfiguracion = idHorario)));  
+
+    IF (now() > fecha_fin_asistencia) THEN # La asistencia a pasado mas de 7 horas abierta o no tiene permiso de realizar tiempo extra. Pendiente
       
       #Cerrar la asistencia
       IF (SELECT c.hora_inicio_desayuno FROM configuracion c WHERE c.idConfiguracion = idHorario) > '00:00:00' THEN
@@ -3126,15 +3127,45 @@ IF idAsistencia IS NOT null THEN
 
       # ...
 
-      #Cierra el evento de asistencia Laboral!!!
-      UPDATE asistencia a SET a.fin = fecha_fin_asistencia, a.lectorF = 0, a.estado = 0 WHERE a.idAsistencia = idAsistencia;
-      
-      #Acutualizar el estado del empleado en la empresa a 0=ausente
-      -- UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc; # Este campo en algun momento ya no se va a utilziar.
-      # ...
-      UPDATE asistencia a SET a.tiempo = (SELECT TIMEDIFF(fecha_fin_asistencia, fecha_inicio_asistencia)) WHERE a.idAsistencia = idAsistencia;
-      # ...
-      CALL SI_PA_CalcularRegistrarHorasTrabajadas(idHorario, 1 ,fecha_inicio_asistencia, fecha_fin_asistencia, idAsistencia);# Actualizar
+      #... La asistencia tiene permiso para acomular tiempo extra?
+      IF EXISTS(SELECT * FROM tiempo_extra t WHERE t.idAsistencia = idAsistencia) THEN
+
+        # va a consultar el tiempo extra...
+
+        UPDATE tiempo_extra t SET t.hora_fin_tiempo_extra = (SELECT ht.hora FROM hora_salida_tiempo_extra ht WHERE ht.idhora_salida_tiempo_extra = 1)  WHERE t.idAsistencia = idAsistencia;
+
+        SET fecha_fin_asistencia = ((SELECT  CONCAT(DATE_FORMAT(fecha_fin_asistencia, '%Y-%m-%d'),' ', t.hora_fin_tiempo_extra) FROM tiempo_extra t WHERE t.idAsistencia = idAsistencia));
+
+        IF (now() > fecha_fin_asistencia) THEN # La asistencia a pasado mas de 7 horas abierta o no tiene permiso de realizar tiempo extra. Pendiente
+
+          
+          #Cierra el evento de asistencia Laboral!!!
+          UPDATE asistencia a SET a.fin = fecha_fin_asistencia, a.lectorF = 0, a.estado = 0 WHERE a.idAsistencia = idAsistencia;
+          
+          #Acutualizar el estado del empleado en la empresa a 0=ausente
+          -- UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc; # Este campo en algun momento ya no se va a utilziar.
+          # ...
+          UPDATE asistencia a SET a.tiempo = (SELECT TIMEDIFF(fecha_fin_asistencia, fecha_inicio_asistencia)) WHERE a.idAsistencia = idAsistencia;
+          # ...
+          CALL SI_PA_CalcularRegistrarHorasTrabajadas(idHorario, 1 ,fecha_inicio_asistencia, fecha_fin_asistencia, idAsistencia);# Actualizar          
+
+        END IF;  
+
+      ELSE  
+
+        # No tiene tiempo extra
+
+        #Cierra el evento de asistencia Laboral!!!
+        UPDATE asistencia a SET a.fin = fecha_fin_asistencia, a.lectorF = 0, a.estado = 0 WHERE a.idAsistencia = idAsistencia;
+        
+        #Acutualizar el estado del empleado en la empresa a 0=ausente
+        -- UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc; # Este campo en algun momento ya no se va a utilziar.
+        # ...
+        UPDATE asistencia a SET a.tiempo = (SELECT TIMEDIFF(fecha_fin_asistencia, fecha_inicio_asistencia)) WHERE a.idAsistencia = idAsistencia;
+        # ...
+        CALL SI_PA_CalcularRegistrarHorasTrabajadas(idHorario, 1 ,fecha_inicio_asistencia, fecha_fin_asistencia, idAsistencia);# Actualizar
+
+      END IF;
 
     END IF;
 
@@ -3207,7 +3238,7 @@ END$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ConsultarHorasDeTrabajo` (IN `idAsistencia` VARCHAR(20))  NO SQL
 BEGIN
 
-SELECT h.idEvento_laboral,h.numero_horas AS numero_horas, h.horas_aceptadas, h.horas_rechazadas,h.descripcion FROM h_laboral h WHERE h.idAsistencia = idAsistencia AND h.Estado=1;
+SELECT h.idEvento_laboral,h.numero_horas AS numero_horas, h.horas_aceptadas, h.horas_rechazadas,h.descripcion FROM h_laboral h WHERE h.idAsistencia = idAsistencia;
 
 END$$
 
@@ -3713,8 +3744,13 @@ IF doc!='' THEN
               #Cierra el evento de asistencia Laboral!!!
               UPDATE asistencia a SET a.fin = now(), a.lectorF = lector, a.estado = 0 WHERE a.documento = doc AND a.idAsistencia = idAsistencia AND a.idConfiguracion = idHorario;
               
-              #Acutualizar el estado del empleado en la empresa a 0=ausente
-              -- UPDATE empleado e SET e.asistencia=0 WHERE e.documento=doc;
+              #valida la existencia de un permiso de tiempo extra...
+              IF EXISTS(SELECT * FROM tiempo_extra t WHERE t.idAsistencia = idAsistencia) THEN
+
+                UPDATE tiempo_extra t SET t.hora_fin_tiempo_extra = (SELECT ht.hora FROM hora_salida_tiempo_extra ht WHERE ht.idhora_salida_tiempo_extra = 1)  WHERE t.idAsistencia = idAsistencia;
+
+              END IF;
+
 
               SET horaInicioEvento = (SELECT a.inicio FROM asistencia a WHERE a.idAsistencia = idAsistencia);
               SET horaFinEvento = (SELECT a.fin FROM asistencia a WHERE a.idAsistencia = idAsistencia);
@@ -3815,6 +3851,8 @@ IF doc!='' THEN
 
   ELSE # Permiso es de tipo Salida e Ingreso
 
+    -- pendiente revisar (integracion con el modulo de permiso)
+
     #SET idAsistencia = (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.idTipo_evento=1 AND a.inicio is not null AND a.fin is null AND a.estado = 1);
     #SET idHorario = (SELECT a.idConfiguracion FROM asistencia a WHERE a.idAsistencia=idAsistencia);
 
@@ -3833,7 +3871,8 @@ IF doc!='' THEN
 END IF;
 #Condicional de documento.--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------7
     #Retornar el numero de documento de la persona perteneciente a la huella dactilar.
-    SELECT doc AS documento;
+    -- SELECT doc AS documento;
+    SELECT doc as documento, (SELECT CONCAT(LOWER(e.nombre1), ' ',LOWER(e.nombre2), ' ',LOWER(e.apellido1), ' ',LOWER(e.apellido2)) FROM empleado e WHERE e.documento = doc) as nombre;
 END$$
 
 CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_RegistroEventoAsistencia` (IN `doc` INT, IN `evento` INT, IN `lector` INT, IN `idHorario` INT, IN `fechaInicioEvento` VARCHAR(20), IN `fechaFinEvento` VARCHAR(20))  NO SQL
@@ -5481,9 +5520,12 @@ INSERT INTO `asistencia` (`idAsistencia`, `documento`, `idTipo_evento`, `inicio`
 (84, '1216727816', 1, '2019-05-21 07:11:22', '2019-05-21 16:30:00', 2, 0, 2, 0, '09:18:38', 1),
 (85, '1216727816', 2, '2019-05-21 10:04:45', '2019-05-21 10:30:00', 2, 0, 2, 2, '00:25:15', 1),
 (86, '1216727816', 3, '2019-05-21 12:43:17', '2019-05-21 13:00:00', 2, 0, 2, 2, '00:40:00', 1),
-(91, '1216727816', 1, '2019-05-22 06:30:00', '2019-05-22 13:42:14', 2, 0, 2, 2, '07:12:14', 1),
+(91, '1216727816', 1, '2019-05-22 06:30:00', '2019-05-22 22:30:00', 2, 0, 2, 0, '16:00:00', 1),
 (92, '1216727816', 2, '2019-05-22 10:30:00', '2019-05-22 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(93, '1216727816', 3, '2019-05-22 13:00:00', '2019-05-22 13:00:00', 3, 0, 0, 0, '00:40:00', 1);
+(93, '1216727816', 3, '2019-05-22 13:00:00', '2019-05-22 13:00:00', 3, 0, 0, 0, '00:40:00', 1),
+(97, '1216727816', 1, '2019-05-23 15:04:54', NULL, 2, 1, 2, NULL, NULL, 3),
+(98, '1216727816', 2, '2019-05-23 15:10:29', '2019-05-23 15:23:55', 2, 0, 2, 2, '00:13:26', 3),
+(99, '1216727816', 3, '2019-05-23 15:53:41', NULL, 1, 1, 2, NULL, NULL, 3);
 
 -- --------------------------------------------------------
 
@@ -5803,8 +5845,8 @@ CREATE TABLE `configuracion` (
 
 INSERT INTO `configuracion` (`idConfiguracion`, `nombre`, `hora_ingreso_empresa`, `hora_salida_empresa`, `hora_inicio_desayuno`, `hora_fin_desayuno`, `hora_inicio_almuerzo`, `hora_fin_almuerzo`, `tiempo_desayuno`, `tiempo_almuerzo`, `estado`, `tipo_horario`) VALUES
 (1, 'Primer horario laboral', '06:00:00', '16:30:00', '08:00:00', '10:30:00', '12:20:00', '13:00:00', '00:20:00', '00:40:00', 1, 0),
-(2, 'Segundo horario laboral', '10:55:00', '20:00:00', '11:00:00', '14:00:00', '17:00:00', '19:00:00', '00:15:00', '00:40:00', 1, 0),
-(3, 'Horario de los sabados', '06:00:00', '12:00:00', '08:30:00', '09:30:00', '10:00:00', '10:00:02', '00:15:00', '00:40:00', 1, 2),
+(2, 'Segundo horario laboral', '10:55:00', '20:00:00', '11:00:00', '14:00:00', '17:00:00', '19:00:00', '00:05:00', '00:40:00', 1, 0),
+(3, 'Horario de los sabados', '15:00:00', '23:00:00', '15:07:00', '15:30:00', '15:50:00', '17:00:00', '00:05:00', '00:40:00', 1, 2),
 (4, 'Prueba de desarrollo', '16:35:00', '09:30:00', '22:41:00', '03:00:00', '04:15:00', '08:34:00', '00:20:00', '00:40:00', 1, 0),
 (5, 'Horario días normales por defecto', '06:30:00', '17:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:20:00', '00:40:00', 1, 1);
 
@@ -7715,7 +7757,7 @@ CREATE TABLE `hora_salida_tiempo_extra` (
 --
 
 INSERT INTO `hora_salida_tiempo_extra` (`idhora_salida_tiempo_extra`, `hora`) VALUES
-(1, '19:30:00');
+(1, '22:30:00');
 
 -- --------------------------------------------------------
 
@@ -7742,7 +7784,7 @@ INSERT INTO `h_laboral` (`idH_laboral`, `idAsistencia`, `idEvento_laboral`, `num
 (17, 84, 1, '08:13:23', 1, NULL, '08:13:23', '0'),
 (18, 35, 1, '15:48:19', 1, NULL, '15:48:19', '0'),
 (19, 79, 1, '09:00:46', 1, NULL, '09:00:46', '0'),
-(20, 91, 1, '04:12:29', 1, NULL, '04:12:29', '0');
+(20, 91, 1, '09:30:00', 1, NULL, '09:30:00', '0');
 
 -- --------------------------------------------------------
 
@@ -13770,7 +13812,8 @@ INSERT INTO `notificacion` (`idNotificacion`, `fecha`, `comentario`, `leido`, `i
 (357, '2019-05-17 12:46:04', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
 (358, '2019-05-20 06:30:15', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
 (359, '2019-05-21 06:51:19', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(360, '2019-05-22 06:49:04', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4);
+(360, '2019-05-22 06:49:04', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
+(361, '2019-05-23 07:17:17', 'El dia de hoy 1 llego/aron tarde...', 0, 7, 4);
 
 -- --------------------------------------------------------
 
@@ -18476,7 +18519,8 @@ CREATE TABLE `tiempo_extra` (
 --
 
 INSERT INTO `tiempo_extra` (`idtiempo_extra`, `idAsistencia`, `hora_fin_tiempo_extra`) VALUES
-(8, 84, NULL);
+(8, 84, NULL),
+(20, 91, '22:30:00');
 
 -- --------------------------------------------------------
 
@@ -19155,7 +19199,7 @@ ALTER TABLE `area_trabajo`
 -- AUTO_INCREMENT de la tabla `asistencia`
 --
 ALTER TABLE `asistencia`
-  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
+  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=100;
 
 --
 -- AUTO_INCREMENT de la tabla `auxilio`
@@ -19293,7 +19337,7 @@ ALTER TABLE `hora_salida_tiempo_extra`
 -- AUTO_INCREMENT de la tabla `h_laboral`
 --
 ALTER TABLE `h_laboral`
-  MODIFY `idH_laboral` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `idH_laboral` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
 
 --
 -- AUTO_INCREMENT de la tabla `incapacidad`
@@ -19341,7 +19385,7 @@ ALTER TABLE `municipio`
 -- AUTO_INCREMENT de la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
-  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=361;
+  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=362;
 
 --
 -- AUTO_INCREMENT de la tabla `otros`
@@ -19437,7 +19481,7 @@ ALTER TABLE `tablet_piso`
 -- AUTO_INCREMENT de la tabla `tiempo_extra`
 --
 ALTER TABLE `tiempo_extra`
-  MODIFY `idtiempo_extra` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `idtiempo_extra` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT de la tabla `tiempo_teorico_semanal`

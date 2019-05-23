@@ -94,7 +94,7 @@ class mAsistencia extends CI_Model
 
 		$r=$query->row();
 
-		return $r->documento;  	
+		return $r;  	
     }
     // Se encarga de modificar la informacion de las asistencias de los empleados
     public function modificarAsistenciaEmpleadoManualM($info)

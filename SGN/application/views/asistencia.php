@@ -42,6 +42,11 @@
         </meta>
     </head>
     <body onload="nobackbutton();">
+        <style type="text/css">
+            h5{
+                text-transform: capitalize;
+            }
+        </style>
         <div class="limiter">
             <div class="container-login100">
                 <div class="wrap-login100">
@@ -98,7 +103,7 @@
         <script src="<?php echo base_url();?>assets/login/vendor/daterangepicker/daterangepicker.js">
         </script>
         <!--===============================================================================================-->
-        <!-- <script src="<?php echo base_url();?>assets/login/vendor/countdowntime/countdowntime.js"></script> -->
+        <!-- <script src="<?php //echo base_url();?>assets/login/vendor/countdowntime/countdowntime.js"></script> -->
         <!--===============================================================================================-->
         <script src="<?php echo base_url();?>assets/login/js/main.js">
         </script>
@@ -138,16 +143,18 @@
         </script>
         <!-- Acciones -->
         <script type="text/javascript">
-            $('#asistir').submit(function(event) {//Hasta acá se llego el 02-10-2018
+            $('#asistir').submit(function(event) {
     		event.preventDefault();
     		// ...
     		if ($('#contra').val()!='') {
-    			$.post(baseurl+'Empleado/cAsistencia/registrarAsistenciaEmpleado', {contra: $('#contra').val()}, function(documento) {
+    			$.post(baseurl+'Empleado/cAsistencia/registrarAsistenciaEmpleado', {contra: $('#contra').val()}, function(infoDB) {
+
+                    var infoOperario = JSON.parse(infoDB);
     				// ...
-    				if (documento!='' && documento!='-1' && documento!='-2' && documento!='3' && documento!='4') {
+    				if (infoOperario.documento!='' && infoOperario.documento!='-1' && infoOperario.documento!='-2' && infoOperario.documento!='3' && infoOperario.documento!='4') {
     					// swal('Realizado','Asistencia registrada','success');
     					// Consultar la asistencia del día del empleado
-    					$.post(baseurl+'Empleado/cAsistencia/consultarTipoAsistencia', {doc: documento}, function(data) {
+    					$.post(baseurl+'Empleado/cAsistencia/consultarTipoAsistencia', {doc: infoOperario.documento}, function(data) {
     						// ...
     						var respuesta= JSON.parse(data);
     						// ...
@@ -155,17 +162,19 @@
     							// Tipo de evento 1=Laboral, 2=Desayuno y 3=Almuerzo
     							switch(Number(row.inicioFinEvento)){//Optimizar codigo
     								case 0://Inicio de la toma de tiempo indiferente del tipo de evento...
-    									if (row.idTipo_evento==1) {//Evento laboral (Inicio de evento)
-    										if (row.idEstado_asistencia==1) {//Llego a tiempo
+    									if (row.idTipo_evento == 1) {//Evento laboral (Inicio de evento)
+    										if (row.idEstado_asistencia == 1) {//Llego a tiempo
     											swal({
     											  title: 'A tiempo...',
     											  type: 'success',
+                                                  html: '<br><h5>'+infoOperario.nombre+'</h5><br>',
     											  timer:2000,
     											  backdrop: `rgba(0, 236, 44, 0.3)`
     											});
     										}else{//Llego tarde
     											swal({
     											  title: 'Llegada tarde',
+                                                  html: '<br><h5>'+infoOperario.nombre+'</h5><br>',
     											  type: 'warning',
     											  animation: false,
     											  customClass: 'animated tada',
@@ -176,7 +185,7 @@
     									}else{//Los otros eventos desayuno y almuerzo (inicio de los eventos)
                                             swal({
                                                 title: 'Toma de asistencia',
-                                                text: 'toma de tiempo de evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo'),
+                                                html: '<br><h5>'+infoOperario.nombre+'</h5>'+'<br>Toma de tiempo de evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
                                                 type: 'question',
                                                 timer: 2000,
                                                 buttons: false 
@@ -184,9 +193,10 @@
     									}
     									break;
     								case 1://Ya finalizo la toma de tiempos//Falta mostrar cuando se termina el dia laboral
-    									if (row.idTipo_evento==1) {//Evento laboral (Fin del evento)
+    									if (row.idTipo_evento == 1) {//Evento laboral (Fin del evento)
     										swal({
     										  title: 'Fin del dia laboral',
+                                              html: '<br><h5>'+infoOperario.nombre+'</h5><br>',
     										  type: 'success',
     										  timer: 2000,
     										  backdrop: `rgba(0, 236, 44, 0.3)`
@@ -196,7 +206,7 @@
     											case 1://Llegada a tiempo
     												swal({
     												  title: 'A tiempo...',
-    												  text: 'Llegaste a tiempo del evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo'),
+    												  html: '<br><h5>'+infoOperario.nombre+'</h5>'+'<br>Llegaste a tiempo del evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo') + '<br>',
     												  type: 'success',
     												  timer:2000,
     												  backdrop: `rgba(0, 236, 44, 0.3)`
@@ -205,7 +215,7 @@
     											case 2://Llegada tarde
     											    swal({
     											      title: 'Llegada tarde',
-    											      text: 'Llegaste tarde del evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo'),
+    											      html: '<br><h5>'+infoOperario.nombre+'</h5>'+'<br>Llegaste tarde del evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
     											      type: 'warning',
     											      animation: false,
     											      timer:2000,
@@ -216,7 +226,7 @@
     											case 3://No asistio al evento
     												swal({
     												  title: 'No asistio al evento',
-    												  text: 'No asististe al evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo'),
+    												  html: '<br><h5>'+infoOperario.nombre+'</h5>'+'No asististe al evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
     												  timer:2000,
     												  backdrop: `rgba(255, 252, 0, 0.3)`
     												});
@@ -230,8 +240,6 @@
     					// Limpiar componenete de contraseña
     					$('#contra').val('');
                         $('#contra').focus();
-                        // var ID= '<?php //echo $_SERVER['REMOTE_ADDR']; ?>';
-                        // console.log(ID);
     					// ...
     				}else{
                         // ...
@@ -263,7 +271,7 @@
                             case '4'://Ingreso a la empresa
                                 title='Realizado';
                                 typeS='success';
-                                mensaje=(documento=='3'?'Saliste de permiso de la empresa':'Ingresas a la empresa de un permiso.');
+                                mensaje=(documento == '3'?'Saliste de permiso de la empresa':'Ingresas a la empresa de un permiso.');
                                 color='rgba(0, 236, 44, 0.3)';//verde
                                 break;
                         }
