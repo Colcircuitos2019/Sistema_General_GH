@@ -31,7 +31,9 @@ var $contra2M = $('#contraseña2M');
 var $correoM = $('#correoM');
 var $manufacturaM = $('#manufacturaM');
 //Se ejecuta cuando carga la pagina
+
 consultarEmpresas($('#Empresas'));
+
 $(document).ready(function() {
     // ...
     //Importar empleados
@@ -313,8 +315,18 @@ function consultarEmpelados($doc) {
             // html de la Tabla se empelados
             $('#tblTable').html('<table class="display" id="Empelados">' + '<thead id="cabeza">' + '<th>Documento</th>' + '<th>Nombre</th>' + '<th>Rol</th>' + '<th>Piso</th>' + '<th>Genero</th>' + '<th>Estado</th>' + '<th>Acciones</th>' + '</thead>' + '<tbody id="cuerpo">' + '</tbody>' + '</table>');
             var $cuerpo = $('#cuerpo');
+            
             $.each(result, function(index, row) {
-                $cuerpo.append('<tr>' + '<td>' + row.documento + '</td>' + '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '</td>' + '<td>' + clasificarRol(row.idRol) + '</td>' + '<td>Piso-' + row.piso + '</td>' + '<td>' + calsificarGenero(row.genero) + '</td>' + '<td>' + clasificarEstado(row.estado) + '</td>' + '<td>' + '<button value="' + row.documento + '" onclick="mostrarModal(this.value)"  type="button" class="btn btn-primary tamaño editar"><span><i class="far fa-edit"></i>Editar</span></button></p>' + '<button value="' + row.documento + '" type="button"' + clasificarBoton(row.estado,1,0) + '</span></button>' + (row.idRol==1?(row.asistencia==0?'&nbsp;<button value="' + row.documento + '" type="button" class="btn btn-warning btn-xs" onclick="mostrarModarHorariosConfiguracion(this.value);"><span><i class="far fa-clock"></i> Horario</span></button>':''):'') + '</td>' + '</tr>');
+                $cuerpo.append('<tr>' + 
+                                    '<td>' + row.documento + '</td>' + 
+                                    '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '</td>' +
+                                    '<td>' + clasificarRol(row.idRol) + '</td>' + 
+                                    '<td>Piso-' + row.piso + '</td>' + 
+                                    '<td>' + calsificarGenero(row.genero) + '</td>' + 
+                                    '<td>' + clasificarEstado(row.estado) + '</td>' + 
+                                    '<td>' +
+                                     '<button value="' + row.documento + '" onclick="mostrarModal(this.value)"  type="button" class="btn btn-primary tamaño editar"><span><i class="far fa-edit"></i>Editar</span></button></p>' + 
+                                     '<button value="' + row.documento + '" type="button"' + clasificarBoton(row.estado,1,0) + '</span></button>' + (row.idRol==1?(row.asistencia==0?'&nbsp;<button value="' + row.documento + '" type="button" class="btn btn-warning btn-xs" onclick="mostrarModarHorariosConfiguracion(this.value);"><span><i class="far fa-clock"></i> Horario</span></button>':''):'') + '</td>' + '</tr>');
             });
             // Inicializacion de data table
             $('#Empelados').DataTable({

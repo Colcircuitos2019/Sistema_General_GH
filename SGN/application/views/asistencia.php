@@ -151,8 +151,9 @@
 
                     var infoOperario = JSON.parse(infoDB);
     				// ...
-    				if (infoOperario.documento!='' && infoOperario.documento!='-1' && infoOperario.documento!='-2' && infoOperario.documento!='3' && infoOperario.documento!='4') {
+    				if (infoOperario.documento!=null && infoOperario.documento!='-1' && infoOperario.documento!='-2' && infoOperario.documento!='3' && infoOperario.documento!='4') {
     					// swal('Realizado','Asistencia registrada','success');
+
     					// Consultar la asistencia del día del empleado
     					$.post(baseurl+'Empleado/cAsistencia/consultarTipoAsistencia', {doc: infoOperario.documento}, function(data) {
     						// ...
@@ -247,14 +248,14 @@
                         var mensaje='';
                         var title='';
                         var color='';
-                        switch(documento){
+                        switch(infoOperario.documento){
                             case '-1':
                                 title='Alerta!';
                                 typeS='warning';
                                 mensaje='El empleado no cuenta con un horario para el día de hoy.';
                                 color='rgba(255, 252, 0, 0.3)';//Amarillo
                                 break;
-                            case '':
+                            case null:
                                 title='Alerta!';
                                 typeS='error';
                                 mensaje='El ususario o la contraseña es incorrecto';

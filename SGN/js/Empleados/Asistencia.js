@@ -23,7 +23,7 @@ var $btnModificarAsistencia = $('#modificarAsistencia');
 $(document).ready(function() {
     //DateTimePiker
     $('.fh-date').datepicker({
-        format: "dd-mm-yyyy",
+        format: "yyyy-mm-dd",
         language: "es",
         multidate: false
     });
@@ -35,7 +35,7 @@ $(document).ready(function() {
 
         if ($('#doc').val() != '') {
 
-            consultarAsistenciaEmpleado(0, $('#doc').val(), '', 0, 0);
+            consultarAsistenciaEmpleado(0, $('#doc').val(), '', 0, 0, 0);
 
         } else {
 
@@ -131,12 +131,16 @@ $(document).ready(function() {
         });
     });
     // ...
-    $('#exportarDocumentoTiempos').click(function(event) {
+    $('#exportarAsistenciasEmpleado').click(function(event) {
         event.preventDefault();
         if ($fecha1.val() != '' && $fecha2.val() != '') {
-            window.open(baseurl + 'Empleado/cAsistencia/generarLiquidacionTiempos?fecha1=' + formatoFecha($fecha1.val()) + '&fecha2=' + formatoFecha($fecha2.val()), '_blank');
+
+            window.open(baseurl + 'Empleado/cAsistencia/reporte_Asistencia_operarios?fechaInicio=' + $fecha1.val() + '&fechaFin=' + $fecha2.val(), '_blank');
+        
         } else {
+        
             swal('Alerta!', 'Deben ingresar un rango de fecha obligatoriamente', 'warning');
+        
         }
     });
 });
@@ -200,10 +204,27 @@ function consultarAsistenciaRangoFechas() { //Tipo de busqueda, Documento y Fech
         var result = JSON.parse(data);
         // Limpiar la tabla
         $tabla4.empty();
-        $tabla4.html('<table class="display" id="tblFechas">' + '<thead id="Cabeza">' + '<th>ID</th>' + '<th>Documento</th>' + '<th>Nombre</th>' + '<th>Evento</th>' + '<th>Fecha Inicio</th>' + '<th>Hora inicio</th>' + '<th>Fecha fin</th>' + '<th>Hora fin</th>' + '<th>Estado</th>' + '<th>Detalle</th>' + '</thead>' + '<tbody id="cuerpoF">' + '</tbody>' + '</table>');
+        $tabla4.html('<table class="display" id="tblFechas">' + '<thead id="Cabeza">' + '<th>ID</th>' + '<th>¿Tiempo extra?</th>' + '<th>Documento</th>' + '<th>Nombre</th>' + '<th>Evento</th>' + '<th>Fecha Inicio</th>' + '<th>Hora inicio</th>' + '<th>Fecha fin</th>' + '<th>Hora fin</th>' + '<th>Estado</th>' + '<th>Detalle</th>' + '</thead>' + '<tbody id="cuerpoF">' + '</tbody>' + '</table>');
         // Agregar la informacion a la tabla
         $.each(result, function(index, row) {
-            $('#cuerpoF').append('<tr>' + '<th>' + row.idAsistencia + '</th>' + '<td>' + row.documento + '</td>' + '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' + '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + '<td>' + row.fecha_inicio + '</td>' + '<td>' + row.hora_inicio + '</td>' + '<td>' + row.fecha_fin + '</td>' + '<td>' + row.hora_fin + '</td>' + '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + '<td>' + '<button value="' + row.documento + ';' + row.fecha_inicio + '" type="button" onclick="mostrarDetalle(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ','+ row.idAsistencia +'\','+row.idAsistencia+')" class="btn btn-success "><span><i class="fas fa-eye"></i> ver' + '</span></button></td>' + '</tr>');
+            $('#cuerpoF').append('<tr>' + '<th>' + row.idAsistencia + '</th>' + 
+                                          // '<td>' + row.tiempo_extra + '</td>' +
+                                          '<td><div class="checkbox">'+
+                                              '<label style="font-size: 1.2em">'+
+                                              '<input type="checkbox" disabled '+(row.tiempo_extra == 1?"checked":"")+' >'+
+                                              '<span class="cr"><i class="cr-icon fa fa-check"></i></span>'+  
+                                              '</label>'+
+                                          '</div></td>' +
+                                          '<td>' + row.documento + '</td>' + 
+                                          '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' + 
+                                          '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + 
+                                          '<td>' + row.fecha_inicio + '</td>' + 
+                                          '<td>' + row.hora_inicio + '</td>' + 
+                                          '<td>' + row.fecha_fin + '</td>' + 
+                                          '<td>' + row.hora_fin + '</td>' + 
+                                          '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' +
+                                          '<td>' +
+                                             '<button value="' + row.documento + ';' + row.fecha_inicio + '" type="button" onclick="mostrarDetalle(this.value,\'' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ','+ row.idAsistencia +'\','+row.idAsistencia+')" class="btn btn-success "><span><i class="fas fa-eye"></i> ver' + '</span></button></td>' + '</tr>');
         });
         //Formato del data table
         $('#tblFechas').DataTable();
@@ -358,6 +379,7 @@ function consultarAsistenciaEmpleado(i, doc, fecha, accion, idAsistencia) { //Ti
         (i == 0 ? $tabla2 : $tabla3).html('<table class="display"' + (i == 0 ? 'id="tblAsistenciaEmpleado"' : 'id="tblAsistenciaEmpleadoM"') + '>' +
                                             '<thead id="Cabeza">' + 
                                                 '<th>ID</th>' + 
+                                                (i == 0 ? '<th>¿Tiempo extra?</th>':'') + 
                                                 (i == 0 ? '<th>Documento</th>':'') + 
                                                 (i == 0 ? '<th>Nombre</th>' : '') + 
                                                 '<th>Evento</th>' + 
@@ -394,6 +416,12 @@ function consultarAsistenciaEmpleado(i, doc, fecha, accion, idAsistencia) { //Ti
             // ...
             (i == 0 ? $('#cuerpo') : $('#cuerpoM')).append('<tr>' + 
                                                                 '<th data-idhorario="' + row.idConfiguracion + '">' + row.idAsistencia + '</th>' + 
+                                                                (i == 0 ? '<td><div class="checkbox">'+
+                                                                                '<label style="font-size: 1.2em">'+
+                                                                                '<input type="checkbox" disabled '+(row.tiempo_extra == 1?"checked":"")+' >'+
+                                                                                '<span class="cr"><i class="cr-icon fa fa-check"></i></span>'+  
+                                                                                '</label>'+
+                                                                            '</div></td>' : '') + 
                                                                 (i == 0 ? '<td>' + row.documento + '</td>' : '') + 
                                                                 (i == 0 ? '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' : '') + 
                                                                 '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + 
@@ -594,6 +622,7 @@ function consultarAsistenciaEventoDia(evento) {//tabla eventos desayunos del dia
                             '<th>Lector I</th>' + 
                             '<th>Fecha Fin</th>' + 
                             '<th>Lector F</th>' + 
+                            '<th>Estado</th>' + 
                             '<th>Tiempo</th>' + 
                         '</thead>' + 
                     '<tbody id="cuerpoEvento'+evento+'">' + 
@@ -602,16 +631,20 @@ function consultarAsistenciaEventoDia(evento) {//tabla eventos desayunos del dia
         // Agregar la informacion a la tabla
         $.each(result, function(index, row) {
             // debugger;
-            // e.documento, e.nombre1,e.nombre2,e.apellido1,e.apellido2,a.fecha_inicio,a.hora_inicio,a.lectorI,a.fecha_fin,a.hora_fin,a.lectorF,a.idEstado_asistencia,a.tiempo                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  //Se puede cerrar una asistencia si el empleado esta de permiso Salida e ingreso? Preguntar
-            $('#cuerpoEvento'+evento).append('<tr>' + 
+            if (row.idAsistencia != null) {
+
+                // e.documento, e.nombre1,e.nombre2,e.apellido1,e.apellido2,a.fecha_inicio,a.hora_inicio,a.lectorI,a.fecha_fin,a.hora_fin,a.lectorF,a.idEstado_asistencia,a.tiempo                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  //Se puede cerrar una asistencia si el empleado esta de permiso Salida e ingreso? Preguntar
+                $('#cuerpoEvento' + evento).append('<tr>' + 
                                      '<td>' + row.documento + '</td>' +
                                      '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '</td>' + 
                                      '<td>' + row.inicio + '</td>' + 
                                      '<td>' + row.lectorI+ '</td>' + 
                                      '<td>' + row.fin+ '</td>' + 
                                      '<td>' + row.lectorF + '</td>' + 
+                                     '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + 
                                      '<td>' + row.tiempo + '</td>' + 
                                    '</tr>');
+            }
         });
         //Formato del data table
         $('#tblEventosOp'+evento).DataTable(configDataTable());

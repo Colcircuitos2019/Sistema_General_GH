@@ -268,7 +268,7 @@
                       <button type="button" id="buscarAsistenciaFecha" class="btn btn-primary">
                         Buscar
                       </button>&nbsp;
-                      <a class="pull-right" id="exportarDocumentoTiempos">Exportar Tiempo Trabajado</a>             
+                      <a class="pull-right" id="exportarAsistenciasEmpleado">Exportar asistencias</a>             
                     </div>
                     <br>
               <div class="col-sm-12">

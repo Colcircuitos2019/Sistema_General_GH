@@ -112,6 +112,7 @@ class cAsistencia extends CI_Controller
     $idHorario=$this->seleccionarIDHorarioEmpeladoPrueba($info['contra'], 1);//Consultar horario del empleado por contraseña unica. Este es el actual
 
     $info['idHorario'] = $idHorario;
+    // var_dump($info['idHorario']);
     // 
     $infoOperario = $this->mAsistencia->registrarAsistenciaM($info);
     // 
@@ -529,7 +530,7 @@ class cAsistencia extends CI_Controller
     $this->pdf->Output(utf8_decode('Asistencia Empleados').".pdf", 'I');
   }
 
-    public function generarLiquidacionTiempos()
+    public function reporte_Asistencia_operarios()// => Pendiente por modificar
     {
       $this->load->model('Empleado/mHistorial');
 
@@ -557,8 +558,8 @@ class cAsistencia extends CI_Controller
         // ...
         // Obtener las fechas------------------------------------------>
 
-        $info['fechaI']=$_GET['fecha1'];
-        $info['fechaF']=$_GET['fecha2'];
+        $info['fechaInicio']=$_GET['fechaInicio'];
+        $info['fechaFin']=$_GET['fechaFin'];
 
         // Header del Excel-------------------------------------------->
 
@@ -567,67 +568,151 @@ class cAsistencia extends CI_Controller
         // Fecha de Fin
         $objExcel->getActiveSheet()->setCellValue('C2','Fecha Fin');
         // Fecha Inicio 
-        $objExcel->getActiveSheet()->setCellValue('B3',$info['fechaI']);
+        $objExcel->getActiveSheet()->setCellValue('B3',$info['fechaInicio']);
         // Fecha de Fin
-        $objExcel->getActiveSheet()->setCellValue('C3',$info['fechaF']);
+        $objExcel->getActiveSheet()->setCellValue('C3',$info['fechaFin']);
         // Numero de documento
         $objExcel->getActiveSheet()->setCellValue('B4','Documento');
-        // Empleado
-        $objExcel->getActiveSheet()->setCellValue('C4','Nombre empleado');
-        // Empresa
-        $objExcel->getActiveSheet()->setCellValue('D4','Empresa');
-        // Tiempo Total trabajado
-        $objExcel->getActiveSheet()->setCellValue('E4','Tiempo Total Trabajado');
+        // Horario de la asistencia
+        $objExcel->getActiveSheet()->setCellValue('C4','Horario');
+        // Hora de ingreso
+        $objExcel->getActiveSheet()->setCellValue('D4','Ingreso');
+        // Hora de salida
+        $objExcel->getActiveSheet()->setCellValue('E4','Salida');
+        // Tiempo trabajado normal
+        $objExcel->getActiveSheet()->setCellValue('F4','Tiempo');
+        // Tiempo trabajado extra
+        $objExcel->getActiveSheet()->setCellValue('G4','Tiempo Extra');
+        // Tiempo trabajado extra aprobado
+        $objExcel->getActiveSheet()->setCellValue('H4','Tiempo extra aprobado');
+        // Tiempo extra rechazado
+        $objExcel->getActiveSheet()->setCellValue('I4','Tiempo extra rechazado');
+        // Tiempo de permiso
+        $objExcel->getActiveSheet()->setCellValue('J4','Permiso');
+        // Tipo de permiso
+        $objExcel->getActiveSheet()->setCellValue('K4','Tipo de permiso');
+        
+        // ...
+
+
+        // Nombre
+        $objExcel->getActiveSheet()->setCellValue('M2', 'Nombre');
+        // ingreso a la empresa
+        $objExcel->getActiveSheet()->setCellValue('N2', 'hora_ingreso_empresa');
+        // salida de la empresa
+        $objExcel->getActiveSheet()->setCellValue('O2', 'hora_salida_empresa');
+        // hora inicio desayuno
+        $objExcel->getActiveSheet()->setCellValue('P2', 'hora_inicio_desayuno');
+        // hora fin desayuno
+        $objExcel->getActiveSheet()->setCellValue('Q2', 'hora_fin_desayuno');
+        // hora inicio almuerzo
+        $objExcel->getActiveSheet()->setCellValue('R2', 'hora_inicio_almuerzo');
+        // hora fin almuerzo
+        $objExcel->getActiveSheet()->setCellValue('S2', 'hora_fin_desayuno');
+        // tiempo desayuno
+        $objExcel->getActiveSheet()->setCellValue('T2', 'tiempo_desayuno');
+        // tiempo almuerzo
+        $objExcel->getActiveSheet()->setCellValue('U2', 'tiempo_almuerzo');
+
+
         // Negrilla todo el header de la tabla
         // $objExcel->getActiveSheet()->getStyle('B2:')->getFont()->setBold(true);
         // 
-        $info['evento']= 1;// 1= Horas trabajadas Normales o 2=Horas trabajadas extras
-        $info['estado']= 1;// 1= Horas aprovadas o 0= Horas no aprobadas
+        // $info['evento']= 1;// 1= Horas trabajadas Normales o 2=Horas trabajadas extras
+        // $info['estado']= 1;// 1= Horas aprovadas o 0= Horas no aprobadas
 
       // Consultar todos los empleados
-      $empleados= $this->mAsistencia->consultarDocumentoEmpleadosM();
+      // $empleados= $this->mAsistencia->consultarDocumentoEmpleadosM(); -> Pendiente eliminar
+      $asistencias= $this->mAsistencia->asistenciasPorRangoDeFechaM($info);
 
       $i=5;
 
-      foreach ($empleados as $empleado) {//Se van a sumar las horas normales trabajadas y las horas extras
-        //Documento
-        $objExcel->getActiveSheet()->setCellValue('B'.$i,$empleado->documento);
-        // Empleado
-        $objExcel->getActiveSheet()->setCellValue('C'.$i,$empleado->nombre1.' '.$empleado->nombre2.' '.$empleado->apellido1.' '.$empleado->apellido2);
-        // Empresa
-        $objExcel->getActiveSheet()->setCellValue('D'.$i,$empleado->empresa);
+      foreach ($asistencias as $asistencia) {//Se van a sumar las horas normales trabajadas y las horas extras
+        // Documento
+        $objExcel->getActiveSheet()->setCellValue('B'.$i, $asistencia->documento);
+        // Nombre del horario
+        $objExcel->getActiveSheet()->setCellValue('C'.$i, $asistencia->horario);
+        // Hora de ingreso
+        $objExcel->getActiveSheet()->setCellValue('D'.$i, $asistencia->inicio);
+        // Hora de salida
+        $objExcel->getActiveSheet()->setCellValue('E'.$i, $asistencia->fin);
+        // tiempo trabajado normal
+        $objExcel->getActiveSheet()->setCellValue('F'.$i, $asistencia->horas_normales);
+        // tiempo trabajado extra
+        $objExcel->getActiveSheet()->setCellValue('G'.$i, $asistencia->horas_extra);
+        // tiempo extra aprobado
+        $objExcel->getActiveSheet()->setCellValue('H'.$i, $asistencia->horas_extra_aprobadas);
+        // Tiempo extra rechazado
+        $objExcel->getActiveSheet()->setCellValue('I'.$i, $asistencia->horas_extra_rechazadas);
+        // Tiempo de permiso
+        $objExcel->getActiveSheet()->setCellValue('J'.$i, $asistencia->permiso);
+        // Tipo de permiso
+        $objExcel->getActiveSheet()->setCellValue('K'.$i, $asistencia->tipo_permiso);
 
         // ...
-          $info['documento']= $empleado->documento; 
+        $i++;
+          // $info['documento']= $empleado->documento; 
           // Consutal total de horas trabajadas normales
-          $nHoras= $this->mHistorial->totalHorasTrabajadasNormalesM($info);
+          // $nHoras= $this->mHistorial->totalHorasTrabajadasNormalesM($info);
           // Sumar tiempo total horas normales trabajas
-          $totalTiempoNormal= $this->sumarHorasLaborales($nHoras);
+          // $totalTiempoNormal= $this->sumarHorasLaborales($nHoras);
           // var_dump($totalTiempoNormal);
           // ...
-          // Consutal total de horas trabajadas extras
-          $info['evento']= 2;
+          // // Consutal total de horas trabajadas extras
+          // $info['evento']= 2;
           // ...
-          $nHoras= $this->mHistorial->totalHorasTrabajadasNormalesM($info);
+          // $nHoras= $this->mHistorial->totalHorasTrabajadasNormalesM($info);
           // Sumar tiempo total horas normales trabajas
-          $totalTiempoExtra= $this->sumarHorasLaborales($nHoras);
+          // $totalTiempoExtra= $this->sumarHorasLaborales($nHoras); Esto se va a eliminar...
           // var_dump($totalTiempoExtra);
-          // ...
-          $horas['horaT']=$totalTiempoNormal;
-          $horas['horaS']=$totalTiempoExtra;
-          // ...
-          $totalTiempo=$this->mHistorial->sumarTiemposHorasLaboralesM($horas);
-          $info['evento']= 1;// 1= Horas trabajadas Normales o 2=Horas trabajadas extras
-          // Tiempo Total trabajado
-          $objExcel->getActiveSheet()->setCellValue('E'.$i,$totalTiempo);
-          // Ingremento de posición de la fila
-          $i++;
+          // // ...
+          // $horas['horaT'] = $totalTiempoNormal;
+          // $horas['horaS'] = $totalTiempoExtra;
+          // // ...
+          // // $totalTiempo=$this->mHistorial->sumarTiemposHorasLaboralesM($horas);
+          // $info['evento']= 1;// 1= Horas trabajadas Normales o 2=Horas trabajadas extras
+          // // Tiempo Total trabajado
+          // $objExcel->getActiveSheet()->setCellValue('E'.$i,$totalTiempo);
+          // // Ingremento de posición de la fila
       }
       // Footer de la configuracion del excel
-      $objExcel->getActiveSheet()->getStyle('B2:E'.($i-1))->applyFromArray($estilo);
+      $objExcel->getActiveSheet()->getStyle('B2:k'.($i-1))->applyFromArray($estilo);
 
-      $fileName= "Reporte Tiempo Laboral".date("Y-m-d h:i:s").'xlsx';
-      $objExcel->getActiveSheet()->setTitle('Horas Laborales');
+      $i = 3;
+      #Consultar horarios
+      $this->load->model('Empleado/mConfiguracion');
+
+      $horarios = $this->mConfiguracion->consultarConfiguracionM(-1);
+      
+      foreach ($horarios as $horario) {
+
+        // Nombre
+        $objExcel->getActiveSheet()->setCellValue('M'.$i, $horario->nombre);
+        // ingreso a la empresa
+        $objExcel->getActiveSheet()->setCellValue('N'.$i, $horario->hora_ingreso_empresa);
+        // salida de la empresa
+        $objExcel->getActiveSheet()->setCellValue('O'.$i, $horario->hora_salida_empresa);
+        // hora inicio desayuno
+        $objExcel->getActiveSheet()->setCellValue('P'.$i, $horario->hora_inicio_desayuno);
+        // hora fin desayuno
+        $objExcel->getActiveSheet()->setCellValue('Q'.$i, $horario->hora_fin_desayuno);
+        // hora inicio almuerzo
+        $objExcel->getActiveSheet()->setCellValue('R'.$i, $horario->hora_inicio_almuerzo);
+        // hora fin almuerzo
+        $objExcel->getActiveSheet()->setCellValue('S'.$i, $horario->hora_fin_desayuno);
+        // tiempo desayuno
+        $objExcel->getActiveSheet()->setCellValue('T'.$i, $horario->tiempo_desayuno);
+        // tiempo almuerzo
+        $objExcel->getActiveSheet()->setCellValue('U'.$i, $horario->tiempo_almuerzo);
+
+        $i++;
+
+      }
+
+      $objExcel->getActiveSheet()->getStyle('M2:U'.($i-1))->applyFromArray($estilo);
+
+      $fileName= "Reporte de asistencias".date("Y-m-d h:i:s").'xlsx';
+      $objExcel->getActiveSheet()->setTitle('Asistencias');
 
       header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       header('Content-Diposition: attachment;filiname="'.$fileName.'"');

@@ -176,7 +176,7 @@ class mAsistencia extends CI_Model
         return $r->respuesta;
     }
 
-    public function consultarDocumentoEmpleadosM()
+    public function consultarDocumentoEmpleadosM() // Esto se va a eliminar
     {
         $query=$this->db->query("SELECT e.documento,LOWER(e.nombre1) as nombre1,LOWER(e.nombre2) as nombre2,LOWER(e.apellido1) as apellido1,LOWER(e.apellido2) as apellido2,em.nombre AS empresa FROM empleado e JOIN empresa em ON e.idEmpresa=em.idEmpresa WHERE e.idRol=1 AND e.estado=1;");
         
@@ -184,7 +184,19 @@ class mAsistencia extends CI_Model
 
         $this->db->close();
 
-        return $r;  
+        return $r;
+    }
+
+    public function asistenciasPorRangoDeFechaM($fechas)
+    {
+        $query=$this->db->query("CALL SE_PA_ConsultarAsistenciasPorRangoDeFechas('{$fechas['fechaInicio']}', '{$fechas['fechaFin']}')");
+
+        $result=$query->result();
+
+        $this->db->close();
+
+        return $result;
+        
     }
 
     /*
