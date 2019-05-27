@@ -639,10 +639,10 @@ function consultarAsistenciaEventoDia(evento) {//tabla eventos desayunos del dia
                                      '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '</td>' + 
                                      '<td>' + row.inicio + '</td>' + 
                                      '<td>' + row.lectorI+ '</td>' + 
-                                     '<td>' + row.fin+ '</td>' + 
-                                     '<td>' + row.lectorF + '</td>' + 
+                                     '<td>' + (row.fin == null?'-':row.fin)+ '</td>' + 
+                                     '<td>' + (row.lectorF == null?'-':row.lectorF) + '</td>' + 
                                      '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + 
-                                     '<td>' + row.tiempo + '</td>' + 
+                                     '<td>' + (row.tiempo == null?'-':row.tiempo) + '</td>' + 
                                    '</tr>');
             }
         });

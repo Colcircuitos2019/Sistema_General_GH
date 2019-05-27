@@ -278,7 +278,7 @@ class cAsistencia extends CI_Controller
   }
 
   // Antes de ejecutar la toma de tiempo se debe ejecutar el buscador del horario que es pertinente para el día en curso.
-  public function seleccionarIDHorarioEmpeladoPrueba($contra,$accion)
+  public function seleccionarIDHorarioEmpeladoPrueba($contra, $accion)
   {
 
     // $contra = $_GET['contra'];
@@ -294,7 +294,7 @@ class cAsistencia extends CI_Controller
     $subIndice2=0;
     // Indice del dia de la semana en curso el cual se va a validar para saber que horario se selecciona.
     $diaCurso = (int)$this->mEmpleado_horario->diaEnCursoM();
-    // $diaCurso = 6;
+
     // Vector donde van los indices de los días que fueron seleccionados
     $vEH = array();
     // ...
@@ -442,7 +442,7 @@ class cAsistencia extends CI_Controller
 
     $idHorario=$this->seleccionarIDHorarioEmpelado($doc,0);//Consultar Empleado Por Documento de identidad.
 
-    var_dump($idHorario);
+    // var_dump($idHorario);
 
     if ($idHorario>0) {
       // ...

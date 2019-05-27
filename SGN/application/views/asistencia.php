@@ -143,6 +143,12 @@
         </script>
         <!-- Acciones -->
         <script type="text/javascript">
+
+            var typeS='';
+            var mensaje='';
+            var title='';
+            var color='';
+
             $('#asistir').submit(function(event) {
     		event.preventDefault();
     		// ...
@@ -151,110 +157,134 @@
 
                     var infoOperario = JSON.parse(infoDB);
     				// ...
-    				if (infoOperario.documento!=null && infoOperario.documento!='-1' && infoOperario.documento!='-2' && infoOperario.documento!='3' && infoOperario.documento!='4') {
-    					// swal('Realizado','Asistencia registrada','success');
+    				// if (infoOperario.documento!=null && infoOperario.documento!='-1' && infoOperario.documento!='-2' && infoOperario.documento!='3' && infoOperario.documento!='4') {
+                    if (infoOperario.documento != null && infoOperario.documento != '-2') {
 
-    					// Consultar la asistencia del día del empleado
-    					$.post(baseurl+'Empleado/cAsistencia/consultarTipoAsistencia', {doc: infoOperario.documento}, function(data) {
-    						// ...
-    						var respuesta= JSON.parse(data);
-    						// ...
-    						$.each(respuesta, function(index, row) {
-    							// Tipo de evento 1=Laboral, 2=Desayuno y 3=Almuerzo
-    							switch(Number(row.inicioFinEvento)){//Optimizar codigo
-    								case 0://Inicio de la toma de tiempo indiferente del tipo de evento...
-    									if (row.idTipo_evento == 1) {//Evento laboral (Inicio de evento)
-    										if (row.idEstado_asistencia == 1) {//Llego a tiempo
-    											swal({
-    											  title: 'A tiempo...',
-    											  type: 'success',
+
+                        if (infoOperario.permiso == null || infoOperario.permiso == '-1') { // La asistencia que marco no es de un permiso
+
+                            // Consultar la asistencia del día del empleado
+                            $.post(baseurl+'Empleado/cAsistencia/consultarTipoAsistencia', {doc: infoOperario.documento}, function(data) {
+                                // ...
+                                var respuesta= JSON.parse(data);
+                                // ...
+                                $.each(respuesta, function(index, row) {
+                                    // Tipo de evento 1=Laboral, 2=Desayuno y 3=Almuerzo
+                                    switch(Number(row.inicioFinEvento)){//Optimizar codigo
+                                        case 0://Inicio de la toma de tiempo indiferente del tipo de evento...
+                                            if (row.idTipo_evento == 1) {//Evento laboral (Inicio de evento)
+                                                if (row.idEstado_asistencia == 1) {//Llego a tiempo
+                                                    swal({
+                                                      title: 'A tiempo...',
+                                                      type: 'success',
+                                                      html: '<br><h5>'+infoOperario.nombre+'</h5><br>',
+                                                      timer:2000,
+                                                      backdrop: `rgba(0, 236, 44, 0.3)`
+                                                    });
+                                                }else{//Llego tarde
+                                                    swal({
+                                                      title: 'Llegada tarde',
+                                                      html: '<br><h5>'+infoOperario.nombre+'</h5><br>',
+                                                      type: 'warning',
+                                                      animation: false,
+                                                      customClass: 'animated tada',
+                                                      timer:2000,
+                                                      backdrop: `rgba(215, 44, 44, 0.4)`
+                                                    });
+                                                }
+                                            }else{//Los otros eventos desayuno y almuerzo (inicio de los eventos)
+                                                swal({
+                                                    title: 'Toma de asistencia',
+                                                    html: '<br><h5>'+infoOperario.nombre+'</h5>'+'<br>Toma de tiempo de evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
+                                                    type: 'question',
+                                                    timer: 2000,
+                                                    buttons: false 
+                                                });
+                                            }
+                                            break;
+                                        case 1://Ya finalizo la toma de tiempos//Falta mostrar cuando se termina el dia laboral
+                                            if (row.idTipo_evento == 1) {//Evento laboral (Fin del evento)
+                                                swal({
+                                                  title: 'Fin del dia laboral',
                                                   html: '<br><h5>'+infoOperario.nombre+'</h5><br>',
-    											  timer:2000,
-    											  backdrop: `rgba(0, 236, 44, 0.3)`
-    											});
-    										}else{//Llego tarde
-    											swal({
-    											  title: 'Llegada tarde',
-                                                  html: '<br><h5>'+infoOperario.nombre+'</h5><br>',
-    											  type: 'warning',
-    											  animation: false,
-    											  customClass: 'animated tada',
-    											  timer:2000,
-    											  backdrop: `rgba(215, 44, 44, 0.4)`
-    											});
-    										}
-    									}else{//Los otros eventos desayuno y almuerzo (inicio de los eventos)
-                                            swal({
-                                                title: 'Toma de asistencia',
-                                                html: '<br><h5>'+infoOperario.nombre+'</h5>'+'<br>Toma de tiempo de evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
-                                                type: 'question',
-                                                timer: 2000,
-                                                buttons: false 
-                                            });
-    									}
-    									break;
-    								case 1://Ya finalizo la toma de tiempos//Falta mostrar cuando se termina el dia laboral
-    									if (row.idTipo_evento == 1) {//Evento laboral (Fin del evento)
-    										swal({
-    										  title: 'Fin del dia laboral',
-                                              html: '<br><h5>'+infoOperario.nombre+'</h5><br>',
-    										  type: 'success',
-    										  timer: 2000,
-    										  backdrop: `rgba(0, 236, 44, 0.3)`
-    										});
-    									}else{//Evento de desayuno o almuerzo (Fin de los eventos)
-    										switch(Number(row.idEstado_asistencia)){
-    											case 1://Llegada a tiempo
-    												swal({
-    												  title: 'A tiempo...',
-    												  html: '<br><h5>'+infoOperario.nombre+'</h5>'+'<br>Llegaste a tiempo del evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo') + '<br>',
-    												  type: 'success',
-    												  timer:2000,
-    												  backdrop: `rgba(0, 236, 44, 0.3)`
-    												});
-    												break;
-    											case 2://Llegada tarde
-    											    swal({
-    											      title: 'Llegada tarde',
-    											      html: '<br><h5>'+infoOperario.nombre+'</h5>'+'<br>Llegaste tarde del evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
-    											      type: 'warning',
-    											      animation: false,
-    											      timer:2000,
-    											      customClass: 'animated tada',
-    											      backdrop: `rgba(215, 44, 44, 0.4)`
-    											    });	
-    												break;
-    											case 3://No asistio al evento
-    												swal({
-    												  title: 'No asistio al evento',
-    												  html: '<br><h5>'+infoOperario.nombre+'</h5>'+'No asististe al evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
-    												  timer:2000,
-    												  backdrop: `rgba(255, 252, 0, 0.3)`
-    												});
-    												break;	
-    										}
-    									}
-    									break;
-    							}
-    						});
-    					});
-    					// Limpiar componenete de contraseña
-    					$('#contra').val('');
-                        $('#contra').focus();
+                                                  type: 'success',
+                                                  timer: 2000,
+                                                  backdrop: `rgba(0, 236, 44, 0.3)`
+                                                });
+                                            }else{//Evento de desayuno o almuerzo (Fin de los eventos)
+                                                switch(Number(row.idEstado_asistencia)){
+                                                    case 1://Llegada a tiempo
+                                                        swal({
+                                                          title: 'A tiempo...',
+                                                          html: '<br><h5>'+infoOperario.nombre+'</h5>'+'<br>Llegaste a tiempo del evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo') + '<br>',
+                                                          type: 'success',
+                                                          timer:2000,
+                                                          backdrop: `rgba(0, 236, 44, 0.3)`
+                                                        });
+                                                        break;
+                                                    case 2://Llegada tarde
+                                                        swal({
+                                                          title: 'Llegada tarde',
+                                                          html: '<br><h5>'+infoOperario.nombre+'</h5>'+'<br>Llegaste tarde del evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
+                                                          type: 'warning',
+                                                          animation: false,
+                                                          timer:2000,
+                                                          customClass: 'animated tada',
+                                                          backdrop: `rgba(215, 44, 44, 0.4)`
+                                                        }); 
+                                                        break;
+                                                    case 3://No asistio al evento
+                                                        swal({
+                                                          title: 'No asistio al evento',
+                                                          html: '<br><h5>'+infoOperario.nombre+'</h5>'+'No asististe al evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
+                                                          timer:2000,
+                                                          backdrop: `rgba(255, 252, 0, 0.3)`
+                                                        });
+                                                        break;  
+                                                }
+                                            }
+                                            break;
+                                    }
+                                });
+                            });
+                            // Limpiar componenete de contraseña
+                            $('#contra').val('');
+                            $('#contra').focus();
+
+
+
+                        }else{ // La asistencia es de un permiso
+                            // 3 - salida para el permiso 4 - Ingreso del permiso
+
+                            mensaje='<br><h5>'+infoOperario.nombre+'</h5>'+'<br><br>';
+
+                            switch(infoOperario.permiso){
+
+                                case '3':
+                                    title = 'Salida de permiso';
+                                    typeS = 'warning';
+                                    color = 'rgba(255, 252, 0, 0.3)';//Amarillo
+                                    break;
+                                case '4':
+                                    title = 'Ingreso de permiso';
+                                    typeS = 'success';
+                                    color = `rgba(0, 236, 44, 0.3)`;//verde
+                                    break;
+                            }
+
+                            swal({title: title,
+                                  html: mensaje,
+                                  type: typeS,
+                                  timer: 2000,
+                                  backdrop: color
+                                });
+                        }
     					// ...
     				}else{
                         // ...
-                        var typeS='';
-                        var mensaje='';
-                        var title='';
-                        var color='';
+
                         switch(infoOperario.documento){
-                            case '-1':
-                                title='Alerta!';
-                                typeS='warning';
-                                mensaje='El empleado no cuenta con un horario para el día de hoy.';
-                                color='rgba(255, 252, 0, 0.3)';//Amarillo
-                                break;
+             
                             case null:
                                 title='Alerta!';
                                 typeS='error';
@@ -268,13 +298,13 @@
                                 color='rgba(255, 252, 0, 0.3)';//Amarillo
                                 break;
                                 //Permiso de Salida e Ingreso
-                            case '3'://Salida de la empresa
-                            case '4'://Ingreso a la empresa
-                                title='Realizado';
-                                typeS='success';
-                                mensaje=(documento == '3'?'Saliste de permiso de la empresa':'Ingresas a la empresa de un permiso.');
-                                color='rgba(0, 236, 44, 0.3)';//verde
-                                break;
+                            // case '3'://Salida de la empresa
+                            // case '4'://Ingreso a la empresa
+                            //     title='Realizado';
+                            //     typeS='success';
+                            //     mensaje=(documento == '3'?'Saliste de permiso de la empresa':'Ingresas a la empresa de un permiso.');
+                            //     color='rgba(0, 236, 44, 0.3)';//verde
+                            //     break;
                         }
                         // ...
                         swal({title: title,
