@@ -208,6 +208,7 @@ label strong{
 <?php if($this->uri->segment(2)=='cAsistencia'){ ?>
 <!-- Funcionalidades de la vista de asistencia-->
 <script src="<?= base_url(); ?>js/Empleados/Asistencia.js"></script>
+
 <?php }?>
 
 <?php if($this->uri->segment(2)=='cMenu' && $this->session->userdata('tipo_usuario')==6){ ?>

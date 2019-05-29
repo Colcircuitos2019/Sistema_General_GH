@@ -15,23 +15,34 @@ class cAsistencia extends CI_Controller
 //Retorno de vistas 
   public function index()
   {
-      if ($this->session->userdata('tipo_usuario')==false) {
+      if ($this->session->userdata('tipo_usuario') == false) {
+
         redirect('cLogin');
+
       }else{
+
         $dato['titulo']="Empleados";
         $dato['path']="Empleado/cMenu";
         $dato['tipoUser']=$this->session->userdata('tipo_usuario');
         $dato['tipoUserName']=$this->session->userdata('tipo_usuario_name');
+        
         //... 
         $this->load->view('Layout/Header1',$dato);
-        if ( $dato['tipoUser']==5) {//Gestor humano
+
+        if ( $dato['tipoUser'] == 5) {//Gestor humano
+
           $this->load->view('Layout/MenuLateral');
+        
         }else{//Facilitador
+        
           $this->load->view('Layout/MenuLateral');
+        
         }
+        
         $this->load->view('Empleados/asistencia');
         $this->load->view('Layout/Footer');
         $this->load->view('Layout/clausulas'); 
+
       }
   }
 
@@ -123,34 +134,36 @@ class cAsistencia extends CI_Controller
 
   public function modificarAsistenciaEmpleadoManual()
   {
-    $v= $this->input->post('info');
+    $v = $this->input->post('info_asistencias');
     $documento=$this->input->post('documento');
     // ...
-    $i=0;
-    $horario=0;
+    $i = 0;
+    $horario = 0;
     $info = [];
     $respuesta;
     // ...
+
     foreach ($v as $asistencia) {
+
       $respuesta= $this->mAsistencia->modificarAsistenciaEmpleadoManualM($asistencia);
       // ...
-      if ($asistencia['Evento']==1 && $asistencia['HoraFin']!='') {//Evento laboral
+      if ($asistencia['Evento'] == 1 && $asistencia['HoraFin'] != '') {//Evento laboral
           $info['fechaInicio'] = $asistencia['HoraInicio'];//Hora inicio del evento laboral      
           $info['fechaFin'] = $asistencia['HoraFin'];//Hora fin de un evento laboral laboral      
           $info['idAsistencia'] = $asistencia['idAsistencia'];//Identificador de la asistencia
           $info['idHorario']=$asistencia['Horario'];//Identificador del horario     
       }
       // ...
-      if ($asistencia['HoraInicio']!='' && $asistencia['HoraFin']!='') {
+      if ($asistencia['HoraInicio'] !=''  && $asistencia['HoraFin'] != '' && $asistencia['Evento'] == 1) {
 
-       $i++;//Si al final de recorrer el ciclo esta variable es igual a 3, se calculara el tiempo total laborado...
+        $i++;//Si al final de recorrer el ciclo esta variable es igual a 3, se calculara el tiempo total laborado...
 
       }
       // ...
     }
 
     // ...
-    if ($i==3) {//Se va actualizar el tiempo total laboral.
+    if ($i == 1) {//Se va actualizar el tiempo total laboral.
 
       $respuesta = $this->mAsistencia->actualizarTiempoTotalLaboradoDiaM($info);
 
@@ -178,13 +191,13 @@ class cAsistencia extends CI_Controller
   }
 
   // Antes de ejecutar la toma de tiempo se debe ejecutar el buscador del horario que es pertinente para el día en curso.
-  public function seleccionarIDHorarioEmpelado($contra,$accion)// Por el momento esta funcion no se va a utilizar
+  public function seleccionarIDHorarioEmpelado($contra, $accion)// Por el momento esta funcion no se va a utilizar
   {
     // accion=1 Consultar por contraseña del empleado
     // accion=0 consulta por el documento del empleado
     $this->load->model('Empleado/mEmpleado_horario');
     //horarios del empleado seleccionado
-    $horarios= $this->mEmpleado_horario->consultarDiasHorarioEmpleadoM($contra,$accion);
+    $horarios= $this->mEmpleado_horario->consultarDiasHorarioEmpleadoM($contra, $accion);
     // Indice para reiniciar la lectura del vector cuando termine la longitud
     $indice=0;
     $subIndice=0;
@@ -275,6 +288,16 @@ class cAsistencia extends CI_Controller
     #echo $respuesta;
 
     return $respuesta;
+  }
+
+  public function permisoParaEditarTiempos()
+  {
+
+    $fecha = $this->input->post('fecha');
+
+    $respuesta = $this->mAsistencia->permisoParaEditarTiemposM($fecha);
+
+    echo $respuesta;
   }
 
   // Antes de ejecutar la toma de tiempo se debe ejecutar el buscador del horario que es pertinente para el día en curso.
@@ -424,10 +447,8 @@ class cAsistencia extends CI_Controller
 
   public function aceptarHorasExtrarEmpleado()
   {
-    $info['documento']=$this->input->post('documento');
-    $info['fecha']=$this->input->post('fecha');
-    $info['descripcion']=$this->input->post('des');
-    $info['index']=$this->input->post('index');
+    $info['descripcion']=$this->input->post('descripcion');
+    $info['idHoras_laborales']=$this->input->post('idHoras_laborales');
     $info['horasA']=$this->input->post('aceptadas');
     $info['horasR']=$this->input->post('rechazadas');
 
@@ -438,20 +459,12 @@ class cAsistencia extends CI_Controller
 
   public function CerrarAsistencia()
   {
-    $doc=$this->input->post('documento');
+    $doc = $this->input->post('documento');
 
-    $idHorario=$this->seleccionarIDHorarioEmpelado($doc,0);//Consultar Empleado Por Documento de identidad.
+    $res= $this->mAsistencia->CerrarAsistenciaM($doc);
 
-    // var_dump($idHorario);
+    echo $res;
 
-    if ($idHorario>0) {
-      // ...
-      $res= $this->mAsistencia->CerrarAsistenciaM($doc,$idHorario);
-
-      echo $res;
-    }else{
-      echo "-1";//No tiene un horario asignado
-    }
   }
 
   public function generarPDFAsistencias()
@@ -530,7 +543,7 @@ class cAsistencia extends CI_Controller
     $this->pdf->Output(utf8_decode('Asistencia Empleados').".pdf", 'I');
   }
 
-    public function reporte_Asistencia_operarios()// => Pendiente por modificar
+    public function reporte_Asistencia_operarios()
     {
       $this->load->model('Empleado/mHistorial');
 

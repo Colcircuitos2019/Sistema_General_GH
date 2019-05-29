@@ -165,10 +165,13 @@ class cPermiso extends CI_Controller
       $fecha=$this->input->post('fecha');
       // Se encarga de consultar la fecha de hoy por si es que no se le asigno ningun valor a esta variable
       if ($fecha=='') {
+
         $fecha= $this->consultarFechaHoy();
-        // var_dump($fecha);
+
       }elseif ($fecha=='-1') {
+
         $fecha='';      
+
       }
 
       $res=$this->mPermiso->consultarPermisoEmpleadoM($doc,$cod,$fecha);

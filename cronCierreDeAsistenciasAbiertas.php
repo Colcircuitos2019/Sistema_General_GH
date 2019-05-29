@@ -23,7 +23,7 @@ foreach ($operarios as $operario) {
 
 function conexion()
 {
-	$conexion = new mysqli('localhost:33066','root','SaAFjmXlMRvppyqW','sgn') or die("Error: " + mysql_error());	
+	$conexion = new mysqli('localhost','JuanMarulanda','SaAFjmXlMRvppyqW','sgn') or die("Error: " + mysql_error());	
 
 	return $conexion;
 }

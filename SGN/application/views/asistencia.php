@@ -161,7 +161,7 @@
                     if (infoOperario.documento != null && infoOperario.documento != '-2') {
 
 
-                        if (infoOperario.permiso == null || infoOperario.permiso == '-1') { // La asistencia que marco no es de un permiso
+                        if (infoOperario.permiso == null || infoOperario.permiso == '-1' || infoOperario.permiso == '1' || infoOperario.permiso == '2') { // La asistencia que marco no es de un permiso
 
                             // Consultar la asistencia del día del empleado
                             $.post(baseurl+'Empleado/cAsistencia/consultarTipoAsistencia', {doc: infoOperario.documento}, function(data) {
@@ -236,7 +236,7 @@
                                                     case 3://No asistio al evento
                                                         swal({
                                                           title: 'No asistio al evento',
-                                                          html: '<br><h5>'+infoOperario.nombre+'</h5>'+'No asististe al evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
+                                                          html: '<br><h5>'+infoOperario.nombre+'</h5></br>'+'No asististe al evento: '+(row.idTipo_evento==2?'Desayuno':'Almuerzo')+'<br>',
                                                           timer:2000,
                                                           backdrop: `rgba(255, 252, 0, 0.3)`
                                                         });

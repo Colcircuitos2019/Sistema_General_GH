@@ -21,6 +21,11 @@ var $btnAsistencia = $('#editarAsistencia');
 var $btnModificarAsistencia = $('#modificarAsistencia');
 // 
 $(document).ready(function() {
+
+    if (tipo_usuario != 5) {
+        $btnAsistencia.hide('fast');
+    }
+
     //DateTimePiker
     $('.fh-date').datepicker({
         format: "yyyy-mm-dd",
@@ -259,26 +264,32 @@ function consultarHorasTrabajadasDia(idAsistencia) {
     });
 }
 //Se encarga de modificar la información de las asistencias de los empleados manualmente unicamente por el usuario encargado 
-function modificarAsistenciasEmpleado(doc, fecha) { //
+function modificarAsistenciasEmpleado(doc, fecha) {
     // ...
     var v = [];
     var horaInicio = '';
     var horaFin = '';
+
     $tabla3.find('tbody tr').each(function(index, row) {
         // Validar que la hora fin ingresada sea mayor a la hora de inicio ingresada manualmente
-        horaInicio = $.trim($(row).find('td').eq(1).find('input').val());
-        horaFin = $.trim($(row).find('td').eq(3).find('input').val());
-        v.push({
-            'idAsistencia': $(row).find('th').first().text(), //ID Asistencia
-            'HoraInicio': horaInicio, //Input hora inicio asistencia
-            'HoraFin': horaFin, //Input hora fin asistencia
-            'Evento': $(row).find('td').eq(0).find('span').data('idevento'), // Evento de la asistencia
-            'Horario': $(row).find('th').first().data('idhorario')
-        });
+        if ($(row).find('td').eq(5).find('span > small').text() != 'No asistio') {
+
+            horaInicio = $.trim($(row).find('td').eq(1).find('input').val());
+            horaFin = $.trim($(row).find('td').eq(3).find('input').val());
+            v.push({
+                'idAsistencia': $(row).find('th').first().text(), //ID Asistencia
+                'HoraInicio': horaInicio, //Input hora inicio asistencia
+                'HoraFin': horaFin, //Input hora fin asistencia
+                'Evento': $(row).find('td').eq(0).find('span').data('idevento'), // Evento de la asistencia
+                'Horario': $(row).find('th').first().data('idhorario')
+            });
+
+        }
+
     });
     // ...
     $.post(baseurl + 'Empleado/cAsistencia/modificarAsistenciaEmpleadoManual', {
-        info: v,
+        info_asistencias: v,
         documento: doc
     }, function(data) {
 
@@ -425,9 +436,9 @@ function consultarAsistenciaEmpleado(i, doc, fecha, accion, idAsistencia) { //Ti
                                                                 (i == 0 ? '<td>' + row.documento + '</td>' : '') + 
                                                                 (i == 0 ? '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + '</td>' : '') + 
                                                                 '<td>' + clasificarEvento(row.idTipo_evento) + '</td>' + 
-                                                                '<td>' + (accion == 0 ? row.inicio : '<input class="from-control inputAsistencia" maxlength="20" type="text" value="' + row.inicio + '">') + '</td>' + 
+                                                                '<td>' + (accion == 0 ? row.inicio : (row.idEstado_asistencia == 3? row.inicio : '<input class="from-control inputAsistencia" maxlength="20" type="text" value="' + row.inicio + '">'))+ '</td>' + 
                                                                 (i == 0 ? '' : '<td>' + row.lectorI + '</td>') + 
-                                                                '<td>' + (accion == 0 ? (row.fin == null ? '-' : row.fin) : (row.fin == null ? '-' : '<input class="from-control inputAsistencia" maxlength="20" type="text" value="' + (row.fin == null ? '' : row.fin) + '">')) + '</td>' +
+                                                                '<td>' + (accion == 0 ? (row.fin == null ? '-' : row.fin) : (row.fin == null ? '-' : (row.idEstado_asistencia == 3? row.fin : '<input class="from-control inputAsistencia" maxlength="20" type="text" value="' + (row.fin == null ? '' : row.fin) + '">'))) + '</td>' +
                                                                 (i == 0 ? '' : '<td>' + (row.lectorF == null ? '-' : row.lectorF) + '</td>') + 
                                                                 '<td>' + clasificarAsistencia(row.idEstado_asistencia) + '</td>' + 
                                                                 (i != 0 ? '<td>' + (row.horas == null ? '-' : row.horas) + '</td>' : '') + 
@@ -442,12 +453,17 @@ function consultarAsistenciaEmpleado(i, doc, fecha, accion, idAsistencia) { //Ti
         }
         // ...
         if (accion == 0) {
+
             $btnModificarAsistencia.hide();
+
         } else {
+
             if ($tituloModal.find('small').length == 0) {
                 $tituloModal.append(' <small>Editando</small>');
             }
+
             $btnModificarAsistencia.show();
+
         }
         // ...
         // Formato del data table
@@ -469,21 +485,27 @@ function cerrarEventosLaboral(doc) {
         cancelButtonColor: '#d33',
         confirmButtonText: 'Si'
     }).then((result) => {
+
         if (result.value) {
+
             $.post(baseurl + 'Empleado/cAsistencia/CerrarAsistencia', {
                 documento: doc
             }, function(data) {
+
                 if (data == 1) {
+
                     swal({
                         position: 'center',
                         type: 'success',
-                        title: 'Listo!',
-                        text: '.',
+                        title: 'Realizado!',
+                        text: 'La asistencia fue cerrada correctamente.',
                         showConfirmButton: false,
                         timer: 2500
                     });
                     consultarAsistenciasDia();
+
                 } else {
+
                     swal({
                         position: 'center',
                         type: 'error',
@@ -492,23 +514,37 @@ function cerrarEventosLaboral(doc) {
                         showConfirmButton: false,
                         timer: 2500
                     });
+
                 }
+
             });
-            // console.log(doc);
+
         }
+
     });
 }
 // 
 function mostrarDetalle(doc, nombre, idAsistencia) {
     var info = doc.split(';');
+    if (tipo_usuario == 5) {
+
+        permisoParaEditarTiempos(info[1]);
+    
+    }
     $tituloModal.text('Detalle Asistencia:  ' + nombre);
-    consultarAsistenciaEmpleado(1, info[0], info[1], 0, idAsistencia); //...Ultimo argumento es la accion
-    $btnAsistencia.data('idAsistencia', idAsistencia)
-    consultarPermisosEmpleadosDia(info[0], formatoFecha(info[1]));
+    consultarAsistenciaEmpleado(1, info[0], info[1], 0, idAsistencia);
+    $btnAsistencia.data('idAsistencia', idAsistencia);
+    consultarPermisosEmpleadosDia(info[0], info[1]);
 }
 
 // 
 function mostrarDetalleDiario(doc, nombre) {
+
+    if (tipo_usuario == 5) {
+
+        $btnAsistencia.show('fast');
+    
+    }
     $tituloModal.text('Detalle Asistencia:  ' + nombre);
     consultarAsistenciaEmpleado(2, doc, '', 0, 0);
     consultarPermisosEmpleadosDia(doc, '');
@@ -524,6 +560,24 @@ function gestionTiempoExtraAsistencia(idAsistencia) {
             console.log(data);
 
     });
+}
+
+function permisoParaEditarTiempos(fechaAsistencia) {
+    
+ $.post(baseurl+'Empleado/cAsistencia/permisoParaEditarTiempos', {fecha: fechaAsistencia}, function(data, textStatus, xhr) {
+     
+    if (data == 0) {
+
+        $btnAsistencia.hide('fast');
+
+    }else{
+
+        $btnAsistencia.show('fast');
+
+    }
+
+ });
+
 }
 
 // Consulta todos los empleados que son operarios y su estado (ausente, presente)

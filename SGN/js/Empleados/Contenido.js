@@ -20,7 +20,7 @@ $(document).ready(function() {
                 // aceptarDenegarHorasExtras();
                 if (validarTablaC()) {
                     // Falta marcar los campos que no tienen informacion pero son obligatorios.
-                    aceptarDenegarHorasExtras();//SE realiza la debida gestion.
+                    aceptarDenegarHorasExtras();//Se realiza la debida gestion.
                     // console.log('Registro');
                     // $('#31').addClass('has-error');
                 }else{
@@ -41,32 +41,29 @@ $(document).ready(function() {
 function aceptarDenegarHorasExtras() {
     $('#cuerpo').find('tr').each(function(index, item) {
         //0=documento, 1=fecha de las horas extrar, 2=id de las horas laboradas
-        var empleadoH = $(this).data('empleado').split(';');
+        var idTiempo_laboral = $(this).data('empleado');
         // Algun boton presionado? 
-        if ($(this).find('td').eq(0).find('input:radio[name=' + empleadoH[2] + ']:checked').val() != undefined) {
+        if ($(this).find('td').eq(0).find('input:radio[name=' + idTiempo_laboral + ']:checked').val() != undefined) {
+
             var des = null;
             var horaA, horaR;
-            // Pregunta si el boton seleccionado tiene el valor 2=Denegado
-            // if ($(this).find('td').eq(0).find('input:radio:checked').val() == 2) {
-            //     des = $(this).find('td').eq(9).find('textarea').val();
-            // }
-            des = $(this).find('td').eq(8).find('textarea').val();
+            // ...
+            descripcion = $(this).find('td').eq(8).find('textarea').val();
             //Horas aceptadas
             horaA = $(this).find('td').eq(6).find('input').val();
             // Horas rechazadas
             horaR = $(this).find('td').eq(7).find('input').val();
             // 
-            enviarInformacionActualizarHorasExtras(empleadoH[0], empleadoH[1], des, empleadoH[2], horaA, horaR);
+            enviarInformacionActualizarHorasExtras(descripcion, idTiempo_laboral, horaA, horaR);
         }
     });
 }
+
 // Se encarga de aceptar o denegar las horas extras de los empelados.
-function enviarInformacionActualizarHorasExtras(documento, fecha, description, idH, horasA, horasR) {
+function enviarInformacionActualizarHorasExtras(description, idH, horasA, horasR) {
     $.post(baseurl + 'Empleado/cAsistencia/aceptarHorasExtrarEmpleado', {
-        documento: documento,
-        fecha: fecha,
-        des: description,
-        index: idH,
+        descripcion: description,
+        idHoras_laborales: idH,
         aceptadas: horasA,
         rechazadas: horasR
     }, function(data) {
@@ -74,6 +71,7 @@ function enviarInformacionActualizarHorasExtras(documento, fecha, description, i
         if (data == 1) {
             // Se encarga de consultar a los empelados que tienen horas extras nuevamente.
             swal('Listo!', 'Se gestiono las horas laborales.', 'success');
+            // ...
             consultarEmpleadosConHorasExtrasAprobar();
         }
     });
@@ -91,7 +89,7 @@ function consultarEmpleadosConHorasExtrasAprobar() {
         // Agregar la informacion a la tabla
         $.each(result, function(index, row) {
             // ToolTip data-toggle="tooltip" data-placement="bottom" title="Hooray!"
-            $('#cuerpo').append('<tr name="' + row.idH_laboral + '" data-empleado="' + row.documento + ';' + row.fecha_laboral + ';' + row.idH_laboral + '">' + 
+            $('#cuerpo').append('<tr name="' + row.idH_laboral + '" data-empleado="' + row.idH_laboral + '">' + 
                 '<td>' + '<div class="checkbox">' + '<label><input name="' + row.idH_laboral + '" type="radio" value="1" onclick="accionAceptarODenegarHoras(this.value,\'' + row.idH_laboral + '\',\'' + row.numero_horas + '\');"> <span><small class="label bg-green">Aceptar</small></span></label>' + '</div>' + '<div class="checkbox">' + '<label><input name="' + row.idH_laboral + '" type="radio" value="2" onclick="accionAceptarODenegarHoras(this.value,\'' + row.idH_laboral + '\',\'' + row.numero_horas + '\');"> <span><small class="label bg-red">Denegar</small></span></label>' + '</div>' + '</td>' + //onclick= validarSeleccionBoton(name)
                 '<td>' + row.documento + '</td>' + 
                 '<td>' + row.nombre1 + ' ' + row.nombre2 + ' ' + row.apellido1 + ' ' + row.apellido2 + '</td>' + 
@@ -105,23 +103,12 @@ function consultarEmpleadosConHorasExtrasAprobar() {
                 '<td>' + '<div><input class="1 inputs" id="' + row.idH_laboral + '" type="text" disabled></div>' + '</td>' + 
                 '<td>' + '<textarea disabled></textarea>' + '</td>' + 
             '</tr>');
-            //onkeypress="return valida(event,\'' + row.numero_horas + '\',this.value,\'' + row.idH_laboral + '\')"
-            // onkeyup="retroceso(event,this.value,\'' + row.numero_horas + '\',\'' + row.idH_laboral + '\');"
         });
         //Formato del data table
         $('#tblHorasExtrarA').DataTable();
         // 
         $('[data-toggle="tooltip"]').tooltip();
         // 
-        // Time picker
-        // $('.timepicker').timepicker({
-        //     minuteStep: 1,
-        //     template: 'modal',
-        //     appendWidgetTo: 'body',
-        //     showSeconds: true,
-        //     showMeridian: false,
-        //     defaultTime: false
-        // });
     });
 }
 // Se encarga de validar la tabla y que todo este en orden antes de realizar la acción de realizar.

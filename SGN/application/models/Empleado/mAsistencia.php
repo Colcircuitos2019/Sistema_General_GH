@@ -76,6 +76,15 @@ class mAsistencia extends CI_Model
         return $r;
     }
 
+    public function permisoParaEditarTiemposM($fecha)
+    {
+        $query = $this->db->query("SELECT SI_FU_ValidarPermisoEditarTiempos('{$fecha}') as respuesta;");
+
+        $r = $query->row();
+
+        return $r->respuesta;
+    }
+
     //...
     public function consultarPermisoEquipo($ip)
     {
@@ -150,7 +159,7 @@ class mAsistencia extends CI_Model
 
     public function aceptarHorasExtrarEmpleadoM($info)
     {
-        $query=$this->db->query("CALL SI_PA_ActualizarEstadoHorasExtras('{$info['documento']}', '{$info['fecha']}', '{$info['descripcion']}', {$info['index']}, '{$info['horasA']}', '{$info['horasR']}');");
+        $query=$this->db->query("CALL SI_PA_ActualizarEstadoHorasExtras('{$info['descripcion']}', {$info['idHoras_laborales']}, '{$info['horasA']}', '{$info['horasR']}');");
 
 		$r=$query->row();
 
@@ -158,11 +167,11 @@ class mAsistencia extends CI_Model
     }
 
     // Se encarga de cerrar la asistencia de los empleados de forma manual
-    public function CerrarAsistenciaM($doc,$idH)
+    public function CerrarAsistenciaM($doc)
     {
-    	$query=$this->db->query("SELECT SI_FU_CerrarAsistenciaEmpleado('{$doc}', {$idH}) as respuesta;");
+    	$query=$this->db->query("SELECT SI_FU_CerrarAsistenciaEmpleado('{$doc}') as respuesta;");
 
-		$r=$query->row();
+		$r = $query->row();
 
 		return $r->respuesta;
     }

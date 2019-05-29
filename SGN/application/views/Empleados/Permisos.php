@@ -46,9 +46,9 @@
             }
             
             #divT{
-	         overflow:scroll;
-	         height: 230px;
-	         width: 100%;
+             overflow:scroll;
+             height: 230px;
+             width: 100%;
             }
 
             .codigoP{
@@ -78,6 +78,11 @@
                 font-size: 12px;
                 padding: 3px;
             }
+
+            small{
+                visibility: hidden;
+            }
+
         </style>
         <!-- Colocar las imagenes en los botones -->
         <div class="limiter">
@@ -359,9 +364,9 @@
 
 
 <script type="text/javascript">
-		
-		function validacionEliminarLineaPedido() {
-			swal({
+        
+        function validacionEliminarLineaPedido() {
+            swal({
                title: '¿Estas seguro?',
                text: "Si eliminas esta linea de pedido no quedara en el pedido",
                type: 'warning',
@@ -378,9 +383,9 @@
                     )
                   }
                });
-		}
+        }
 
-		function validarTerminacionDePedido() {			
+        function validarTerminacionDePedido() {         
          swal({
               title: 'Confirmar Pedido',
               html:
@@ -392,23 +397,23 @@
               cancelButtonColor: '#d33',
               focusConfirm: false,
          }).then(function (op) {
-	               if (op.value) {
-		              swal(
+                   if (op.value) {
+                      swal(
                         'Realizado',
                         'Su pedido fue realizado',
                         'success'
                          )
-	                }
+                    }
                 }).catch(swal.noop);
-		}
+        }
 
-		function validarModificacionDePedido() {
-			swal('Formulario para actualziar al informacion');
-		}
+        function validarModificacionDePedido() {
+            swal('Formulario para actualziar al informacion');
+        }
 
-		function consultarProductos() {
-			swal('Mostrar tabla de productos');
-		}
-	</script>
+        function consultarProductos() {
+            swal('Mostrar tabla de productos');
+        }
+    </script>
 
   -->
