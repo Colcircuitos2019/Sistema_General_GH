@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 29-05-2019 a las 15:33:45
--- Versión del servidor: 10.1.40-MariaDB
--- Versión de PHP: 7.3.5
+-- Tiempo de generación: 31-05-2019 a las 15:13:11
+-- Versión del servidor: 10.1.38-MariaDB
+-- Versión de PHP: 7.1.28
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET AUTOCOMMIT = 0;
@@ -1195,20 +1195,20 @@ DECLARE noAsistio int;
 IF fecha1!='' AND fecha2!='' THEN
 #Consulta por rango de fechas
 #Llegadas a tiempo...
-set aTiempo=(SELECT COUNT(*) AS cantidadA FROM asistencia a WHERE a.documento=doc AND (a.fecha_inicio BETWEEN fecha1 AND fecha2) AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=1 AND (EXISTS(SELECT * FROM asistencia asis WHERE asis.fecha_inicio=a.fecha_inicio AND asis.fecha_fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
+set aTiempo=(SELECT COUNT(*) AS cantidadA FROM asistencia a WHERE a.documento=doc AND (DATE_FORMAT(a.inicio, '%Y-%m-%d') BETWEEN fecha1 AND fecha2) AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=1 AND (EXISTS(SELECT * FROM asistencia asis WHERE DATE_FORMAT(asis.inicio, '%Y-%m-%d') = DATE_FORMAT(a.inicio, '%Y-%m-%d') AND asis.fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
 #llegadas tardes...
-set tarde=(SELECT COUNT(*) AS cantidadT FROM asistencia a WHERE a.documento=doc AND (a.fecha_inicio BETWEEN fecha1 AND fecha2) AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=2 AND (EXISTS(SELECT * FROM asistencia asis WHERE asis.fecha_inicio=a.fecha_inicio AND asis.fecha_fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
+set tarde=(SELECT COUNT(*) AS cantidadT FROM asistencia a WHERE a.documento=doc AND (DATE_FORMAT(a.inicio, '%Y-%m-%d') BETWEEN fecha1 AND fecha2) AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=2 AND (EXISTS(SELECT * FROM asistencia asis WHERE DATE_FORMAT(asis.inicio, '%Y-%m-%d') = DATE_FORMAT(a.inicio, '%Y-%m-%d') AND asis.fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
 #No asistio al evento...
-set noAsistio=(SELECT COUNT(*) AS cantidadN FROM asistencia a WHERE a.documento=doc AND (a.fecha_inicio BETWEEN fecha1 AND fecha2) AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=3 AND (EXISTS(SELECT * FROM asistencia asis WHERE asis.fecha_inicio=a.fecha_inicio AND asis.fecha_fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
+set noAsistio=(SELECT COUNT(*) AS cantidadN FROM asistencia a WHERE a.documento=doc AND (DATE_FORMAT(a.inicio, '%Y-%m-%d') BETWEEN fecha1 AND fecha2) AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=3 AND (EXISTS(SELECT * FROM asistencia asis WHERE DATE_FORMAT(asis.inicio, '%Y-%m-%d') = DATE_FORMAT(a.inicio, '%Y-%m-%d') AND asis.fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
 ELSE
 #consultar por una fecha
  IF fecha1!='' and fecha2='' THEN
  #Llegadas a tiempo...
-set aTiempo=(SELECT COUNT(*) AS cantidadA FROM asistencia a WHERE a.documento=doc AND a.fecha_inicio=fecha1 AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=1 AND (EXISTS(SELECT * FROM asistencia asis WHERE asis.fecha_inicio=a.fecha_inicio AND asis.fecha_fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
+set aTiempo=(SELECT COUNT(*) AS cantidadA FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.inicio, '%Y-%m-%d')=fecha1 AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=1 AND (EXISTS(SELECT * FROM asistencia asis WHERE DATE_FORMAT(asis.inicio, '%Y-%m-%d') = DATE_FORMAT(a.inicio, '%Y-%m-%d') AND asis.fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
 #llegadas tardes...
-set tarde=(SELECT COUNT(*) AS cantidadT FROM asistencia a WHERE a.documento=doc AND a.fecha_inicio=fecha1 AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=2 AND (EXISTS(SELECT * FROM asistencia asis WHERE asis.fecha_inicio=a.fecha_inicio AND asis.fecha_fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
+set tarde=(SELECT COUNT(*) AS cantidadT FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.inicio, '%Y-%m-%d')=fecha1 AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=2 AND (EXISTS(SELECT * FROM asistencia asis WHERE DATE_FORMAT(asis.inicio, '%Y-%m-%d') = DATE_FORMAT(a.inicio, '%Y-%m-%d') AND asis.fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
 #No asistio al evento...
-set noAsistio=(SELECT COUNT(*) AS cantidadN FROM asistencia a WHERE a.documento=doc AND a.fecha_inicio=fecha1 AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=3 AND (EXISTS(SELECT * FROM asistencia asis WHERE asis.fecha_inicio=a.fecha_inicio AND asis.fecha_fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
+set noAsistio=(SELECT COUNT(*) AS cantidadN FROM asistencia a WHERE a.documento=doc AND DATE_FORMAT(a.inicio, '%Y-%m-%d')=fecha1 AND a.idTipo_evento=evento AND a.estado=0 AND a.idEstado_asistencia=3 AND (EXISTS(SELECT * FROM asistencia asis WHERE DATE_FORMAT(asis.inicio, '%Y-%m-%d') = DATE_FORMAT(a.inicio, '%Y-%m-%d') AND asis.fin is NOT null AND asis.estado=0 AND asis.idTipo_evento=1)));
  END IF;
 END IF;
 
@@ -3166,9 +3166,10 @@ IF idAsistencia IS NOT null THEN
     # Hora de salida de la empresa
     SET fecha_fin_asistencia = (SELECT CONCAT(fecha_fin_asistencia, ' ', (SELECT c.hora_salida_empresa FROM configuracion c WHERE c.idConfiguracion = idHorario)));  
 
-    IF (now() > fecha_fin_asistencia) THEN # La asistencia a pasado mas de 7 horas abierta o no tiene permiso de realizar tiempo extra. Pendiente
+    IF TIMEDIFF(now(), fecha_fin_asistencia) > '06:00:00' THEN # La asistencia a pasado mas de 7 horas abierta o no tiene permiso de realizar tiempo extra. Pendiente
       
       #Cerrar la asistencia
+      #Desayuno
       IF (SELECT c.hora_inicio_desayuno FROM configuracion c WHERE c.idConfiguracion = idHorario) > '00:00:00' THEN
 
         CALL SI_PA_ProcedimientoEventosNoAsistidos(doc, 0, idHorario, 2, fecha_inicio_asistencia, fecha_fin_asistencia); #Desayuno
@@ -3176,7 +3177,7 @@ IF idAsistencia IS NOT null THEN
       END IF;
 
       #...
-
+      #Almuerzo
       IF (SELECT c.hora_inicio_almuerzo FROM configuracion c WHERE c.idConfiguracion = idHorario) > '00:00:00' THEN
 
         CALL SI_PA_ProcedimientoEventosNoAsistidos(doc, 0, idHorario, 3, fecha_inicio_asistencia, fecha_fin_asistencia); #almuerzo
@@ -3289,7 +3290,7 @@ END$$
 CREATE DEFINER=`root`@`localhost` PROCEDURE `SI_PA_ConsultarAsistenciaeventosDia` (IN `evento` INT)  NO SQL
 BEGIN
 
-SELECT MAX(a.idAsistencia) AS idAsistencia,e.documento, e.nombre1,e.nombre2,e.apellido1,e.apellido2,a.inicio,a.lectorI,a.fin,a.lectorF,a.idEstado_asistencia,a.tiempo FROM asistencia a JOIN empleado e ON a.documento=e.documento WHERE a.idAsistencia > (SELECT MAX(asi.idAsistencia) FROM asistencia asi WHERE asi.idTipo_evento =1 AND asi.documento = a.documento) AND a.idTipo_evento = evento;
+SELECT MAX(a.idAsistencia) AS idAsistencia,e.documento, e.nombre1,e.nombre2,e.apellido1,e.apellido2,a.inicio,a.lectorI,a.fin,a.lectorF,a.idEstado_asistencia,a.tiempo FROM asistencia a JOIN empleado e ON a.documento=e.documento WHERE a.idAsistencia > (SELECT MAX(asi.idAsistencia) FROM asistencia asi WHERE asi.idTipo_evento =1 AND asi.documento = a.documento) AND a.idTipo_evento = evento GROUP BY a.documento;
 
 END$$
 
@@ -3760,7 +3761,7 @@ IF doc!='' THEN
   IF permiso = -1 or permiso = 2 THEN # Va a continuar con la toma de los eventos normalmente
 
     #... en vez de validar la fecha, validamos la ultima asistencia junto al intervalo de hora del horario
-    IF ((SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento = doc AND a.idTipo_evento=1 AND a.fin IS NOT null AND a.inicio IS NOT null AND TIME_FORMAT(TIMEDIFF(now(), a.fin),'%H:%i:%s') <= '04:00:00') is not null) = 0  THEN
+    IF ((SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento = doc AND a.idTipo_evento = 1 AND a.fin IS NOT null AND a.inicio IS NOT null AND TIME_FORMAT(TIMEDIFF(now(), a.fin),'%H:%i:%s') <= '04:00:00') is not null) = 0  THEN
       
       #Validar cierre de asistencia del día anterior.
       CALL SI_PA_CierreDeAsistenciaAbiertas(doc);
@@ -3802,7 +3803,8 @@ IF doc!='' THEN
 
              #La hora del sistema menos la hora de inicio del ultimo evento tiene que ser igual o mayor a 5 minutos para poder cerrar la asistencia. 
              # or (SELECT SI_FU_ValidacionCierreAsistencia(idHorario)) = 1
-            IF ((SELECT TIME_FORMAT(TIMEDIFF(now(), asi.inicio), '%H:%i:%s') FROM asistencia asi WHERE asi.idAsistencia = (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.inicio is not null AND a.fin is null)) >= '00:30:00') THEN
+            IF (SELECT SI_FU_ValidacionCierreAsistencia(idHorario, fecha_inicio_asistencia)) = 1 THEN
+            -- IF ((SELECT TIME_FORMAT(TIMEDIFF(now(), asi.fin), '%H:%i:%s') FROM asistencia asi WHERE asi.idAsistencia = (SELECT MAX(a.idAsistencia) FROM asistencia a WHERE a.documento=doc AND a.inicio is not null AND a.fin is not null)) >= '00:15:00') THEN
 
               #Cierra el evento de asistencia Laboral!!!
               UPDATE asistencia a SET a.fin = now(), a.lectorF = lector, a.estado = 0 WHERE a.documento = doc AND a.idAsistencia = idAsistencia AND a.idConfiguracion = idHorario;
@@ -4764,7 +4766,7 @@ RETURN horaL;
 
 END$$
 
-CREATE DEFINER=`root`@`localhost` FUNCTION `SI_FU_ValidacionCierreAsistencia` (`idHorario` TINYINT(2)) RETURNS TINYINT(1) NO SQL
+CREATE DEFINER=`root`@`localhost` FUNCTION `SI_FU_ValidacionCierreAsistencia` (`idHorario` TINYINT(2), `fecha_fin_evento` VARCHAR(20)) RETURNS TINYINT(1) NO SQL
 BEGIN
 DECLARE horaFinEvento varchar(8);
 DECLARE horaInicioEvento varchar(8);
@@ -4776,8 +4778,8 @@ SET horaFinEvento = (SELECT c.hora_fin_almuerzo FROM configuracion c WHERE c.est
 IF horaInicioEvento = '00:00:00' OR horaFinEvento = '00:00:00' THEN
 #No aplica el evento del almuerzo
 
-SET horaInicioEvento = (SELECT c.hora_inicio_desayuno FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
-SET horaFinEvento = (SELECT c.hora_fin_desayuno FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
+  SET horaInicioEvento = (SELECT c.hora_inicio_desayuno FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
+  SET horaFinEvento = (SELECT c.hora_fin_desayuno FROM configuracion c WHERE c.estado=1 AND c.idConfiguracion=idHorario LIMIT 1);
 
   IF horaInicioEvento = '00:00:00' OR horaFinEvento THEN
 
@@ -4785,7 +4787,16 @@ SET horaFinEvento = (SELECT c.hora_fin_desayuno FROM configuracion c WHERE c.est
 
   ELSE
 
-  IF (TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'), horaFinEvento) > '00:10:00') = 1 THEN #Ya pasaron mas de 10 minutos despues de la hora del almuerzo?
+  IF horaInicioEvento >= horaFinEvento THEN
+  #Horario Nocturno
+
+    SET fecha_fin_evento = (SELECT DATE_ADD(fecha_fin_evento, INTERVAL 1 DAY));
+
+  END IF;
+
+  SET fecha_fin_evento = (SELECT CONCAT(fecha_fin_evento, ' ', horaFinEvento));
+
+  IF (TIMEDIFF(now(), fecha_fin_evento) > '00:10:00') = 1 THEN #Ya pasaron mas de 10 minutos despues de la hora del almuerzo?
     
       RETURN 1; 
     
@@ -4800,7 +4811,17 @@ SET horaFinEvento = (SELECT c.hora_fin_desayuno FROM configuracion c WHERE c.est
 ELSE
 #Si aplica el evento del almuerzo
 
-  IF (TIMEDIFF(TIME_FORMAT(now(),'%H:%i:%s'), horaFinEvento) > '00:10:00') = 1 THEN #Ya pasaron mas de 10 minutos despues de la hora del almuerzo?
+  IF horaInicioEvento >= horaFinEvento THEN
+  #Horario Nocturno
+
+    SET fecha_fin_evento = (SELECT DATE_ADD(fecha_fin_evento, INTERVAL 1 DAY));
+
+  END IF;
+
+  SET fecha_fin_evento = (SELECT CONCAT(fecha_fin_evento, ' ', horaFinEvento));
+  
+
+  IF (TIMEDIFF(now(), fecha_fin_evento) > '00:10:00') = 1 THEN #Ya pasaron mas de 10 minutos despues de la hora del almuerzo?
     
       RETURN 1; 
     
@@ -5621,7 +5642,20 @@ INSERT INTO `actividades_timpo_libre` (`idActividades_timpo_libre`, `idPersonal`
 (709, 115, 7),
 (710, 115, 4),
 (711, 115, 12),
-(712, 116, 7);
+(712, 116, 7),
+(713, 117, 12),
+(714, 117, 7),
+(715, 117, 13),
+(716, 117, 8),
+(717, 117, 11),
+(718, 117, 1),
+(719, 118, 11),
+(720, 118, 8),
+(721, 118, 13),
+(722, 118, 2),
+(723, 119, 4),
+(724, 119, 8),
+(725, 119, 6);
 
 -- --------------------------------------------------------
 
@@ -5720,106 +5754,46 @@ CREATE TABLE `asistencia` (
 --
 
 INSERT INTO `asistencia` (`idAsistencia`, `documento`, `idTipo_evento`, `inicio`, `fin`, `idEstado_asistencia`, `estado`, `lectorI`, `lectorF`, `tiempo`, `idConfiguracion`) VALUES
-(1, '1216727816', 1, '2019-05-18 06:09:33', '2019-05-18 18:00:00', 2, 0, 2, 0, '11:50:27', 5),
-(2, '1216727816', 1, '2019-05-20 06:10:05', '2019-05-20 16:30:00', 2, 0, 2, 0, '10:19:55', 1),
-(3, '1216727816', 2, '2019-05-20 10:30:00', '2019-05-20 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(4, '1216727816', 3, '2019-05-20 14:00:00', '2019-05-20 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(5, '1216727816', 1, '2019-05-21 05:55:19', '2019-05-21 16:30:00', 2, 0, 2, 0, '10:34:41', 1),
-(6, '1216727816', 2, '2019-05-21 10:30:00', '2019-05-21 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(7, '1216727816', 3, '2019-05-21 14:00:00', '2019-05-21 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(8, '1216727816', 1, '2019-05-22 06:00:50', '2019-05-22 16:30:00', 2, 0, 2, 0, '10:29:10', 1),
-(9, '1216727816', 2, '2019-05-22 10:30:00', '2019-05-22 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(10, '1216727816', 3, '2019-05-22 14:00:00', '2019-05-22 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(11, '1216727816', 1, '2019-05-23 06:05:55', '2019-05-23 16:30:00', 2, 0, 2, 0, '10:24:05', 1),
-(12, '1216727816', 2, '2019-05-23 10:30:00', '2019-05-23 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(13, '1216727816', 3, '2019-05-23 14:00:00', '2019-05-23 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(14, '1216727816', 1, '2019-05-24 05:57:22', '2019-05-24 12:21:00', 2, 0, 2, 0, '06:23:38', 1),
-(16, '1216727816', 1, '2019-05-25 05:55:34', '2019-05-25 12:34:17', 2, 0, 2, 2, '06:38:43', 5),
-(17, '1216727816', 1, '2019-05-27 05:59:42', '2019-05-27 12:35:15', 2, 0, 2, 2, '06:35:33', 5),
-(18, '760579', 1, '2019-05-18 05:59:33', '2019-05-18 18:05:00', 1, 0, 2, 0, '12:05:27', 5),
-(19, '760579', 1, '2019-05-20 06:05:05', '2019-05-20 16:30:00', 2, 0, 2, 0, '10:24:55', 1),
-(20, '760579', 2, '2019-05-20 10:30:00', '2019-05-20 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(21, '760579', 3, '2019-05-20 14:00:00', '2019-05-20 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(22, '760579', 1, '2019-05-21 05:55:19', '2019-05-21 16:30:00', 2, 0, 2, 0, '10:34:41', 1),
-(23, '760579', 2, '2019-05-21 10:30:00', '2019-05-21 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(24, '760579', 3, '2019-05-21 14:00:00', '2019-05-21 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(25, '760579', 1, '2019-05-22 06:00:50', '2019-05-22 16:30:00', 2, 0, 2, 0, '10:29:10', 1),
-(26, '760579', 2, '2019-05-22 10:30:00', '2019-05-22 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(27, '760579', 3, '2019-05-22 14:00:00', '2019-05-22 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(28, '760579', 1, '2019-05-23 06:05:55', '2019-05-23 16:30:00', 2, 0, 2, 0, '10:24:05', 1),
-(29, '760579', 2, '2019-05-23 10:30:00', '2019-05-23 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(30, '760579', 3, '2019-05-23 14:00:00', '2019-05-23 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(31, '760579', 1, '2019-05-24 05:57:22', '2019-05-24 12:21:00', 2, 0, 2, 0, '06:23:38', 1),
-(32, '760579', 1, '2019-05-25 05:55:34', '2019-05-25 12:34:17', 2, 0, 2, 2, '06:38:43', 5),
-(33, '760579', 1, '2019-05-27 05:59:42', '2019-05-27 12:35:15', 2, 0, 2, 2, '06:35:33', 5),
-(34, '8433778', 1, '2019-05-18 06:09:33', '2019-05-18 18:30:00', 2, 0, 2, 0, '12:20:27', 5),
-(35, '8433778', 1, '2019-05-20 05:55:05', '2019-05-20 16:30:00', 1, 0, 2, 0, '10:34:55', 1),
-(36, '8433778', 2, '2019-05-20 10:30:00', '2019-05-20 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(37, '8433778', 3, '2019-05-20 14:00:00', '2019-05-20 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(38, '8433778', 1, '2019-05-21 05:55:19', '2019-05-21 16:30:00', 2, 0, 2, 0, '10:34:41', 1),
-(39, '8433778', 2, '2019-05-21 10:30:00', '2019-05-21 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(40, '8433778', 3, '2019-05-21 14:00:00', '2019-05-21 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(41, '8433778', 1, '2019-05-22 06:01:50', '2019-05-22 16:30:00', 2, 0, 2, 0, '10:28:10', 1),
-(42, '8433778', 2, '2019-05-22 10:30:00', '2019-05-22 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(43, '8433778', 3, '2019-05-22 14:00:00', '2019-05-22 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(44, '8433778', 1, '2019-05-23 06:08:55', '2019-05-23 16:30:00', 2, 0, 2, 0, '10:21:05', 1),
-(45, '8433778', 2, '2019-05-23 10:30:00', '2019-05-23 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(46, '8433778', 3, '2019-05-23 14:00:00', '2019-05-23 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(47, '8433778', 1, '2019-05-24 05:57:22', '2019-05-24 11:58:00', 1, 0, 2, 0, '06:00:38', 1),
-(48, '8433778', 1, '2019-05-25 05:55:34', '2019-05-25 12:34:17', 2, 0, 2, 2, '06:38:43', 5),
-(49, '8433778', 1, '2019-05-27 05:59:42', '2019-05-27 12:35:15', 2, 0, 2, 2, '06:35:33', 5),
-(50, '15489896', 1, '2019-05-18 06:05:33', '2019-05-18 18:00:00', 2, 0, 2, 0, '11:54:27', 5),
-(51, '15489896', 1, '2019-05-20 06:02:05', '2019-05-20 16:30:00', 2, 0, 2, 0, '10:27:55', 1),
-(52, '15489896', 2, '2019-05-20 10:30:00', '2019-05-20 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(53, '15489896', 3, '2019-05-20 14:00:00', '2019-05-20 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(54, '15489896', 1, '2019-05-21 05:55:19', '2019-05-21 16:30:00', 2, 0, 2, 0, '10:34:41', 1),
-(55, '15489896', 2, '2019-05-21 10:30:00', '2019-05-21 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(56, '15489896', 3, '2019-05-21 14:00:00', '2019-05-21 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(57, '15489896', 1, '2019-05-22 06:00:50', '2019-05-22 16:30:00', 2, 0, 2, 0, '10:29:10', 1),
-(58, '15489896', 2, '2019-05-22 10:30:00', '2019-05-22 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(59, '15489896', 3, '2019-05-22 14:00:00', '2019-05-22 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(60, '15489896', 1, '2019-05-23 06:05:55', '2019-05-23 16:30:00', 2, 0, 2, 0, '10:24:05', 1),
-(61, '15489896', 2, '2019-05-23 10:30:00', '2019-05-23 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(62, '15489896', 3, '2019-05-23 14:00:00', '2019-05-23 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(63, '15489896', 1, '2019-05-24 05:59:22', '2019-05-24 12:21:00', 1, 0, 2, 0, '06:21:38', 1),
-(64, '15489896', 1, '2019-05-25 05:55:34', '2019-05-25 12:34:17', 2, 0, 2, 2, '06:38:43', 5),
-(65, '15489896', 1, '2019-05-27 05:59:42', '2019-05-27 12:35:15', 2, 0, 2, 2, '06:35:33', 5),
-(66, '15515649', 1, '2019-05-18 06:02:33', '2019-05-18 18:00:00', 2, 0, 2, 0, '11:57:27', 5),
-(67, '15515649', 1, '2019-05-20 05:57:05', '2019-05-20 16:30:00', 1, 0, 2, 0, '10:32:55', 1),
-(68, '15515649', 2, '2019-05-20 10:30:00', '2019-05-20 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(69, '15515649', 3, '2019-05-20 14:00:00', '2019-05-20 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(70, '15515649', 1, '2019-05-21 05:55:19', '2019-05-21 16:30:00', 2, 0, 2, 0, '10:34:41', 1),
-(71, '15515649', 2, '2019-05-21 10:30:00', '2019-05-21 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(72, '15515649', 3, '2019-05-21 14:00:00', '2019-05-21 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(73, '15515649', 1, '2019-05-22 06:00:50', '2019-05-22 16:30:00', 2, 0, 2, 0, '10:29:10', 1),
-(74, '15515649', 2, '2019-05-22 10:30:00', '2019-05-22 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(75, '15515649', 3, '2019-05-22 14:00:00', '2019-05-22 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(76, '15515649', 1, '2019-05-23 06:05:55', '2019-05-23 16:30:00', 2, 0, 2, 0, '10:24:05', 1),
-(77, '15515649', 2, '2019-05-23 10:30:00', '2019-05-23 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(78, '15515649', 3, '2019-05-23 14:00:00', '2019-05-23 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(79, '15515649', 1, '2019-05-24 05:58:22', '2019-05-24 12:21:00', 1, 0, 2, 0, '06:22:38', 1),
-(80, '15515649', 1, '2019-05-25 05:55:34', '2019-05-25 12:34:17', 1, 0, 2, 2, '06:38:43', 5),
-(81, '15515649', 1, '2019-05-27 05:59:42', '2019-05-27 12:30:15', 1, 0, 2, 2, '06:30:33', 5),
-(82, '43265824', 1, '2019-05-18 06:20:33', '2019-05-18 20:00:00', 2, 0, 2, 0, '13:39:27', 5),
-(83, '43265824', 1, '2019-05-20 06:04:05', '2019-05-20 16:30:00', 2, 0, 2, 0, '10:25:55', 1),
-(84, '43265824', 2, '2019-05-20 10:30:00', '2019-05-20 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(85, '43265824', 3, '2019-05-20 14:00:00', '2019-05-20 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(86, '43265824', 1, '2019-05-21 05:55:19', '2019-05-21 16:30:00', 2, 0, 2, 0, '10:34:41', 1),
-(87, '43265824', 2, '2019-05-21 10:30:00', '2019-05-21 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(88, '43265824', 3, '2019-05-21 14:00:00', '2019-05-21 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(89, '43265824', 1, '2019-05-22 06:00:50', '2019-05-22 16:30:00', 2, 0, 2, 0, '10:29:10', 1),
-(90, '43265824', 2, '2019-05-22 10:30:00', '2019-05-22 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(91, '43265824', 3, '2019-05-22 14:00:00', '2019-05-22 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(92, '43265824', 1, '2019-05-23 06:05:55', '2019-05-23 16:30:00', 2, 0, 2, 0, '10:24:05', 1),
-(93, '43265824', 2, '2019-05-23 10:30:00', '2019-05-23 10:30:00', 3, 0, 0, 0, '00:20:00', 1),
-(94, '43265824', 3, '2019-05-23 14:00:00', '2019-05-23 14:00:00', 3, 0, 0, 0, '00:40:00', 1),
-(95, '43265824', 1, '2019-05-24 07:57:22', '2019-05-24 12:21:00', 2, 0, 2, 0, '04:23:38', 1),
-(96, '43265824', 1, '2019-05-25 05:55:34', '2019-05-25 12:34:17', 2, 0, 2, 2, '06:38:43', 5),
-(97, '43265824', 1, '2019-05-27 06:59:42', '2019-05-27 12:35:15', 2, 0, 2, 2, '05:35:33', 5),
-(98, '1216727816', 1, '2019-05-28 05:56:11', '2019-05-28 16:18:43', 1, 0, 2, 0, '10:22:32', 5),
-(106, '1216727816', 1, '2019-05-29 06:00:45', '2019-05-29 07:56:00', 2, 0, 2, 0, '01:55:15', 1),
-(107, '1216727816', 2, '2019-05-29 07:56:00', '2019-05-29 07:56:00', 3, 0, 0, 0, '00:00:00', 1),
-(108, '1216727816', 3, '2019-05-29 07:56:00', '2019-05-29 07:56:00', 3, 0, 0, 0, '00:00:00', 1);
+(1, '43288005', 1, '2019-05-31 05:52:36', NULL, 1, 1, 1, NULL, NULL, 1),
+(2, '1017225857', 1, '2019-05-31 05:52:50', NULL, 1, 1, 4, NULL, NULL, 1),
+(3, '760579', 1, '2019-05-31 05:54:42', NULL, 1, 1, 4, NULL, NULL, 1),
+(4, '1046913982', 1, '2019-05-31 05:55:07', NULL, 1, 1, 4, NULL, NULL, 1),
+(5, '1216716458', 1, '2019-05-31 05:55:12', NULL, 1, 1, 4, NULL, NULL, 1),
+(6, '1077453248', 1, '2019-05-31 05:55:13', NULL, 1, 1, 5, NULL, NULL, 1),
+(7, '15515649', 1, '2019-05-31 05:55:21', NULL, 1, 1, 4, NULL, NULL, 1),
+(8, '1096238261', 1, '2019-05-31 05:55:35', NULL, 1, 1, 4, NULL, NULL, 1),
+(9, '43189198', 1, '2019-05-31 05:55:40', NULL, 1, 1, 4, NULL, NULL, 1),
+(10, '1152450553', 1, '2019-05-31 05:55:46', NULL, 1, 1, 4, NULL, NULL, 1),
+(11, '1001545147', 1, '2019-05-31 05:55:53', NULL, 1, 1, 4, NULL, NULL, 1),
+(12, '42702332', 1, '2019-05-31 05:55:58', NULL, 1, 1, 4, NULL, NULL, 1),
+(13, '1013537192', 1, '2019-05-31 05:56:05', NULL, 1, 1, 4, NULL, NULL, 1),
+(14, '1036625052', 1, '2019-05-31 05:56:10', NULL, 1, 1, 4, NULL, NULL, 1),
+(15, '1036651097', 1, '2019-05-31 05:56:38', NULL, 1, 1, 5, NULL, NULL, 1),
+(16, '21424773', 1, '2019-05-31 05:56:41', NULL, 1, 1, 4, NULL, NULL, 1),
+(17, '1017219391', 1, '2019-05-31 05:56:48', NULL, 1, 1, 4, NULL, NULL, 1),
+(18, '1037587834', 1, '2019-05-31 05:56:53', NULL, 1, 1, 4, NULL, NULL, 1),
+(19, '1007657685', 1, '2019-05-31 05:56:59', NULL, 1, 1, 4, NULL, NULL, 1),
+(20, '1095791547', 1, '2019-05-31 05:57:00', NULL, 1, 1, 1, NULL, NULL, 1),
+(21, '1037949696', 1, '2019-05-31 05:57:01', NULL, 1, 1, 5, NULL, NULL, 1),
+(22, '43542658', 1, '2019-05-31 05:57:04', NULL, 1, 1, 4, NULL, NULL, 1),
+(23, '43866346', 1, '2019-05-31 05:57:06', NULL, 1, 1, 5, NULL, NULL, 1),
+(24, '8433778', 1, '2019-05-31 05:57:10', NULL, 1, 1, 4, NULL, NULL, 1),
+(25, '43265824', 1, '2019-05-31 05:57:15', NULL, 1, 1, 4, NULL, NULL, 1),
+(26, '1039049115', 1, '2019-05-31 05:57:18', NULL, 1, 1, 5, NULL, NULL, 1),
+(27, '71267825', 1, '2019-05-31 05:57:30', NULL, 1, 1, 5, NULL, NULL, 1),
+(28, '44006996', 1, '2019-05-31 05:57:31', NULL, 1, 1, 4, NULL, NULL, 1),
+(29, '15489896', 1, '2019-05-31 05:57:38', NULL, 1, 1, 5, NULL, NULL, 1),
+(30, '80145967', 1, '2019-05-31 05:57:55', NULL, 1, 1, 4, NULL, NULL, 1),
+(31, '1036598684', 1, '2019-05-31 05:58:09', NULL, 1, 1, 5, NULL, NULL, 1),
+(32, '43605625', 1, '2019-05-31 05:59:02', NULL, 1, 1, 4, NULL, NULL, 1),
+(33, '1036629003', 1, '2019-05-31 05:59:14', NULL, 1, 1, 4, NULL, NULL, 1),
+(34, '1020457057', 1, '2019-05-31 05:59:20', NULL, 1, 1, 4, NULL, NULL, 1),
+(35, '1216727816', 1, '2019-05-31 05:59:35', NULL, 1, 1, 2, NULL, NULL, 1),
+(36, '1037949573', 1, '2019-05-31 05:59:59', NULL, 1, 1, 1, NULL, NULL, 1),
+(37, '1017125039', 1, '2019-05-31 06:00:15', NULL, 2, 1, 5, NULL, NULL, 1),
+(38, '98668402', 1, '2019-05-31 06:00:28', NULL, 2, 1, 1, NULL, NULL, 1),
+(39, '1017187557', 1, '2019-05-31 06:00:42', NULL, 2, 1, 4, NULL, NULL, 1),
+(40, '98772784', 1, '2019-05-31 06:01:31', NULL, 2, 1, 1, NULL, NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -5978,7 +5952,12 @@ INSERT INTO `auxilio` (`idAuxilio`, `idTipo_auxilio`, `monto`, `idSalarial`, `es
 (136, 2, '200000', 50, 1),
 (137, 2, '200000', 109, 1),
 (138, 1, '97032', 115, 1),
-(139, 1, '97032', 116, 1);
+(139, 1, '97032', 116, 1),
+(140, 1, '97032', 117, 1),
+(141, 3, '300000', 117, 1),
+(142, 3, '200000', 118, 1),
+(143, 2, '400000', 118, 1),
+(144, 1, '97032', 119, 1);
 
 -- --------------------------------------------------------
 
@@ -6138,11 +6117,11 @@ CREATE TABLE `configuracion` (
 --
 
 INSERT INTO `configuracion` (`idConfiguracion`, `nombre`, `hora_ingreso_empresa`, `hora_salida_empresa`, `hora_inicio_desayuno`, `hora_fin_desayuno`, `hora_inicio_almuerzo`, `hora_fin_almuerzo`, `tiempo_desayuno`, `tiempo_almuerzo`, `estado`, `tipo_horario`) VALUES
-(1, 'Primer horario laboral 6:00 AM - 4:30 PM ', '06:00:00', '16:30:00', '08:00:00', '10:30:00', '12:20:00', '14:00:00', '00:20:00', '00:40:00', 1, 0),
+(1, 'Primer horario laboral 6:00 AM - 4:30 PM ', '06:00:00', '16:30:00', '08:30:00', '11:00:00', '12:15:00', '15:00:00', '00:20:00', '00:40:00', 1, 0),
 (2, 'Segundo horario laboral', '16:30:00', '06:00:00', '21:21:00', '23:00:00', '02:00:00', '04:00:00', '00:05:00', '00:40:00', 1, 0),
 (3, 'Horario predeterminado para los sabados', '06:00:00', '18:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', 1, 2),
 (4, 'Horario Nocturno', '19:35:00', '04:30:00', '22:00:00', '23:00:00', '00:30:00', '02:30:00', '00:20:00', '00:40:00', 1, 0),
-(5, 'Horario días normales por defecto', '06:00:00', '18:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:20:00', '00:40:00', 1, 1),
+(5, 'Horario días normales por defecto', '06:00:00', '16:30:00', '08:30:00', '11:00:00', '12:15:00', '15:00:00', '00:20:00', '00:40:00', 1, 1),
 (6, 'Horario predeterminado para los domingos', '06:00:00', '18:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', 1, 3),
 (7, 'Horario predeterminado para los festivos', '06:00:00', '06:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', '00:00:00', 1, 4);
 
@@ -6168,6 +6147,8 @@ INSERT INTO `diagnostico` (`idDiagnostico`, `diagnostico`, `estado`) VALUES
 ('A083', 'OTRAS ENTERITIS VIRALES', 1),
 ('A09X', 'DIARREA Y GASTROENTERITIS DE PRESUNTO ORIGEN INFEC', 1),
 ('B349', 'INFECCION VIRAL, NO ESPECIFICADA', 1),
+('D259', 'LEIOMIOMA DEL UTERO, SIN OTRA ESPECIFICACION', 1),
+('F419', 'TRASTORNO DE ANSIEDAD , NO ESPECIFICADO', 1),
 ('G439', 'MIGRAÑA, NO ESPECIFICADA', 1),
 ('G442', 'CEFALEA DEBIDA A TENSION', 1),
 ('G448', 'OTROS SINDROMES DE CEFALEA ESPECIFICADOS', 1),
@@ -6175,8 +6156,12 @@ INSERT INTO `diagnostico` (`idDiagnostico`, `diagnostico`, `estado`) VALUES
 ('J00X', 'RINOFARINGITIS AGUDA (RESFRIADO COMUN)', 1),
 ('J012', 'SINUSITIS ETMOIDAL AGUDA', 1),
 ('J019', 'SINUSITIS AGUDA, NO ESPECIFICADA', 1),
+('J029', 'FARINGITIS AGUDA, NO ESPECIFICADA', 1),
+('J039', 'AMIGDALITIS AGUDA, NO ESPECIFICADA', 1),
+('J208', 'BRONQUITIS AGUDA DEBIDA A OTROS MICROORGANISMOS ES', 1),
 ('K103', 'ALVEOLITIS DEL MAXILAR', 1),
 ('K30X', 'DISPEPSIA', 1),
+('K359', 'APENDICITIS AGUDA, NO ESPECIFICADA', 1),
 ('K529', 'COLITIS Y GASTROENTERITIS NO INFECCIOSAS, NO ESPEC', 1),
 ('K589', 'SINDROME DEL COLON IRRITABLE SIN DIARREA', 1),
 ('L028', 'ABSCESO CUTANEO, FURUNCULO Y ANTRAX DE OTROS SITIO', 1),
@@ -6185,7 +6170,9 @@ INSERT INTO `diagnostico` (`idDiagnostico`, `diagnostico`, `estado`) VALUES
 ('M239', 'TRASTORNOS INTERNO DE LA RODILLA, NO ESPECIFICADO', 1),
 ('M255', 'DOLOR EN ARTICULACION', 1),
 ('M624', 'CONTRACTURA MUSCULAR', 1),
+('M796', 'DOLOR EN MIEMBRO', 1),
 ('N390', 'INFECCION DE VIAS URINARIAS, SITIO NO ESPECIFICADO', 1),
+('N739', 'ENFERMEDAD INFLAMATORIA PELVICA FEMENINA, NO ESPEC', 1),
 ('O16X', 'HIPERTENSION MATERNA, NO ESPECIFICADA', 1),
 ('O231', 'INFECCION DE LA VEJIGA URINARIA EN EL EMBARAZO', 1),
 ('O233', 'INFECCION DE OTRAS PARTES DE LAS VIAS URINARIAS EN', 1),
@@ -6268,6 +6255,7 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 ('1006887114', 'Luiggy ', 'Jose ', 'Jimenez', 'Montes ', 1, 0, 0, 0, 'ljosejimenez@uniguajira.edu.co', 'MTMwMQ==', 1, 0, 1, '4', '19/01/2009', 'Maicao', '2018-08-29', 0),
 ('1007110815', 'Nedis', 'Omaris', 'Chavarria', '', 0, 0, 0, 0, 'sarachavarria020@gmail.com', 'MDExOQ==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
 ('1007310520', 'beatriz ', 'elena ', 'beltrán ', 'bedoya ', 0, 0, 0, 0, 'beatrizbeltranbedoya123@hotmail.com', 'MTcwMg==', 1, 0, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
+('1007657685', 'Vanessa', 'paola', 'mesa', 'Muñoz', 0, 0, 0, 0, 'paolamesa81@gmail.com', 'ODcyOQ==', 1, 1, 1, '4', '24-09-2013', 'Itagui', '2019-05-13', 21),
 ('1013537192', 'santiago ', '', 'villa', 'torres', 1, 0, 0, 0, 'santiagovillat@gmail.com', 'c3Z0NQ==', 1, 1, 1, '4', '12/12/2010', 'medellin', '2018-08-29', 17),
 ('1017125039', 'erika', 'yojana', 'jaramillo', 'zapata', 0, 0, 0, 0, 'erikaz12@hotmail.com', 'MDkxMw==', 3, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
 ('1017132272', 'Elizabeth ', '', 'Pulgarin', 'Álvarez ', 0, 0, 0, 0, 'elizabethlero@outlook.com', 'MjE3NA==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
@@ -6306,7 +6294,7 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 ('1036601013', 'lady', 'johanna', 'puerta', 'acevedo', 0, 0, 0, 0, 'leidypuerta173@gmail.com', 'MTgwMg==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
 ('1036609702', 'Liliana', 'Andrea', 'Rendon', 'Caicedo', 0, 0, 0, 0, 'lianrendon@gmail.com', 'MTkzMg==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
 ('1036612156', 'jhonatan ', '', 'gómez ', 'cano ', 1, 0, 0, 0, 'jhonatan', 'MTcxMg==', 3, 0, 1, '4', '21/12/2005', 'Itagui', '2018-08-29', 0),
-('1036622270', 'LINA ', 'JOHANNA', 'YEPES', 'RIOS', 0, 0, 0, 0, 'Linayepesrios2403@gmail.com', 'TElOQQ==', 3, 1, 1, '4', '', '', '2018-08-29', 0),
+('1036622270', 'LINA ', 'JOHANNA', 'YEPES', 'RIOS', 0, 0, 0, 0, 'Linayepesrios2403@gmail.com', 'TElOQQ==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
 ('1036625052', 'carlos', 'alberto', 'rodriguez', 'pulgarin', 1, 0, 0, 0, 'albertico2319@gmail.com', 'NTI3OA==', 1, 1, 1, '4', '10-08-2007', 'itagui', '2019-01-28', 0),
 ('1036625105', 'Deisy', 'Johana', 'Alvarez', 'Toro', 0, 0, 0, 0, 'dejoalto@gmail.com', 'Mjc5Mw==', 1, 0, 2, '4', '', '', '2018-08-29', 0),
 ('1036629003', 'evelin ', 'andrea', 'cano', 'muñoz', 0, 0, 0, 0, 'evelincano1989@gmail.com', 'MTEwOQ==', 1, 1, 1, '1', '15/02/2009', 'Envigado', '2018-08-29', 21),
@@ -6348,16 +6336,16 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 ('1128450516', 'carolina', '', 'salinas', 'restrepo', 0, 0, 0, 0, 'palacio.2125@hotmail.com', 'MTI4OQ==', 2, 0, 1, '4', '23/08/2007', 'MEDELLIN', '2018-08-29', 0),
 ('1129045994', 'Jadder', 'Andres', 'Manyoma', 'Moreno', 1, 0, 0, 0, 'andres_elchikomoreno@hotmail.com', 'MjgwMQ==', 1, 0, 1, '4', '28/01/1997', 'Unión Panamericana ', '2018-08-29', 0),
 ('1143366120', 'MARTIN ', '', 'PEREZ', 'BELLO', 1, 0, 0, 0, 'martinperez0421@gmail.com', 'MDQyMQ==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
-('1143991147', 'estefania ', '', 'lopez', 'beltran', 0, 0, 0, 0, 'stefaniialopez.dylan.123@gmail.com', 'MTE0Mw==', 1, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
-('1152195364', 'Susana ', '', 'Escobar ', 'Alearcón', 0, 0, 0, 0, 'susana.escobar@hotmail.es', 'NTM5Mg==', 5, 1, 2, '2', '05-04-2010', 'Medellín', '2019-04-22', 9),
+('1143991147', 'estefania ', '', 'lopez', 'beltran', 0, 0, 0, 0, 'stefaniialopez.dylan.123@gmail.com', 'MTE0Mw==', 1, 1, 1, '5', '14/03/2016', 'CALI', '2018-08-29', 0),
+('1152195364', 'Susana', '', 'Escobar', 'Alarcón', 0, 0, 0, 0, 'susana.escobar@hotmail.es', 'NTM5Mg==', 5, 0, 2, '2', '05-04-2010', 'Medellín', '2019-04-22', 9),
 ('1152206404', 'CAROLINA ', 'MARIA ', 'GOMEZ ', 'PEREZ', 0, 0, 0, 0, 'carogomez_94@hotmail.com', 'NTA2MA==', 4, 1, 2, '3', '25/10/2012', 'MEDELLIN', '2019-01-11', 0),
 ('1152210828', 'Paula', 'Andrea', 'Herrera', 'Alvarez', 0, 0, 0, 0, 'pau3018@hotmail.com', 'MTk5NQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
 ('1152450553', 'juan', 'pablo', 'gonzalez', 'castrillon', 1, 0, 0, 0, 'jpgc17@hotmail.com', 'MzI0OQ==', 1, 1, 1, '4', '12-12-2000', 'Medellín', '2018-08-29', 0),
 ('1152697088', 'diana', 'marcela', 'patiño', 'cardona', 0, 0, 0, 0, 'diana.patino@colcircuitos.com', 'OTQyMg==', 1, 1, 2, '4', '27/11/2012', 'Medellin', '2018-08-29', 0),
-('1152701919', 'ANDERSON', '', 'ASPRILLA ', 'AGUILAR', 1, 0, 0, 0, 'ANDERSON-ASPRILLA@HOTMAIL.COM', 'MTQxNA==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
+('1152701919', 'ANDERSON', '', 'ASPRILLA ', 'AGUILAR', 1, 0, 0, 0, 'ANDERSON-ASPRILLA@HOTMAIL.COM', 'MTQxNA==', 1, 0, 1, '4', '', '', '2018-08-29', 0),
 ('1214721942', 'KELLY', 'DIANETH', 'GAVIRIA', 'TOBÓN', 0, 0, 0, 0, 'kelly1993gaviria@hotmail.com', 'MTIxNw==', 3, 0, 1, '1', '', '', '2018-08-29', 0),
 ('1214723132', 'yundry', 'tatiana', 'gomez', 'yagari', 0, 0, 0, 0, 'tatisgomez3017@gmail.com', 'MTk5Mg==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
-('1214734202', 'Paula ', 'Marcela ', 'Noreña ', 'Jimenez ', 0, 0, 0, 0, 'paulita.1301@hotmail.com', 'MDcyMQ==', 3, 1, 2, '2', '21/05/2014', 'Medellin', '2018-11-07', 0),
+('1214734202', 'Paula ', 'Marcela ', 'Noreña ', 'Jimenez ', 0, 0, 0, 0, 'paulita.1301@hotmail.com', 'MDcyMQ==', 3, 0, 2, '2', '21/05/2014', 'Medellin', '2018-11-07', 0),
 ('1216714526', 'Juan', '', 'Miranda', 'Aristizabal', 1, 0, 0, 0, 'juansma1004@hotmail.com', 'MTAwNA==', 3, 0, 1, '4', '', '', '2018-08-29', 0),
 ('1216714539', 'Maria ', 'Alejandra', 'Zuluaga', 'Rivera', 0, 0, 0, 0, 'alejandra.zuluaga@colciercuitos.com', 'MTIxNg==', 1, 1, 2, '2', '27/12/2011', 'MEDELLIN', '2018-08-29', 0),
 ('1216716458', 'sebastian', '', 'ramirez', 'corral', 1, 0, 0, 0, 'sebastos7d@gmail.com', 'ODg3OA==', 1, 1, 1, '4', '03/09/2012', 'Medellín', '2018-08-29', 0),
@@ -6367,7 +6355,7 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 ('15489917', 'Aicardo', 'Alexander', 'Montoya', 'Perez', 1, 0, 0, 0, 'alexmontoyap@yahoo.es', 'ODI1Nw==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
 ('15515649', 'Andres', 'Felipe', 'Tobon', 'Gonzalez', 1, 0, 0, 0, 'atobongonzalez@gmail.com', 'MjgxMg==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
 ('21424773', 'beatriz', 'elena', 'urrego', 'montes', 0, 0, 0, 0, 'bety-manuelita@hotmail.com', 'MDUwNQ==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
-('23917651', 'Dianneli', 'Patricia', 'Duran', 'Torres', 0, 0, 0, 0, 'dianneliduran22@gmail.com', 'MjIwMw==', 3, 1, 1, '4', '05/04/2013', 'Venezuela ', '2018-08-29', 0),
+('23917651', 'Dianneli', 'Patricia', 'Duran', 'Torres', 0, 0, 0, 0, 'dianneliduran22@gmail.com', 'MjIwMw==', 3, 0, 1, '4', '05/04/2013', 'Venezuela ', '2018-08-29', 0),
 ('26201420', 'Carmen', 'Milagro', 'Alvarez', 'Estrada', 0, 0, 0, 0, 'carmen15-17@hotmail.com', 'MTUxNw==', 1, 0, 1, '4', '', '', '2018-08-29', 0),
 ('32242675', 'Liliana', 'Maria', 'Restrepo', 'Ortíz', 0, 0, 0, 0, 'liliana.restrepo@colcircuitos.com', 'MjQxMg==', 1, 0, 2, '4', '', '', '2018-08-29', 0),
 ('32353491', 'janeth', 'viviana ', 'agudelo', 'zapata', 0, 0, 0, 0, 'janevia_0802@yahoo.es', 'NTUwOA==', 5, 1, 1, '5', '2000-01-01', 'Pendiente', '2018-08-29', 0),
@@ -6384,17 +6372,19 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 ('43596807', 'SANDRA ', 'EUGENIA', 'ZULUAGA', 'CARDONA', 0, 0, 0, 0, 'sandrazuluagacardona@gmail.com', 'MDMyMg==', 1, 1, 2, '2', '', '', '2018-08-29', 0),
 ('43605625', 'nora', '', 'sanchez', 'rivera', 0, 0, 0, 0, 'norasanchezr1808@gmail.com', 'OTcxNw==', 1, 1, 1, '4', '20-03-1993', 'medellin', '2018-08-29', 0),
 ('43745709', 'DIANA ', '', 'GALLEGO', 'ALVAREZ ', 0, 0, 0, 0, 'dianagallego@hotmail.com', 'MDk0MQ==', 4, 0, 2, '2', '', '', '2018-08-29', 0),
-('43749878', 'Gloria', 'Liliana', 'Vélez', 'Pérez', 0, 0, 0, 0, 'administrativa@colcircuitos.com', 'NzQ1OQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('43749879', 'Gloria', 'Liliana', 'Vélez', 'Pérez', 0, 0, 0, 0, 'administrativa@colcircuitos.com', 'NzQ1OQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
 ('43834287', 'ISABEL', 'CRISTINA', 'BERMUDEZ', 'ACEVEDO', 0, 0, 0, 0, 'acre_isabel@hotmail.com', 'ODU1Ng==', 3, 0, 1, '5', '10/12/1994', 'ITAGUI', '2018-08-29', 0),
 ('43841319', 'Monica', 'Alexandra ', 'Usma', 'Zapata', 0, 0, 0, 0, 'monicausmazapata@hotmail.com', 'MTIyMQ==', 1, 0, 2, '4', '', '', '2018-08-29', 0),
 ('43866346', 'sandra ', 'milena ', 'vasquez ', 'villegas ', 0, 0, 0, 0, 'sandravas79@hotmail.com', 'MDIwNQ==', 1, 1, 1, '5', '03/09/1997', 'Envigado', '2018-11-13', 0),
 ('43975208', 'gloria', 'amparo', 'jaramillo', 'zapata', 0, 0, 0, 0, 'gloria.jaramillo@colcircuitos.com', 'MDUyNQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
 ('44006996', 'juliana', '', 'silva', 'rodelo', 0, 0, 0, 0, 'silvarodelojuliana@gmail.com', 'MDA4NQ==', 3, 1, 1, '4', '', '', '2018-08-29', 0),
+('45529313', 'Adriana', 'sofia', 'Otero', 'Burgos', 0, 0, 0, 0, 'adrianasofiaotero@hotmail.com', 'MjAwNQ==', 5, 1, 2, '1', '13-10-1999', 'Cartagena', '2019-05-06', 15),
 ('53146320', 'Jackeline ', '', 'Pulgarin', 'Bohorquez', 0, 0, 0, 0, 'jackeline.pulgarin@grupoinvertronica.com', 'bWFpbA==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
 ('54253320', 'elvia', '', 'valoyes', 'cordoba', 0, 0, 0, 0, 'liyimen234@hotmail.com', 'MjgyMw==', 1, 1, 2, '4', '20-03-1987', 'Quibdo', '2018-08-29', 0),
 ('71055289', 'Jaime ', 'Alberto ', 'Bedoya', 'Garces', 1, 0, 0, 0, 'jaibega25@hotmail.com', 'MWEyYg==', 1, 1, 2, '3', '04-07-2002', 'Betulia', '2019-01-31', 0),
 ('71267825', 'Manuel', 'Yamid', 'Tangarife', 'Estrada', 1, 0, 0, 0, 'manuelyamid@hotmail.com', 'MzUzNQ==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
 ('71268332', 'Adimaro', '', 'Montoya', 'Toro', 1, 0, 0, 0, 'adimaro.montoya@colcircuitos.com', 'MDIyOQ==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
+('71269842', 'Cristian', 'Camilo ', 'Zuluaga', 'Cifuentes ', 1, 0, 0, 0, 'cricazu10@gmail.com', 'MTAwNg==', 5, 1, 2, '2', '02-04-2001', 'Medellín', '2019-05-06', 15),
 ('71387038', 'juan', 'diego', 'villa', 'rojas', 1, 0, 0, 0, 'juandiego317_@hotmail.com', 'MDMxNw==', 2, 0, 1, '4', '', '', '2018-08-29', 0),
 ('71709575', 'mauricio', '', 'gómez ', 'vera', 1, 0, 0, 0, 'mauriciogomezvera@gmail.com', 'MjUxNg==', 4, 1, 2, '3', '02-09-1987', 'Medellín', '2019-02-06', 18),
 ('71752141', 'jose', 'sebastian', 'gonzalez', 'sanchez', 1, 0, 0, 0, 'josepsebastian171@yahoo.com', 'MTQ5Mg==', 3, 0, 1, '4', '31/03/1993', 'MEDELLIN', '2018-08-29', 0),
@@ -6411,7 +6401,7 @@ INSERT INTO `empleado` (`documento`, `nombre1`, `nombre2`, `apellido1`, `apellid
 ('8433778', 'Fredy', 'Alejandro', 'Montoya', 'Isaza', 1, 0, 0, 0, 'complotminitk@hotmail.com', 'NTcxOQ==', 1, 1, 1, '4', '', '', '2018-08-29', 0),
 ('9008773200219', 'Sara ', 'Maria ', 'Daboi', 'Ramirez', 0, 0, 0, 0, 'saradaboin@hotmail.com', 'MTMwOQ==', 3, 0, 1, '1', '15/08/2017', 'Medellin', '2018-08-29', 0),
 ('91279058', 'FABIO', '', 'CUBILLOS', 'VALENCIA', 1, 0, 0, 0, 'gerencia@tecrea.com.co', 'NTkxNQ==', 4, 0, 2, '4', '', '', '2018-08-29', 0),
-('955297213061995', 'Maria', 'Angelica', 'Medina', 'Valencia', 0, 0, 0, 0, 'angelicamvalencia22@gmail.com', 'MDMwMg==', 4, 1, 2, '3', '28-12-2018', 'Medellin', '2019-05-02', 0),
+('955297213061995', 'maria', 'angelica', 'medina', 'valencia', 0, 0, 0, 0, 'angelicamvalencia22@gmail.com', 'MDMwMg==', 5, 1, 2, '3', '28-12-2018', 'Medellin', '2019-05-02', 0),
 ('98558437', 'Fabian ', 'Fernando ', 'Vélez', 'Pérez', 1, 0, 0, 0, 'fernando@colcircuitos.com', 'MTQyMg==', 1, 1, 2, '2', '30/07/1990', 'Envigado', '2019-03-13', 12),
 ('98668402', 'andres', 'felipe', 'graciano', 'pareja', 1, 0, 0, 0, 'andresgp.c2c3@gmail.com', 'ODQwMg==', 1, 1, 1, '1', '1998-01-01', 'Pendiente', '2018-08-29', 0),
 ('98699433', 'andres', 'camilo', 'buitrago', 'gomez', 1, 0, 0, 0, 'andres.buitrago@colcircuitos.com', 'MjYwOA==', 1, 1, 2, '4', '', '', '2018-08-29', 0),
@@ -6442,8 +6432,8 @@ CREATE TABLE `empleado_horario` (
 --
 
 INSERT INTO `empleado_horario` (`idEmpleado_horario`, `documento`, `idConfiguracion`, `diaInicio`, `diaFin`, `estado`, `fechaInicio`, `fechaFin`) VALUES
-(19, '1216727816', 5, 1, 5, 0, '2018-10-24', NULL),
-(20, '1216727816', 1, 1, 5, 0, '2018-10-25', NULL),
+(19, '1216727816', 1, 1, 5, 1, '2018-10-24', NULL),
+(20, '1216727816', 2, 5, -1, 0, '2018-10-25', NULL),
 (21, '1039457744', 1, 1, 6, 1, '2018-10-29', NULL),
 (22, '43265824', 1, 1, 5, 1, '2018-11-09', NULL),
 (23, '1037587834', 1, 1, 5, 1, '2018-11-09', NULL),
@@ -6505,8 +6495,9 @@ INSERT INTO `empleado_horario` (`idEmpleado_horario`, `documento`, `idConfigurac
 (79, '1001545147', 1, 1, 5, 1, '2019-03-12', NULL),
 (80, '1095791547', 1, 1, 5, 1, '2019-03-27', NULL),
 (81, '1095791547', 3, 6, -1, 0, '2019-04-06', NULL),
-(82, '98668402', 3, 6, -1, 1, '2019-04-06', NULL),
-(83, '1216727816', 1, 6, -1, 0, '2019-05-03', NULL);
+(82, '98668402', 3, 6, -1, 0, '2019-04-06', NULL),
+(83, '1017219391', 1, 1, 5, 1, '2019-05-09', NULL),
+(84, '1007657685', 1, 1, 5, 1, '2019-05-13', NULL);
 
 -- --------------------------------------------------------
 
@@ -7352,7 +7343,127 @@ INSERT INTO `envio_pedido` (`idEnvio_pedido`, `fecha_envio`, `idProveedor`) VALU
 (899, '2019-05-03 07:45:06', 2),
 (900, '2019-05-03 07:45:09', 3),
 (901, '2019-05-03 07:45:11', 4),
-(902, '2019-05-03 07:45:13', 5);
+(902, '2019-05-03 07:45:13', 5),
+(903, '2019-05-04 07:45:05', 1),
+(904, '2019-05-04 07:45:08', 2),
+(905, '2019-05-04 07:45:10', 3),
+(906, '2019-05-04 07:45:12', 4),
+(907, '2019-05-04 07:45:14', 5),
+(908, '2019-05-06 07:45:05', 1),
+(909, '2019-05-06 07:45:07', 2),
+(910, '2019-05-06 07:45:09', 3),
+(911, '2019-05-06 07:45:12', 4),
+(912, '2019-05-06 07:45:15', 5),
+(913, '2019-05-07 07:45:04', 1),
+(914, '2019-05-07 07:45:07', 2),
+(915, '2019-05-07 07:45:09', 3),
+(916, '2019-05-07 07:45:11', 4),
+(917, '2019-05-07 07:45:13', 5),
+(918, '2019-05-08 07:45:05', 1),
+(919, '2019-05-08 07:45:08', 2),
+(920, '2019-05-08 07:45:10', 3),
+(921, '2019-05-08 07:45:12', 4),
+(922, '2019-05-08 07:45:15', 5),
+(923, '2019-05-09 07:45:05', 1),
+(924, '2019-05-09 07:45:07', 2),
+(925, '2019-05-09 07:45:10', 3),
+(926, '2019-05-09 07:45:12', 4),
+(927, '2019-05-09 07:45:14', 5),
+(928, '2019-05-10 07:45:04', 1),
+(929, '2019-05-10 07:45:07', 2),
+(930, '2019-05-10 07:45:09', 3),
+(931, '2019-05-10 07:45:11', 4),
+(932, '2019-05-10 07:45:13', 5),
+(933, '2019-05-14 07:45:04', 1),
+(934, '2019-05-14 07:45:06', 2),
+(935, '2019-05-14 07:45:09', 3),
+(936, '2019-05-14 07:45:11', 4),
+(937, '2019-05-14 07:45:13', 5),
+(938, '2019-05-15 07:45:06', 1),
+(939, '2019-05-15 07:45:08', 2),
+(940, '2019-05-15 07:45:10', 3),
+(941, '2019-05-15 07:45:12', 4),
+(942, '2019-05-15 07:45:15', 5),
+(943, '2019-05-16 07:45:05', 1),
+(944, '2019-05-16 07:45:07', 2),
+(945, '2019-05-16 07:45:10', 3),
+(946, '2019-05-16 07:45:12', 4),
+(947, '2019-05-16 07:45:14', 5),
+(948, '2019-05-17 07:45:05', 1),
+(949, '2019-05-17 07:45:07', 2),
+(950, '2019-05-17 07:45:10', 3),
+(951, '2019-05-17 07:45:12', 4),
+(952, '2019-05-17 07:45:14', 5),
+(953, '2019-05-18 07:45:05', 1),
+(954, '2019-05-18 07:45:07', 2),
+(955, '2019-05-18 07:45:09', 3),
+(956, '2019-05-18 07:45:12', 4),
+(957, '2019-05-18 07:45:14', 5),
+(958, '2019-05-19 07:45:05', 1),
+(959, '2019-05-19 07:45:07', 2),
+(960, '2019-05-19 07:45:09', 3),
+(961, '2019-05-19 07:45:12', 4),
+(962, '2019-05-19 07:45:14', 5),
+(963, '2019-05-20 07:45:05', 1),
+(964, '2019-05-20 07:45:07', 2),
+(965, '2019-05-20 07:45:10', 3),
+(966, '2019-05-20 07:45:12', 4),
+(967, '2019-05-20 07:45:14', 5),
+(968, '2019-05-21 07:45:05', 1),
+(969, '2019-05-21 07:45:08', 2),
+(970, '2019-05-21 07:45:10', 3),
+(971, '2019-05-21 07:45:12', 4),
+(972, '2019-05-21 07:45:14', 5),
+(973, '2019-05-22 07:45:05', 1),
+(974, '2019-05-22 07:45:08', 2),
+(975, '2019-05-22 07:45:10', 3),
+(976, '2019-05-22 07:45:12', 4),
+(977, '2019-05-22 07:45:15', 5),
+(978, '2019-05-23 07:45:04', 1),
+(979, '2019-05-23 07:45:06', 2),
+(980, '2019-05-23 07:45:08', 3),
+(981, '2019-05-23 07:45:10', 4),
+(982, '2019-05-23 07:45:13', 5),
+(983, '2019-05-24 07:45:04', 1),
+(984, '2019-05-24 07:45:07', 2),
+(985, '2019-05-24 07:45:09', 3),
+(986, '2019-05-24 07:45:11', 4),
+(987, '2019-05-24 07:45:13', 5),
+(988, '2019-05-25 07:45:05', 1),
+(989, '2019-05-25 07:45:08', 2),
+(990, '2019-05-25 07:45:11', 3),
+(991, '2019-05-25 07:45:13', 4),
+(992, '2019-05-25 07:45:16', 5),
+(993, '2019-05-26 07:45:05', 1),
+(994, '2019-05-26 07:45:07', 2),
+(995, '2019-05-26 07:45:10', 3),
+(996, '2019-05-26 07:45:12', 4),
+(997, '2019-05-26 07:45:15', 5),
+(998, '2019-05-27 07:45:05', 1),
+(999, '2019-05-27 07:45:08', 2),
+(1000, '2019-05-27 07:45:10', 3),
+(1001, '2019-05-27 07:45:12', 4),
+(1002, '2019-05-27 07:45:14', 5),
+(1003, '2019-05-28 07:45:04', 1),
+(1004, '2019-05-28 07:45:06', 2),
+(1005, '2019-05-28 07:45:09', 3),
+(1006, '2019-05-28 07:45:11', 4),
+(1007, '2019-05-28 07:45:13', 5),
+(1008, '2019-05-29 07:45:04', 1),
+(1009, '2019-05-29 07:45:06', 2),
+(1010, '2019-05-29 07:45:09', 3),
+(1011, '2019-05-29 07:45:11', 4),
+(1012, '2019-05-29 07:45:12', 5),
+(1013, '2019-05-30 07:45:04', 1),
+(1014, '2019-05-30 07:45:07', 2),
+(1015, '2019-05-30 07:45:09', 3),
+(1016, '2019-05-30 07:45:11', 4),
+(1017, '2019-05-30 07:45:14', 5),
+(1018, '2019-05-31 07:45:05', 1),
+(1019, '2019-05-31 07:45:07', 2),
+(1020, '2019-05-31 07:45:09', 3),
+(1021, '2019-05-31 07:45:11', 4),
+(1022, '2019-05-31 07:45:13', 5);
 
 -- --------------------------------------------------------
 
@@ -7514,7 +7625,7 @@ INSERT INTO `estado_empresarial` (`idEstado_empresarial`, `idFicha_SD`, `estado_
 (55, 30, '1', '2018-09-30', '2018-05-07', 3, 3, '', 1, 2, 0),
 (56, 30, '2', '0000-00-00', '2018-10-01', 0, 0, '', 1, 1, 0),
 (57, 31, '1', '2018-10-16', '2018-07-24', 3, 3, 'Para realizar practicas', 1, 1, 0),
-(58, 31, '2', '0000-00-00', '2018-10-17', 0, 0, '', 1, 1, 0),
+(58, 31, '1', '2019-05-08', '2018-10-17', 2, 3, 'Terminación de práctica', 1, 1, 0),
 (59, 32, '1', '2018-09-30', '2018-05-07', 3, 3, '', 1, 2, 0),
 (60, 32, '2', '0000-00-00', '2018-10-01', 0, 0, '', 1, 1, 0),
 (61, 33, '1', '2017-07-09', '2017-02-23', 3, 3, '', 1, 2, 0),
@@ -7573,7 +7684,7 @@ INSERT INTO `estado_empresarial` (`idEstado_empresarial`, `idFicha_SD`, `estado_
 (119, 70, '1', '2018-12-17', '2018-06-12', 2, 3, '', 1, 3, 0),
 (120, 71, '1', '2019-04-07', '2018-03-07', 2, 3, '', 1, 3, 0),
 (121, 72, '2', '0000-00-00', '2018-04-16', 0, 0, '', 1, 3, 0),
-(122, 73, '2', '0000-00-00', '2018-08-28', 0, 0, '', 1, 3, 0),
+(122, 73, '1', '2019-05-17', '2018-08-28', 2, 3, '', 1, 3, 0),
 (123, 74, '1', '2019-01-25', '2018-01-29', 0, 0, '', 1, 3, 0),
 (124, 75, '2', '0000-00-00', '2018-09-24', 0, 0, '', 1, 3, 0),
 (125, 76, '1', '2019-02-11', '2018-06-12', 2, 3, '', 1, 3, 0),
@@ -7611,7 +7722,7 @@ INSERT INTO `estado_empresarial` (`idEstado_empresarial`, `idFicha_SD`, `estado_
 (157, 101, '2', '0000-00-00', '2019-02-18', 0, 0, '', 1, 5, 0),
 (158, 102, '2', '0000-00-00', '2019-02-18', 0, 0, '', 1, 5, 0),
 (159, 65, '2', '0000-00-00', '2019-03-04', 0, 0, '', 1, 3, 0),
-(161, 104, '2', '0000-00-00', '2018-10-22', 0, 0, '', 1, 3, 0),
+(161, 104, '1', '2019-05-17', '2018-10-22', 2, 3, '', 1, 3, 0),
 (162, 105, '1', '2019-03-31', '2017-05-16', 1, 2, '', 1, 1, 3),
 (163, 106, '1', '2018-12-28', '2018-10-22', 3, 3, '', 1, 3, 0),
 (164, 107, '2', '0000-00-00', '2014-10-01', 0, 0, '', 1, 1, 0),
@@ -7622,7 +7733,7 @@ INSERT INTO `estado_empresarial` (`idEstado_empresarial`, `idFicha_SD`, `estado_
 (169, 112, '2', '0000-00-00', '2013-06-01', 0, 0, '', 1, 1, 0),
 (170, 113, '2', '0000-00-00', '2019-03-26', 0, 0, '', 1, 1, 0),
 (171, 114, '2', '0000-00-00', '2018-12-17', 0, 0, '', 1, 1, 0),
-(172, 79, '2', '0000-00-00', '2018-11-07', 0, 0, '', 1, 3, 0),
+(172, 79, '1', '2019-05-10', '2018-11-07', 1, 1, '', 1, 3, 2),
 (173, 109, '2', '0000-00-00', '2008-06-01', 0, 0, '', 1, 1, 0),
 (174, 103, '1', '2018-09-02', '2017-11-09', 3, 3, '', 1, 3, 0),
 (175, 103, '2', '0000-00-00', '2018-09-03', 0, 0, '', 1, 1, 0),
@@ -7631,9 +7742,12 @@ INSERT INTO `estado_empresarial` (`idEstado_empresarial`, `idFicha_SD`, `estado_
 (178, 40, '2', '0000-00-00', '2014-08-01', 0, 0, '', 1, 1, 0),
 (181, 34, '2', '0000-00-00', '2018-01-15', 0, 0, '', 1, 1, 0),
 (183, 80, '2', '0000-00-00', '2019-04-08', 0, 0, '', 1, 5, 0),
-(184, 115, '2', '0000-00-00', '2019-04-22', 0, 0, '', 1, 5, 0),
+(184, 115, '1', '2019-05-15', '2019-04-22', 2, 3, '', 1, 5, 0),
 (185, 59, '2', '0000-00-00', '2019-04-22', 0, 0, '', 1, 3, 0),
-(186, 116, '2', '0000-00-00', '2019-05-02', 0, 0, '', 1, 5, 0);
+(186, 116, '2', '0000-00-00', '2019-05-02', 0, 0, '', 1, 5, 0),
+(187, 117, '2', '0000-00-00', '2019-05-06', 0, 0, '', 1, 5, 0),
+(188, 118, '2', '0000-00-00', '2019-05-06', 0, 0, '', 1, 5, 0),
+(189, 119, '2', '0000-00-00', '2019-05-13', 0, 0, '', 1, 1, 0);
 
 -- --------------------------------------------------------
 
@@ -7784,7 +7898,15 @@ INSERT INTO `estudios` (`idEstudios`, `idGrado_escolaridad`, `titulo_profecional
 (127, 2, 'Tecnico en operaciòn de eventos', '', '0', ''),
 (128, 1, 'Bachiller Media Tecnica en Sistemas', '', '0', ''),
 (129, 4, 'Comunicadora Social Periodista', '', '0', ''),
-(130, 4, 'Abogada ', '', '0', '');
+(130, 4, 'Abogada ', '', '0', ''),
+(131, 3, 'Tecnologo en electronica', '', '0', ''),
+(132, 3, 'Tecnologo en electronica', '', '0', ''),
+(133, 3, 'Tecnologo en electronica', '', '0', ''),
+(134, 3, 'Tecnologo en electronica', '', '0', ''),
+(135, 3, 'Tecnologo en electronica', '', '0', ''),
+(136, 3, 'Tecnologo en electronica', '', '0', ''),
+(137, 4, 'Administrador de Empresas', '', '0', ''),
+(138, 1, 'Bachiller academico', '', '2', 'Tecnico laboral en Electr');
 
 -- --------------------------------------------------------
 
@@ -7960,12 +8082,15 @@ INSERT INTO `ficha_sd` (`idFicha_SD`, `documento`, `idSalarial`, `idLaboral`, `i
 (108, '98558437', 108, 117, 117, 108, 108, 108, 108),
 (109, '43271378', 109, 118, 118, 109, 109, 109, 109),
 (110, '1017219391', 110, 124, 124, 110, 110, 110, 110),
-(111, '43749878', 111, 125, 125, 111, 111, 111, 111),
+(111, '43749879', 111, 125, 125, 111, 111, 111, 111),
 (112, '8344177', 112, 126, 126, 112, 112, 112, 112),
 (113, '1000633612', 113, 127, 127, 113, 113, 113, 113),
 (114, '1001545147', 114, 128, 128, 114, 114, 114, 114),
 (115, '1152195364', 115, 129, 129, 115, 115, 115, 115),
-(116, '955297213061995', 116, 130, 130, 116, 116, 116, 116);
+(116, '955297213061995', 116, 130, 130, 116, 116, 116, 116),
+(117, '71269842', 117, 136, 136, 117, 117, 117, 117),
+(118, '45529313', 118, 137, 137, 118, 118, 118, 118),
+(119, '1007657685', 119, 138, 138, 119, 119, 119, 119);
 
 -- --------------------------------------------------------
 
@@ -8003,15 +8128,6 @@ CREATE TABLE `horario_permiso` (
   `idHorario_permiso` tinyint(4) NOT NULL,
   `momento` varchar(45) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Volcado de datos para la tabla `horario_permiso`
---
-
-INSERT INTO `horario_permiso` (`idHorario_permiso`, `momento`) VALUES
-(1, 'Salida temprano'),
-(2, 'Ingreso tarde'),
-(3, 'Salida e ingreso');
 
 -- --------------------------------------------------------
 
@@ -8071,68 +8187,6 @@ CREATE TABLE `h_laboral` (
   `horas_aceptadas` varchar(8) DEFAULT '00:00:00',
   `horas_rechazadas` varchar(8) DEFAULT '00:00:00'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Volcado de datos para la tabla `h_laboral`
---
-
-INSERT INTO `h_laboral` (`idH_laboral`, `idAsistencia`, `idEvento_laboral`, `numero_horas`, `Estado`, `descripcion`, `horas_aceptadas`, `horas_rechazadas`) VALUES
-(1, 1, 1, '11:00:00', 1, NULL, '11:00:00', '0'),
-(2, 2, 1, '09:19:55', 1, NULL, '09:19:55', '0'),
-(3, 5, 1, '09:30:00', 1, NULL, '09:30:00', '0'),
-(4, 8, 1, '09:29:10', 1, NULL, '09:29:10', '0'),
-(5, 11, 1, '09:24:05', 1, NULL, '09:24:05', '0'),
-(6, 14, 1, '06:23:38', 1, NULL, '06:23:38', '0'),
-(8, 16, 1, '06:38:43', 1, NULL, '06:38:43', '0'),
-(9, 17, 1, '06:35:33', 1, NULL, '06:35:33', '0'),
-(10, 18, 1, '11:00:00', 1, NULL, '11:00:00', '0'),
-(11, 19, 1, '09:24:55', 1, NULL, '09:24:55', '0'),
-(12, 22, 1, '09:30:00', 1, NULL, '09:30:00', '0'),
-(13, 25, 1, '09:29:10', 1, NULL, '09:29:10', '0'),
-(14, 28, 1, '09:24:05', 1, NULL, '09:24:05', '0'),
-(15, 31, 1, '06:23:38', 1, NULL, '06:23:38', '0'),
-(16, 32, 1, '06:38:43', 1, NULL, '06:38:43', '0'),
-(17, 33, 1, '06:35:33', 1, NULL, '06:35:33', '0'),
-(18, 34, 1, '11:00:00', 1, NULL, '11:00:00', '0'),
-(18, 66, 1, '11:00:00', 1, NULL, '11:00:00', '0'),
-(19, 35, 1, '09:30:00', 1, NULL, '09:30:00', '0'),
-(19, 67, 1, '09:30:00', 1, NULL, '09:30:00', '0'),
-(20, 38, 1, '09:30:00', 1, NULL, '09:30:00', '0'),
-(20, 70, 1, '09:30:00', 1, NULL, '09:30:00', '0'),
-(21, 41, 1, '09:28:10', 1, NULL, '09:28:10', '0'),
-(21, 44, 1, '09:21:05', 1, NULL, '09:21:05', '0'),
-(21, 73, 1, '09:29:10', 1, NULL, '09:29:10', '0'),
-(21, 76, 1, '09:24:05', 1, NULL, '09:24:05', '0'),
-(23, 47, 1, '06:00:38', 1, NULL, '06:00:38', '0'),
-(23, 79, 1, '06:22:38', 1, NULL, '06:22:38', '0'),
-(24, 48, 1, '06:38:43', 1, NULL, '06:38:43', '0'),
-(24, 80, 1, '06:38:43', 1, NULL, '06:38:43', '0'),
-(25, 49, 1, '06:35:33', 1, NULL, '06:35:33', '0'),
-(25, 81, 1, '06:30:33', 1, NULL, '06:30:33', '0'),
-(26, 50, 1, '11:00:00', 1, NULL, '11:00:00', '0'),
-(26, 82, 1, '11:00:00', 1, NULL, '11:00:00', '0'),
-(27, 51, 1, '09:27:55', 1, NULL, '09:27:55', '0'),
-(27, 83, 1, '09:25:55', 1, NULL, '09:25:55', '0'),
-(28, 54, 1, '09:30:00', 1, NULL, '09:30:00', '0'),
-(28, 86, 1, '09:30:00', 1, NULL, '09:30:00', '0'),
-(29, 57, 1, '09:29:10', 1, NULL, '09:29:10', '0'),
-(29, 89, 1, '09:29:10', 1, NULL, '09:29:10', '0'),
-(30, 60, 1, '09:24:05', 1, NULL, '09:24:05', '0'),
-(30, 92, 1, '09:24:05', 1, NULL, '09:24:05', '0'),
-(31, 63, 1, '06:21:38', 1, NULL, '06:21:38', '0'),
-(31, 95, 1, '04:23:38', 1, NULL, '04:23:38', '0'),
-(32, 64, 1, '06:38:43', 1, NULL, '06:38:43', '0'),
-(32, 96, 1, '06:38:43', 1, NULL, '06:38:43', '0'),
-(33, 65, 1, '06:35:33', 1, NULL, '06:35:33', '0'),
-(33, 97, 1, '05:35:33', 1, NULL, '05:35:33', '0'),
-(41, 82, 2, '02:39:27', 0, '', '00:00:00', '00:00:00'),
-(42, 66, 2, '00:58:00', 1, '', '00:58:00', '00:00:00'),
-(43, 1, 2, '00:51:00', 1, '', '00:51:00', '00:00:00'),
-(44, 18, 2, '01:06:00', 1, '', '01:06:00', '00:00:00'),
-(45, 34, 2, '01:21:00', 1, '', '01:21:00', '00:00:00'),
-(46, 50, 2, '00:55:00', 1, 'No son validas', '00:00:00', '00:55:00'),
-(47, 98, 1, '09:31:14', 1, NULL, '09:31:14', '0'),
-(51, 106, 1, '01:55:15', 1, NULL, '01:55:15', '0');
 
 -- --------------------------------------------------------
 
@@ -8219,7 +8273,23 @@ INSERT INTO `incapacidad` (`idIncapacidad`, `documento`, `fecha_incapacidad`, `f
 (54, '23917651', '2019-04-09', '2019-04-13', '5', '55.210,494', '', '82.808,84', '138.019,333', 'M238', '', 1, 2, '', ''),
 (55, '23917651', '2019-04-05', '2019-04-09', '5', '55.210,494', '', '82.808,84', '138.019,333', 'M238', '', 1, 1, '', ''),
 (56, '43605625', '2019-04-10', '2019-04-10', '1', '', '', '29.093,833', '29.093,833', 'A060', '', 1, 1, '', ''),
-(57, '23917651', '2019-04-02', '2019-04-03', '2', '', '', '55.207,733', '55.207,733', 'M255', '', 1, 1, '', '');
+(57, '23917651', '2019-04-02', '2019-04-03', '2', '', '', '55.207,733', '55.207,733', 'M255', '', 1, 1, '', ''),
+(58, '1036598684', '2019-05-15', '2019-05-15', '1', '', '', '28.663,867', '28.663,867', 'M796', '', 1, 1, '', ''),
+(60, '1216714539', '2019-05-15', '2019-05-15', '1', '', '', '33.333,333', '33.333,333', 'J00X', '', 1, 1, '', ''),
+(61, '1035915735', '2019-05-15', '2019-05-15', '1', '', '', '31.800', '31.800', 'J039', '', 1, 1, '', ''),
+(62, '1017187557', '2019-05-13', '2019-05-13', '1', '', '', '27.603,867', '27.603,867', 'M624', '', 1, 1, '', ''),
+(63, '1036650501', '2019-05-13', '2019-05-13', '1', '', '', '33.333,333', '33.333,333', 'R51X', '', 1, 1, '', ''),
+(64, '1039049115', '2019-05-08', '2019-05-08', '1', '', '', '29.530,233', '29.530,233', 'J029', '', 1, 1, '', ''),
+(65, '43542658', '2019-05-02', '2019-05-02', '1', '', '', '30.416,167', '30.416,167', 'F419', '', 1, 1, '', ''),
+(66, '1143991147', '2019-05-06', '2019-05-06', '1', '', '', '28.663,867', '28.663,867', 'R51X', '', 1, 1, '', ''),
+(67, '1039464479', '2019-05-03', '2019-05-16', '14', '416.020,8', '', '311.979,2', '728.000', 'K359', '', 1, 1, '', ''),
+(68, '1017239142', '2019-05-14', '2019-05-14', '1', '', '', '36.666,667', '36.666,667', 'A09X', '', 1, 1, '', ''),
+(69, '23917651', '2019-05-03', '2019-05-03', '1', '', '', '27.603,867', '27.603,867', 'J208', '', 1, 1, '', ''),
+(70, '21424773', '2019-04-12', '2019-05-11', '30', '535.085,597', '', '324.830,403', '859.916', 'D259', '', 1, 1, '', ''),
+(71, '21424773', '2019-05-11', '2019-05-15', '5', '57.330,6', '', '85.988,734', '143.319,333', 'N390', '', 1, 1, '', ''),
+(72, '21424773', '2019-05-16', '2019-05-20', '5', '57.330,6', '', '85.988,734', '143.319,333', 'N739', '', 1, 2, '', ''),
+(73, '1037587834', '2019-05-15', '2019-05-15', '1', '', '', '30.416,167', '30.416,167', 'M624', '', 1, 1, '', ''),
+(74, '1143991147', '2019-05-17', '2019-05-26', '10', '152.881,599', '', '133.757,067', '286.638,667', 'N390', '', 1, 1, '', '');
 
 -- --------------------------------------------------------
 
@@ -8379,7 +8449,10 @@ INSERT INTO `laboral` (`idLaboral`, `idHorario_trabajo`, `idArea_trabajo`, `idCa
 (127, 2, 9, 25, 0, 3, '0000-00-00', NULL, 6),
 (128, 1, 20, 35, 0, 3, '0000-00-00', NULL, 6),
 (129, 2, 9, 25, 0, 2, '0000-00-00', NULL, 7),
-(130, 2, 18, 14, 0, 2, '0000-00-00', NULL, 7);
+(130, 2, 18, 14, 0, 2, '0000-00-00', NULL, 7),
+(136, 2, 15, 21, 0, 2, '0000-00-00', NULL, 7),
+(137, 2, 15, 21, 0, 2, '0000-00-00', NULL, 7),
+(138, 1, 21, 35, 0, 3, '0000-00-00', NULL, 6);
 
 -- --------------------------------------------------------
 
@@ -13728,7 +13801,443 @@ INSERT INTO `lineas_pedido` (`idLineas_pedido`, `cantidad`, `idPedido`, `idProdu
 (5420, '1', 3256, 66, 1, '2500'),
 (5421, '1', 3256, 82, 2, '12600'),
 (5422, '1', 3256, 77, 1, '1500'),
-(5423, '1', 3257, 72, 1, '1000');
+(5423, '1', 3257, 72, 1, '1000'),
+(5424, '1', 3258, 23, 1, '2000'),
+(5425, '1', 3258, 3, 2, '5900'),
+(5426, '1', 3259, 66, 1, '2500'),
+(5427, '1', 3259, 84, 2, '12600'),
+(5428, '1', 3260, 4, 2, '4800'),
+(5429, '4', 3261, 69, 1, '4800'),
+(5430, '1', 3261, 80, 2, '12600'),
+(5431, '1', 3261, 77, 1, '1500'),
+(5432, '1', 3262, 13, 1, '3000'),
+(5433, '1', 3262, 31, 1, '2000'),
+(5434, '1', 3263, 20, 1, '2000'),
+(5435, '1', 3264, 77, 1, '1500'),
+(5436, '1', 3265, 63, 1, '3500'),
+(5437, '1', 3266, 2, 2, '2000'),
+(5438, '1', 3267, 4, 2, '4800'),
+(5439, '1', 3268, 22, 1, '2000'),
+(5440, '1', 3269, 2, 2, '2000'),
+(5441, '1', 3270, 10, 1, '2100'),
+(5442, '1', 3271, 20, 1, '2000'),
+(5443, '2', 3272, 34, 1, '2800'),
+(5446, '1', 3274, 66, 1, '2500'),
+(5447, '2', 3275, 71, 1, '4000'),
+(5448, '1', 3275, 8, 2, '4800'),
+(5449, '1', 3276, 72, 1, '1000'),
+(5450, '1', 3276, 73, 1, '2000'),
+(5451, '1', 3276, 62, 1, '6000'),
+(5452, '2', 3277, 43, 1, '2600'),
+(5453, '1', 3277, 60, 1, '2000'),
+(5454, '1', 3277, 2, 2, '2000'),
+(5455, '1', 3278, 12, 1, '2500'),
+(5456, '1', 3278, 13, 1, '3000'),
+(5457, '1', 3279, 3, 2, '5900'),
+(5458, '1', 3280, 1, 2, '7900'),
+(5459, '1', 3281, 66, 1, '2500'),
+(5460, '1', 3282, 71, 1, '2000'),
+(5461, '1', 3282, 58, 1, '1200'),
+(5462, '1', 3282, 22, 1, '2000'),
+(5463, '1', 3283, 80, 2, '12600'),
+(5464, '1', 3277, 38, 1, '2500'),
+(5465, '1', 3284, 50, 1, '1800'),
+(5466, '1', 3284, 55, 1, '2500'),
+(5467, '1', 3285, 73, 1, '2000'),
+(5468, '1', 3286, 82, 2, '12600'),
+(5469, '1', 3287, 17, 1, '5000'),
+(5470, '1', 3287, 28, 1, '2000'),
+(5471, '1', 3287, 1, 2, '7900'),
+(5472, '2', 3288, 33, 1, '2800'),
+(5473, '1', 3289, 1, 2, '7900'),
+(5474, '1', 3290, 77, 1, '1500'),
+(5475, '1', 3290, 71, 1, '2000'),
+(5476, '1', 3290, 14, 1, '4000'),
+(5477, '1', 3290, 66, 1, '2500'),
+(5478, '1', 3291, 84, 2, '12600'),
+(5479, '1', 3291, 34, 1, '1400'),
+(5480, '1', 3292, 77, 1, '1500'),
+(5481, '1', 3293, 84, 2, '12600'),
+(5482, '1', 3294, 74, 1, '2000'),
+(5483, '1', 3295, 70, 1, '1200'),
+(5484, '1', 3296, 73, 1, '2000'),
+(5485, '1', 3297, 10, 1, '2100'),
+(5486, '1', 3298, 74, 1, '2000'),
+(5487, '1', 3299, 74, 1, '2000'),
+(5488, '1', 3300, 13, 2, '3000'),
+(5489, '1', 3301, 73, 1, '2000'),
+(5490, '1', 3301, 83, 2, '12600'),
+(5491, '1', 3302, 2, 2, '2000'),
+(5492, '2', 3303, 70, 1, '2400'),
+(5493, '1', 3304, 83, 2, '12600'),
+(5494, '1', 3305, 84, 2, '12600'),
+(5495, '1', 3306, 77, 1, '1500'),
+(5496, '1', 3307, 69, 1, '1200'),
+(5497, '1', 3307, 71, 1, '2000'),
+(5498, '1', 3308, 33, 1, '1400'),
+(5499, '1', 3308, 65, 1, '2500'),
+(5500, '1', 3309, 10, 1, '2100'),
+(5501, '1', 3310, 80, 2, '12600'),
+(5502, '3', 3311, 34, 1, '4200'),
+(5503, '2', 3312, 35, 1, '2800'),
+(5504, '1', 3313, 33, 1, '1400'),
+(5505, '1', 3314, 82, 2, '12600'),
+(5506, '2', 3315, 72, 1, '2000'),
+(5507, '1', 3315, 77, 1, '1500'),
+(5508, '1', 3316, 66, 1, '2500'),
+(5509, '1', 3316, 69, 1, '1200'),
+(5510, '1', 3317, 66, 1, '2500'),
+(5511, '3', 3317, 70, 1, '3600'),
+(5512, '1', 3318, 74, 1, '2000'),
+(5513, '2', 3319, 33, 1, '2800'),
+(5514, '1', 3320, 63, 1, '3500'),
+(5515, '1', 3321, 69, 1, '1200'),
+(5516, '1', 3322, 3, 2, '5900'),
+(5517, '1', 3323, 1, 2, '7900'),
+(5518, '1', 3324, 63, 1, '3500'),
+(5519, '1', 3325, 80, 2, '12600'),
+(5520, '1', 3326, 66, 1, '2500'),
+(5521, '2', 3327, 71, 1, '4000'),
+(5522, '2', 3328, 7, 1, '10000'),
+(5523, '1', 3329, 2, 2, '2000'),
+(5524, '1', 3329, 69, 1, '1200'),
+(5525, '3', 3330, 34, 1, '4200'),
+(5526, '2', 3330, 17, 2, '10000'),
+(5527, '1', 3331, 81, 2, '12600'),
+(5528, '1', 3332, 34, 1, '1400'),
+(5529, '1', 3333, 66, 1, '2500'),
+(5530, '1', 3333, 77, 1, '1500'),
+(5531, '1', 3333, 73, 1, '2000'),
+(5532, '1', 3334, 66, 1, '2500'),
+(5533, '1', 3335, 3, 2, '5900'),
+(5534, '1', 3336, 66, 1, '2500'),
+(5535, '2', 3336, 70, 1, '2400'),
+(5536, '2', 3336, 68, 1, '4000'),
+(5537, '1', 3337, 72, 1, '1000'),
+(5538, '1', 3338, 1, 2, '7900'),
+(5539, '2', 3338, 77, 1, '3000'),
+(5540, '1', 3338, 74, 1, '2000'),
+(5541, '1', 3339, 2, 2, '2000'),
+(5542, '2', 3340, 34, 1, '2800'),
+(5543, '1', 3340, 14, 1, '4000'),
+(5544, '2', 3341, 34, 1, '2800'),
+(5545, '1', 3342, 3, 2, '5900'),
+(5546, '1', 3343, 1, 2, '7900'),
+(5547, '2', 3344, 69, 1, '2400'),
+(5548, '1', 3344, 77, 1, '1500'),
+(5549, '1', 3344, 28, 2, '2000'),
+(5550, '1', 3340, 2, 2, '2000'),
+(5554, '2', 3345, 35, 1, '2800'),
+(5555, '1', 3346, 66, 1, '2500'),
+(5556, '1', 3346, 31, 1, '2000'),
+(5557, '1', 3346, 69, 1, '1200'),
+(5558, '1', 3346, 1, 2, '7900'),
+(5559, '1', 3347, 71, 1, '2000'),
+(5560, '1', 3348, 78, 1, '2500'),
+(5561, '1', 3348, 77, 1, '1500'),
+(5562, '1', 3349, 73, 1, '2000'),
+(5563, '1', 3350, 81, 2, '12600'),
+(5564, '2', 3351, 69, 1, '2400'),
+(5565, '1', 3351, 72, 1, '1000'),
+(5566, '1', 3351, 2, 2, '2000'),
+(5567, '1', 3351, 77, 1, '1500'),
+(5568, '1', 3352, 84, 2, '12600'),
+(5569, '1', 3353, 3, 2, '5900'),
+(5570, '2', 3354, 35, 1, '2800'),
+(5571, '1', 3354, 25, 1, '2000'),
+(5572, '1', 3355, 2, 2, '2000'),
+(5573, '1', 3356, 74, 1, '2000'),
+(5574, '1', 3357, 41, 1, '1300'),
+(5575, '1', 3357, 37, 1, '2000'),
+(5576, '1', 3357, 84, 2, '12600'),
+(5577, '1', 3357, 44, 1, '2500'),
+(5578, '1', 3358, 77, 1, '1500'),
+(5579, '2', 3358, 68, 1, '4000'),
+(5580, '1', 3358, 4, 2, '4800'),
+(5581, '1', 3359, 55, 1, '2500'),
+(5582, '1', 3359, 50, 1, '1800'),
+(5583, '1', 3360, 81, 2, '12600'),
+(5584, '1', 3361, 81, 2, '12600'),
+(5585, '2', 3362, 35, 1, '2800'),
+(5586, '3', 3363, 11, 1, '6300'),
+(5587, '1', 3364, 33, 1, '1400'),
+(5588, '1', 3365, 80, 2, '12600'),
+(5589, '1', 3366, 3, 2, '5900'),
+(5590, '1', 3367, 2, 2, '2000'),
+(5591, '1', 3368, 1, 2, '7900'),
+(5592, '1', 3369, 81, 2, '12600'),
+(5593, '2', 3370, 36, 1, '1200'),
+(5594, '1', 3370, 57, 1, '1400'),
+(5595, '1', 3371, 2, 2, '2000'),
+(5596, '1', 3372, 63, 1, '3500'),
+(5597, '1', 3372, 1, 2, '7900'),
+(5598, '1', 3373, 8, 1, '4800'),
+(5599, '1', 3373, 28, 1, '2000'),
+(5600, '1', 3374, 1, 2, '7900'),
+(5601, '1', 3375, 61, 1, '3500'),
+(5602, '2', 3376, 33, 1, '2800'),
+(5603, '1', 3377, 73, 1, '2000'),
+(5604, '1', 3377, 84, 2, '12600'),
+(5605, '2', 3378, 70, 1, '2400'),
+(5606, '1', 3379, 1, 2, '7900'),
+(5607, '1', 3380, 74, 1, '2000'),
+(5608, '1', 3381, 77, 1, '1500'),
+(5609, '1', 3381, 63, 1, '3500'),
+(5610, '2', 3382, 33, 1, '2800'),
+(5611, '1', 3383, 12, 1, '2500'),
+(5612, '1', 3383, 1, 2, '7900'),
+(5613, '1', 3384, 77, 1, '1500'),
+(5614, '1', 3384, 66, 1, '2500'),
+(5615, '1', 3384, 84, 2, '12600'),
+(5616, '1', 3385, 3, 2, '5900'),
+(5617, '1', 3386, 12, 1, '2500'),
+(5618, '1', 3386, 3, 2, '5900'),
+(5619, '1', 3387, 69, 1, '1200'),
+(5620, '1', 3387, 2, 2, '2000'),
+(5621, '1', 3387, 77, 1, '1500'),
+(5622, '1', 3388, 2, 2, '2000'),
+(5623, '1', 3388, 77, 1, '1500'),
+(5624, '1', 3388, 69, 1, '1200'),
+(5625, '1', 3389, 72, 1, '1000'),
+(5626, '1', 3390, 28, 2, '2000'),
+(5627, '1', 3390, 4, 2, '4800'),
+(5628, '2', 3391, 77, 1, '3000'),
+(5629, '2', 3391, 72, 1, '2000'),
+(5630, '1', 3392, 72, 1, '1000'),
+(5631, '2', 3393, 33, 1, '2800'),
+(5632, '1', 3394, 83, 2, '12600'),
+(5633, '1', 3394, 50, 1, '1800'),
+(5634, '1', 3395, 1, 2, '7900'),
+(5635, '1', 3396, 2, 2, '2000'),
+(5636, '1', 3397, 8, 2, '4800'),
+(5637, '1', 3397, 6, 2, '3200'),
+(5638, '1', 3398, 3, 2, '5900'),
+(5639, '2', 3399, 4, 2, '9600'),
+(5640, '2', 3399, 70, 1, '2400'),
+(5641, '1', 3400, 43, 1, '1300'),
+(5642, '1', 3400, 57, 1, '1400'),
+(5643, '1', 3401, 77, 1, '1500'),
+(5644, '1', 3401, 66, 1, '2500'),
+(5645, '1', 3401, 72, 1, '1000'),
+(5646, '1', 3401, 3, 2, '5900'),
+(5647, '1', 3402, 66, 1, '2500'),
+(5648, '1', 3403, 2, 2, '2000'),
+(5649, '1', 3404, 61, 1, '3500'),
+(5650, '1', 3405, 48, 1, '4000'),
+(5651, '2', 3405, 35, 1, '2800'),
+(5652, '1', 3406, 72, 1, '1000'),
+(5653, '1', 3407, 73, 1, '2000'),
+(5654, '1', 3407, 83, 2, '12600'),
+(5655, '1', 3408, 18, 2, '2000'),
+(5656, '1', 3409, 65, 1, '2500'),
+(5657, '1', 3410, 3, 2, '5900'),
+(5658, '1', 3411, 63, 1, '3500'),
+(5659, '1', 3412, 2, 2, '2000'),
+(5660, '1', 3413, 84, 2, '12600'),
+(5661, '1', 3414, 2, 2, '2000'),
+(5662, '1', 3415, 67, 1, '2000'),
+(5663, '1', 3415, 3, 2, '5900'),
+(5664, '2', 3415, 69, 1, '2400'),
+(5665, '1', 3416, 77, 1, '1500'),
+(5666, '1', 3417, 1, 2, '7900'),
+(5667, '1', 3418, 1, 2, '7900'),
+(5668, '1', 3419, 84, 2, '12600'),
+(5669, '1', 3420, 3, 2, '5900'),
+(5670, '2', 3421, 70, 1, '2400'),
+(5671, '1', 3422, 35, 1, '1400'),
+(5672, '1', 3422, 63, 1, '3500'),
+(5673, '1', 3422, 8, 1, '4800'),
+(5674, '2', 3423, 36, 1, '1200'),
+(5675, '2', 3423, 35, 1, '2800'),
+(5676, '1', 3424, 33, 1, '1400'),
+(5677, '1', 3425, 66, 1, '2500'),
+(5678, '1', 3425, 70, 1, '1200'),
+(5679, '1', 3426, 77, 1, '1500'),
+(5680, '1', 3426, 74, 1, '2000'),
+(5681, '1', 3427, 68, 1, '2000'),
+(5682, '1', 3428, 12, 1, '2500'),
+(5683, '1', 3428, 65, 1, '2500'),
+(5684, '1', 3429, 2, 2, '2000'),
+(5685, '1', 3430, 66, 1, '2500'),
+(5686, '1', 3430, 69, 1, '1200'),
+(5687, '1', 3431, 72, 1, '1000'),
+(5688, '1', 3432, 1, 2, '7900'),
+(5689, '1', 3433, 22, 2, '2000'),
+(5690, '1', 3434, 80, 2, '12600'),
+(5691, '1', 3435, 1, 2, '7900'),
+(5692, '1', 3436, 1, 2, '7900'),
+(5693, '1', 3436, 61, 1, '3500'),
+(5694, '1', 3437, 7, 1, '5000'),
+(5695, '1', 3438, 77, 1, '1500'),
+(5696, '1', 3438, 66, 1, '2500'),
+(5697, '3', 3438, 43, 1, '3900'),
+(5698, '1', 3439, 3, 2, '5900'),
+(5699, '1', 3439, 10, 1, '2100'),
+(5700, '1', 3439, 21, 1, '2000'),
+(5701, '1', 3440, 8, 1, '4800'),
+(5702, '1', 3440, 23, 1, '2000'),
+(5703, '1', 3440, 1, 2, '7900'),
+(5704, '2', 3441, 33, 1, '2800'),
+(5705, '1', 3442, 1, 2, '7900'),
+(5706, '1', 3443, 2, 2, '2000'),
+(5707, '1', 3444, 3, 2, '5900'),
+(5708, '1', 3445, 34, 1, '1600'),
+(5709, '1', 3445, 58, 1, '1400'),
+(5710, '1', 3446, 8, 2, '4800'),
+(5711, '1', 3446, 20, 2, '2000'),
+(5712, '2', 3447, 35, 1, '3200'),
+(5713, '1', 3448, 83, 2, '12600'),
+(5714, '1', 3449, 66, 1, '2500'),
+(5715, '1', 3449, 69, 1, '1200'),
+(5716, '1', 3450, 70, 1, '1200'),
+(5717, '1', 3451, 37, 1, '2300'),
+(5718, '1', 3452, 84, 2, '12600'),
+(5719, '1', 3453, 2, 2, '2000'),
+(5720, '1', 3453, 12, 1, '2500'),
+(5721, '2', 3454, 72, 1, '2000'),
+(5722, '1', 3455, 37, 1, '2300'),
+(5723, '1', 3455, 41, 1, '1500'),
+(5724, '1', 3455, 55, 1, '3000'),
+(5726, '1', 3456, 45, 1, '3000'),
+(5727, '1', 3456, 34, 1, '1600'),
+(5728, '1', 3456, 33, 1, '1600'),
+(5729, '1', 3456, 77, 1, '1500'),
+(5730, '1', 3456, 13, 2, '3000'),
+(5731, '1', 3457, 10, 1, '2100'),
+(5732, '1', 3455, 14, 2, '4000'),
+(5733, '1', 3458, 48, 1, '4600'),
+(5734, '2', 3459, 68, 1, '4000'),
+(5735, '2', 3460, 35, 1, '3200'),
+(5736, '2', 3460, 36, 1, '1400'),
+(5737, '1', 3461, 1, 2, '7900'),
+(5738, '1', 3462, 33, 1, '1600'),
+(5739, '1', 3463, 73, 1, '2000'),
+(5740, '1', 3463, 83, 2, '12600'),
+(5741, '1', 3464, 37, 1, '2300'),
+(5742, '1', 3464, 43, 1, '1500'),
+(5743, '1', 3465, 14, 2, '4000'),
+(5744, '2', 3465, 42, 1, '3000'),
+(5745, '1', 3465, 77, 1, '1500'),
+(5746, '1', 3466, 80, 2, '12600'),
+(5747, '1', 3467, 28, 1, '2000'),
+(5748, '1', 3467, 1, 2, '7900'),
+(5749, '1', 3467, 17, 1, '5000'),
+(5750, '1', 3468, 63, 1, '4000'),
+(5751, '1', 3468, 47, 1, '3300'),
+(5752, '1', 3469, 81, 2, '12600'),
+(5753, '1', 3470, 84, 2, '12600'),
+(5754, '1', 3470, 77, 1, '1500'),
+(5755, '1', 3471, 2, 2, '2000'),
+(5756, '1', 3472, 70, 1, '1200'),
+(5757, '1', 3472, 77, 1, '1500'),
+(5758, '2', 3472, 69, 1, '2400'),
+(5760, '1', 3473, 3, 2, '5900'),
+(5761, '1', 3474, 78, 1, '2500'),
+(5762, '1', 3474, 77, 1, '1500'),
+(5763, '2', 3475, 33, 1, '3200'),
+(5764, '2', 3476, 71, 1, '4000'),
+(5765, '1', 3477, 84, 2, '12600'),
+(5766, '1', 3477, 20, 1, '2000'),
+(5767, '1', 3478, 2, 2, '2000'),
+(5768, '1', 3478, 37, 1, '2300'),
+(5769, '1', 3478, 55, 1, '3000'),
+(5770, '2', 3479, 69, 1, '2400'),
+(5771, '1', 3480, 2, 2, '2000'),
+(5772, '1', 3481, 73, 1, '2000'),
+(5773, '1', 3482, 57, 1, '1600'),
+(5774, '2', 3482, 59, 1, '3600'),
+(5775, '1', 3483, 69, 1, '1200'),
+(5776, '1', 3483, 66, 1, '2500'),
+(5777, '2', 3484, 57, 1, '3200'),
+(5778, '2', 3484, 41, 1, '3000'),
+(5779, '1', 3485, 33, 1, '1600'),
+(5780, '1', 3486, 43, 1, '1500'),
+(5781, '1', 3486, 77, 1, '1500'),
+(5782, '1', 3486, 57, 1, '1600'),
+(5783, '1', 3487, 83, 2, '12600'),
+(5784, '2', 3488, 35, 1, '3200'),
+(5785, '1', 3488, 12, 1, '2500'),
+(5786, '1', 3488, 3, 2, '5900'),
+(5787, '2', 3489, 67, 1, '4000'),
+(5788, '1', 3489, 62, 1, '7000'),
+(5789, '1', 3489, 28, 1, '2000'),
+(5790, '2', 3490, 33, 1, '3200'),
+(5791, '1', 3491, 2, 2, '2000'),
+(5792, '1', 3492, 80, 2, '12600'),
+(5793, '1', 3493, 66, 1, '2500'),
+(5794, '1', 3494, 10, 1, '2100'),
+(5795, '2', 3495, 69, 1, '2400'),
+(5796, '2', 3495, 43, 1, '3000'),
+(5797, '1', 3496, 61, 1, '4000'),
+(5798, '1', 3496, 1, 2, '7900'),
+(5799, '1', 3497, 73, 1, '2000'),
+(5800, '1', 3498, 50, 1, '2100'),
+(5801, '1', 3499, 83, 2, '12600'),
+(5802, '1', 3500, 63, 1, '4000'),
+(5803, '2', 3500, 35, 1, '3200'),
+(5804, '1', 3501, 77, 1, '1500'),
+(5805, '1', 3501, 68, 1, '2000'),
+(5806, '1', 3502, 84, 2, '12600'),
+(5807, '1', 3503, 68, 1, '2000'),
+(5808, '1', 3504, 12, 1, '2500'),
+(5809, '1', 3505, 67, 1, '2000'),
+(5810, '1', 3505, 28, 1, '2000'),
+(5811, '1', 3505, 1, 2, '7900'),
+(5812, '1', 3506, 72, 1, '1000'),
+(5813, '1', 3507, 73, 1, '2000'),
+(5814, '1', 3508, 10, 1, '2100'),
+(5815, '1', 3508, 21, 1, '2000'),
+(5816, '1', 3508, 3, 2, '5900'),
+(5817, '3', 3509, 35, 1, '4800'),
+(5818, '2', 3510, 71, 1, '4000'),
+(5819, '2', 3511, 71, 1, '4000'),
+(5821, '1', 3513, 84, 2, '12600'),
+(5822, '1', 3514, 10, 1, '2100'),
+(5823, '1', 3514, 2, 2, '2000'),
+(5824, '1', 3515, 48, 1, '4600'),
+(5825, '1', 3515, 3, 2, '5900'),
+(5826, '1', 3515, 69, 1, '1200'),
+(5827, '1', 3516, 2, 2, '2000'),
+(5828, '1', 3517, 73, 1, '2000'),
+(5829, '1', 3518, 80, 2, '12600'),
+(5830, '1', 3519, 84, 2, '12600'),
+(5831, '1', 3519, 50, 1, '2100'),
+(5832, '1', 3520, 41, 1, '1500'),
+(5833, '1', 3521, 34, 1, '1600'),
+(5834, '1', 3522, 80, 2, '12600'),
+(5835, '1', 3523, 80, 2, '12600'),
+(5836, '1', 3524, 1, 2, '7900'),
+(5837, '1', 3525, 12, 1, '2500'),
+(5838, '2', 3525, 33, 1, '3200'),
+(5839, '1', 3526, 65, 1, '2500'),
+(5840, '1', 3527, 17, 2, '5000'),
+(5841, '1', 3528, 4, 1, '4800'),
+(5842, '1', 3528, 21, 1, '2000'),
+(5843, '1', 3528, 3, 2, '5900'),
+(5844, '1', 3529, 12, 1, '2500'),
+(5845, '1', 3529, 28, 2, '2000'),
+(5846, '2', 3530, 10, 1, '4200'),
+(5847, '1', 3530, 31, 1, '2000'),
+(5848, '1', 3531, 23, 1, '2000'),
+(5849, '3', 3531, 10, 1, '6300'),
+(5851, '1', 3533, 14, 1, '4000'),
+(5852, '1', 3533, 80, 2, '12600'),
+(5853, '2', 3533, 33, 1, '3200'),
+(5854, '2', 3534, 59, 1, '3600'),
+(5855, '1', 3535, 74, 2, '2000'),
+(5856, '1', 3535, 2, 2, '2000'),
+(5857, '1', 3536, 7, 2, '5000'),
+(5858, '1', 3537, 66, 1, '2500'),
+(5859, '1', 3537, 77, 1, '1500'),
+(5860, '1', 3538, 2, 2, '2000'),
+(5861, '1', 3538, 37, 2, '2300'),
+(5862, '1', 3538, 22, 2, '2000'),
+(5863, '1', 3539, 3, 2, '5900'),
+(5864, '3', 3540, 43, 1, '4500'),
+(5865, '1', 3541, 1, 2, '7900'),
+(5866, '1', 3542, 1, 2, '7900'),
+(5867, '1', 3542, 28, 1, '2000'),
+(5868, '1', 3542, 17, 1, '5000');
 
 -- --------------------------------------------------------
 
@@ -13820,353 +14329,9 @@ CREATE TABLE `notificacion` (
 --
 
 INSERT INTO `notificacion` (`idNotificacion`, `fecha`, `comentario`, `leido`, `idUsuario`, `idTipo_notificacion`) VALUES
-(3, '2018-06-25 06:14:13', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(4, '2018-06-26 06:26:41', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(5, '2018-06-27 06:11:49', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(6, '2018-06-28 06:30:01', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(7, '2018-06-29 06:02:53', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(8, '2018-07-03 06:07:56', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(9, '2018-07-04 06:06:51', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(10, '2018-07-05 06:33:15', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(11, '2018-07-06 10:24:46', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(12, '2018-07-09 06:17:20', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(13, '2018-07-10 06:35:52', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(14, '2018-07-11 06:08:50', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(15, '2018-07-12 06:15:52', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(16, '2018-07-13 06:12:11', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(17, '2018-07-16 06:25:39', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(18, '2018-07-17 06:05:59', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(19, '2018-07-18 06:12:16', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(20, '2018-07-19 06:11:45', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(21, '2018-07-23 06:13:42', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(22, '2018-07-24 06:08:06', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(23, '2018-07-25 06:09:02', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(24, '2018-07-26 06:11:26', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(25, '2018-07-27 06:04:22', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(26, '2018-08-01 06:29:49', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(27, '2018-10-02 10:46:55', 'El dia de hoy 6 llego/aron tarde...', 1, 7, 4),
-(28, '2018-10-03 06:19:58', 'El dia de hoy 12 llego/aron tarde...', 1, 7, 4),
-(29, '2018-10-04 06:15:51', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(30, '2018-10-05 08:44:30', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(31, '2018-10-08 06:26:41', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(32, '2018-10-09 06:06:53', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(33, '2018-10-10 06:17:59', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(34, '2018-10-11 07:41:21', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(35, '2018-10-12 06:21:42', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(36, '2018-10-16 06:20:00', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(37, '2018-11-30 00:00:00', '5 personas están cumpliendo años...', 1, 7, 1),
-(38, '2018-10-22 00:00:00', '5 personas tienen contrato proximo a vencer...', 1, 7, 3),
-(39, '2018-10-18 00:00:00', '2 personas cumplen aniversario...', 1, 7, 2),
-(40, '2018-10-18 07:28:28', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(41, '2018-10-19 06:22:15', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(42, '2018-10-22 07:10:24', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(53, '2018-10-22 12:40:18', 'Hoy es el aniversario de 1 persona/s en la empresa', 1, 7, 2),
-(54, '2018-10-22 12:40:18', '1 Contratos proximos a vencer...', 1, 7, 3),
-(55, '2018-10-22 12:40:18', 'Hoy es el aniversario de 1 persona/s en la empresa', 1, 22, 2),
-(56, '2018-10-22 12:40:18', '1 Contratos proximos a vencer...', 1, 22, 3),
-(60, '2018-10-22 15:19:02', '1 nuevo/s Empleado/s', 1, 7, 5),
-(61, '2018-10-22 15:19:02', '1 nuevo/s Empleado/s', 1, 21, 5),
-(62, '2018-10-22 15:19:02', '1 nuevo/s Empleado/s', 1, 22, 5),
-(63, '2018-10-23 06:31:18', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(64, '2018-10-24 06:09:25', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(65, '2018-10-25 10:38:46', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(66, '2018-10-26 06:37:05', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(67, '2018-10-29 06:05:38', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(68, '2018-10-30 06:06:13', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(69, '2018-10-31 06:12:07', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(70, '2018-11-01 06:16:47', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(71, '2018-11-02 06:17:37', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(72, '2018-11-06 06:23:56', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(73, '2018-11-07 10:56:59', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(74, '2018-11-07 17:14:17', '1 nuevo/s Empleado/s', 1, 7, 5),
-(75, '2018-11-07 17:14:17', '1 nuevo/s Empleado/s', 1, 21, 5),
-(76, '2018-11-07 17:14:17', '1 nuevo/s Empleado/s', 1, 22, 5),
-(77, '2018-11-08 07:23:26', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(78, '2018-11-09 14:59:10', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(79, '2018-11-13 06:03:31', 'El dia de hoy 18 llego/aron tarde...', 1, 7, 4),
-(80, '2018-11-13 07:53:47', '1 nuevo/s Empleado/s', 1, 7, 5),
-(81, '2018-11-13 07:53:48', '1 nuevo/s Empleado/s', 1, 21, 5),
-(82, '2018-11-13 07:53:48', '1 nuevo/s Empleado/s', 1, 22, 5),
-(83, '2018-11-13 07:53:48', '1 nuevo/s Empleado/s', 1, 24, 5),
-(84, '2018-11-13 07:53:48', '1 nuevo/s Empleado/s', 1, 25, 5),
-(85, '2018-11-13 07:53:48', '1 nuevo/s Empleado/s', 1, 26, 5),
-(86, '2018-11-14 06:00:05', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(87, '2018-11-15 06:00:01', 'El dia de hoy 7 llego/aron tarde...', 1, 7, 4),
-(88, '2018-11-16 06:00:13', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(89, '2018-11-19 06:00:15', 'El dia de hoy 14 llego/aron tarde...', 1, 7, 4),
-(90, '2018-11-20 06:25:20', 'El dia de hoy 10 llego/aron tarde...', 1, 7, 4),
-(91, '2018-11-21 06:00:57', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(92, '2018-11-22 06:00:04', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(93, '2018-11-23 06:00:52', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(94, '2018-11-26 06:02:31', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(95, '2018-11-27 06:01:05', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(96, '2018-11-28 06:03:40', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(97, '2018-11-29 06:00:52', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(98, '2018-11-30 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(99, '2018-11-30 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(100, '2018-11-30 13:14:59', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(101, '2018-12-03 06:01:27', 'El dia de hoy 6 llego/aron tarde...', 1, 7, 4),
-(102, '2018-12-04 06:11:20', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(103, '2018-12-05 06:00:05', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(104, '2018-12-06 06:01:46', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(105, '2018-12-07 08:28:16', 'El dia de hoy 7 llego/aron tarde...', 1, 7, 4),
-(106, '2018-12-10 06:06:01', 'El dia de hoy 7 llego/aron tarde...', 1, 7, 4),
-(107, '2018-12-11 06:00:15', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(108, '2018-12-11 16:11:43', '1 nuevo/s Empleado/s', 1, 7, 5),
-(109, '2018-12-11 16:11:43', '1 nuevo/s Empleado/s', 1, 21, 5),
-(110, '2018-12-11 16:11:44', '1 nuevo/s Empleado/s', 1, 22, 5),
-(111, '2018-12-11 16:11:44', '1 nuevo/s Empleado/s', 1, 24, 5),
-(112, '2018-12-11 16:11:44', '1 nuevo/s Empleado/s', 0, 25, 5),
-(113, '2018-12-11 16:11:44', '1 nuevo/s Empleado/s', 0, 26, 5),
-(114, '2018-12-11 16:11:44', '1 nuevo/s Empleado/s', 0, 27, 5),
-(115, '2018-12-12 06:00:53', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(116, '2018-12-13 06:01:18', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(117, '2018-12-14 06:00:17', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(118, '2018-12-17 06:03:51', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(119, '2018-12-17 07:34:59', '1 nuevo/s Empleado/s', 1, 7, 5),
-(120, '2018-12-17 07:34:59', '1 nuevo/s Empleado/s', 1, 21, 5),
-(121, '2018-12-17 07:34:59', '1 nuevo/s Empleado/s', 1, 22, 5),
-(122, '2018-12-17 07:34:59', '1 nuevo/s Empleado/s', 1, 24, 5),
-(123, '2018-12-17 07:34:59', '1 nuevo/s Empleado/s', 0, 25, 5),
-(124, '2018-12-17 07:35:00', '1 nuevo/s Empleado/s', 0, 26, 5),
-(125, '2018-12-17 07:35:00', '1 nuevo/s Empleado/s', 0, 27, 5),
-(126, '2018-12-18 06:02:43', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(127, '2018-12-19 06:02:05', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(128, '2018-12-20 06:00:16', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(129, '2018-12-21 06:01:12', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(130, '2018-12-26 06:02:25', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(131, '2018-12-27 06:00:27', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(132, '2018-12-28 06:30:01', 'Hoy esta/n cumpliendo años 2 persona/s', 1, 7, 1),
-(133, '2018-12-28 06:30:01', 'Hoy esta/n cumpliendo años 2 persona/s', 1, 22, 1),
-(134, '2018-12-28 06:30:01', 'Hoy esta/n cumpliendo años 2 persona/s', 0, 27, 1),
-(135, '2018-12-30 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(136, '2018-12-30 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(137, '2018-12-30 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(138, '2019-01-09 06:03:55', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(139, '2019-01-09 06:30:01', 'Hoy esta/n cumpliendo años 2 persona/s', 1, 7, 1),
-(140, '2019-01-09 06:30:01', 'Hoy esta/n cumpliendo años 2 persona/s', 1, 22, 1),
-(141, '2019-01-09 06:30:01', 'Hoy esta/n cumpliendo años 2 persona/s', 0, 27, 1),
-(142, '2019-01-10 13:10:16', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(143, '2019-01-11 06:01:53', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(144, '2019-01-11 06:30:00', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(145, '2019-01-11 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(146, '2019-01-11 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(147, '2019-01-11 10:23:26', '1 nuevo/s Empleado/s', 1, 7, 5),
-(148, '2019-01-11 10:23:26', '1 nuevo/s Empleado/s', 1, 21, 5),
-(149, '2019-01-11 10:23:26', '1 nuevo/s Empleado/s', 1, 22, 5),
-(150, '2019-01-11 10:23:26', '1 nuevo/s Empleado/s', 1, 24, 5),
-(151, '2019-01-11 10:23:26', '1 nuevo/s Empleado/s', 0, 25, 5),
-(152, '2019-01-11 10:23:26', '1 nuevo/s Empleado/s', 0, 26, 5),
-(153, '2019-01-11 10:23:26', '1 nuevo/s Empleado/s', 0, 27, 5),
-(154, '2019-01-14 06:01:15', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(155, '2019-01-14 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(156, '2019-01-14 06:30:03', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(157, '2019-01-14 06:30:03', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(158, '2019-01-15 06:01:04', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(159, '2019-01-16 06:01:44', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(160, '2019-01-16 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(161, '2019-01-16 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(162, '2019-01-16 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(163, '2019-01-17 06:00:25', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(164, '2019-01-21 06:11:09', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(165, '2019-01-21 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(166, '2019-01-21 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(167, '2019-01-21 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(168, '2019-01-22 06:02:20', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(169, '2019-01-23 06:25:50', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(170, '2019-01-25 07:23:02', '1 nuevo/s Empleado/s', 1, 7, 5),
-(171, '2019-01-25 07:23:02', '1 nuevo/s Empleado/s', 1, 21, 5),
-(172, '2019-01-25 07:23:02', '1 nuevo/s Empleado/s', 1, 22, 5),
-(173, '2019-01-25 07:23:02', '1 nuevo/s Empleado/s', 1, 24, 5),
-(174, '2019-01-25 07:23:02', '1 nuevo/s Empleado/s', 0, 25, 5),
-(175, '2019-01-25 07:23:02', '1 nuevo/s Empleado/s', 0, 26, 5),
-(176, '2019-01-25 07:23:02', '1 nuevo/s Empleado/s', 0, 27, 5),
-(177, '2019-01-25 16:29:00', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(178, '2019-01-28 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(179, '2019-01-28 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(180, '2019-01-28 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(181, '2019-01-28 13:01:19', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(182, '2019-01-28 14:38:02', '1 nuevo/s Empleado/s', 1, 7, 5),
-(183, '2019-01-28 14:38:03', '1 nuevo/s Empleado/s', 1, 21, 5),
-(184, '2019-01-28 14:38:03', '1 nuevo/s Empleado/s', 1, 22, 5),
-(185, '2019-01-28 14:38:03', '1 nuevo/s Empleado/s', 1, 24, 5),
-(186, '2019-01-28 14:38:03', '1 nuevo/s Empleado/s', 0, 25, 5),
-(187, '2019-01-28 14:38:03', '1 nuevo/s Empleado/s', 0, 26, 5),
-(188, '2019-01-28 14:38:03', '1 nuevo/s Empleado/s', 0, 27, 5),
-(189, '2019-01-29 06:00:07', 'El dia de hoy 6 llego/aron tarde...', 1, 7, 4),
-(190, '2019-01-30 06:27:02', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(191, '2019-01-30 14:57:09', '1 nuevo/s Empleado/s', 1, 7, 5),
-(192, '2019-01-30 14:57:09', '1 nuevo/s Empleado/s', 1, 22, 5),
-(193, '2019-01-30 14:57:09', '1 nuevo/s Empleado/s', 1, 24, 5),
-(194, '2019-01-30 14:57:09', '1 nuevo/s Empleado/s', 0, 25, 5),
-(195, '2019-01-31 06:00:03', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(196, '2019-01-31 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(197, '2019-01-31 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(198, '2019-01-31 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(199, '2019-01-31 17:12:39', '1 nuevo/s Empleado/s', 1, 7, 5),
-(200, '2019-01-31 17:12:40', '1 nuevo/s Empleado/s', 1, 22, 5),
-(201, '2019-01-31 17:12:40', '1 nuevo/s Empleado/s', 1, 24, 5),
-(202, '2019-01-31 17:12:40', '1 nuevo/s Empleado/s', 0, 25, 5),
-(203, '2019-02-01 06:01:12', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(204, '2019-02-01 09:20:28', '2 nuevo/s Empleado/s', 1, 7, 5),
-(205, '2019-02-01 09:20:28', '2 nuevo/s Empleado/s', 1, 22, 5),
-(206, '2019-02-01 09:20:28', '2 nuevo/s Empleado/s', 1, 24, 5),
-(207, '2019-02-01 09:20:28', '2 nuevo/s Empleado/s', 0, 25, 5),
-(208, '2019-02-04 06:01:15', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(213, '2019-02-04 16:56:17', '1 nuevo/s Empleado/s', 1, 7, 5),
-(214, '2019-02-04 16:56:18', '1 nuevo/s Empleado/s', 1, 22, 5),
-(215, '2019-02-04 16:56:18', '1 nuevo/s Empleado/s', 1, 24, 5),
-(216, '2019-02-04 16:56:18', '1 nuevo/s Empleado/s', 0, 25, 5),
-(217, '2019-02-05 06:01:07', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(218, '2019-02-05 08:10:21', '1 nuevo/s Empleado/s', 1, 7, 5),
-(219, '2019-02-05 08:10:21', '1 nuevo/s Empleado/s', 1, 22, 5),
-(220, '2019-02-05 08:10:21', '1 nuevo/s Empleado/s', 1, 24, 5),
-(221, '2019-02-05 08:10:21', '1 nuevo/s Empleado/s', 0, 25, 5),
-(222, '2019-02-06 06:02:44', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(223, '2019-02-06 09:15:16', '2 nuevo/s Empleado/s', 1, 7, 5),
-(224, '2019-02-06 09:15:16', '2 nuevo/s Empleado/s', 1, 22, 5),
-(225, '2019-02-06 09:15:16', '2 nuevo/s Empleado/s', 1, 24, 5),
-(226, '2019-02-06 09:15:16', '2 nuevo/s Empleado/s', 0, 25, 5),
-(227, '2019-02-07 08:58:59', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(228, '2019-02-08 06:00:48', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(229, '2019-02-08 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(230, '2019-02-08 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(231, '2019-02-08 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(232, '2019-02-09 06:30:03', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(233, '2019-02-09 06:30:03', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(234, '2019-02-09 06:30:03', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(235, '2019-02-11 06:13:35', 'El dia de hoy 28 llego/aron tarde...', 1, 7, 4),
-(236, '2019-02-11 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(237, '2019-02-11 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(238, '2019-02-11 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(239, '2019-02-12 06:01:23', 'El dia de hoy 6 llego/aron tarde...', 1, 7, 4),
-(240, '2019-02-13 06:00:57', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(241, '2019-02-14 06:02:42', 'El dia de hoy 6 llego/aron tarde...', 1, 7, 4),
-(242, '2019-02-15 12:16:41', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(243, '2019-02-16 06:30:00', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(244, '2019-02-16 06:30:00', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(245, '2019-02-16 06:30:00', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(246, '2019-02-17 06:30:00', 'Hoy esta/n cumpliendo años 2 persona/s', 1, 7, 1),
-(247, '2019-02-17 06:30:00', 'Hoy esta/n cumpliendo años 2 persona/s', 1, 22, 1),
-(248, '2019-02-17 06:30:00', 'Hoy esta/n cumpliendo años 2 persona/s', 0, 27, 1),
-(249, '2019-02-18 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(250, '2019-02-18 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(251, '2019-02-18 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(252, '2019-02-18 08:15:13', '1 nuevo/s Empleado/s', 1, 7, 5),
-(253, '2019-02-18 08:15:14', '1 nuevo/s Empleado/s', 1, 22, 5),
-(254, '2019-02-18 08:15:14', '1 nuevo/s Empleado/s', 1, 24, 5),
-(255, '2019-02-18 08:15:14', '1 nuevo/s Empleado/s', 0, 25, 5),
-(256, '2019-02-18 09:03:36', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(257, '2019-02-19 09:06:34', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(258, '2019-02-20 06:00:16', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(259, '2019-02-21 06:00:16', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(260, '2019-02-22 06:05:47', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(261, '2019-02-23 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(262, '2019-02-23 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(263, '2019-02-23 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(264, '2019-02-25 06:01:23', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(265, '2019-02-26 06:00:47', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(266, '2019-02-26 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(267, '2019-02-26 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(268, '2019-02-26 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(269, '2019-02-27 06:02:38', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(270, '2019-02-27 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(271, '2019-02-27 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(272, '2019-02-27 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(273, '2019-03-04 06:00:24', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(274, '2019-03-05 06:01:40', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(275, '2019-03-06 06:08:33', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(276, '2019-03-06 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(277, '2019-03-06 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(278, '2019-03-06 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(279, '2019-03-07 06:02:41', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(280, '2019-03-07 10:59:02', '1 nuevo/s Empleado/s', 1, 7, 5),
-(281, '2019-03-07 10:59:02', '1 nuevo/s Empleado/s', 1, 22, 5),
-(282, '2019-03-07 10:59:02', '1 nuevo/s Empleado/s', 1, 24, 5),
-(283, '2019-03-07 10:59:02', '1 nuevo/s Empleado/s', 0, 25, 5),
-(284, '2019-03-08 06:00:01', 'El dia de hoy 8 llego/aron tarde...', 1, 7, 4),
-(285, '2019-03-09 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(286, '2019-03-09 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(287, '2019-03-09 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(288, '2019-03-11 06:00:11', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(289, '2019-03-12 06:02:23', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(290, '2019-03-13 06:01:50', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(291, '2019-03-13 15:33:17', '1 nuevo/s Empleado/s', 1, 7, 5),
-(292, '2019-03-13 15:33:18', '1 nuevo/s Empleado/s', 1, 22, 5),
-(293, '2019-03-13 15:33:18', '1 nuevo/s Empleado/s', 1, 24, 5),
-(294, '2019-03-13 15:33:18', '1 nuevo/s Empleado/s', 0, 25, 5),
-(295, '2019-03-14 06:00:09', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(296, '2019-03-15 09:02:04', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(297, '2019-03-17 06:30:00', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(298, '2019-03-17 06:30:00', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 22, 1),
-(299, '2019-03-17 06:30:00', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(300, '2019-03-18 06:00:30', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(301, '2019-03-19 06:00:07', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(302, '2019-03-20 08:31:59', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(303, '2019-03-21 06:00:35', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(304, '2019-03-22 06:00:05', 'El dia de hoy 9 llego/aron tarde...', 1, 7, 4),
-(305, '2019-03-26 06:00:01', 'El dia de hoy 8 llego/aron tarde...', 1, 7, 4),
-(306, '2019-03-26 06:00:01', 'El dia de hoy 8 llego/aron tarde...', 1, 7, 4),
-(307, '2019-03-26 08:23:53', '1 nuevo/s Empleado/s', 1, 7, 5),
-(308, '2019-03-26 08:23:54', '1 nuevo/s Empleado/s', 1, 22, 5),
-(309, '2019-03-26 08:23:54', '1 nuevo/s Empleado/s', 1, 24, 5),
-(310, '2019-03-26 08:23:54', '1 nuevo/s Empleado/s', 0, 25, 5),
-(311, '2019-03-27 06:00:34', 'El dia de hoy 7 llego/aron tarde...', 1, 7, 4),
-(312, '2019-03-28 06:00:22', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(313, '2019-03-29 06:00:04', 'El dia de hoy 18 llego/aron tarde...', 1, 7, 4),
-(314, '2019-04-01 06:00:03', 'El dia de hoy 7 llego/aron tarde...', 1, 7, 4),
-(315, '2019-04-02 06:00:01', 'El dia de hoy 28 llego/aron tarde...', 1, 7, 4),
-(316, '2019-04-03 06:00:03', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(317, '2019-04-04 06:00:04', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(318, '2019-04-04 07:22:42', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(319, '2019-04-04 07:22:43', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 22, 1),
-(320, '2019-04-04 07:22:43', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(321, '2019-04-05 06:02:23', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(322, '2019-04-06 06:15:26', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(323, '2019-04-06 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 1, 7, 1),
-(324, '2019-04-06 06:30:01', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 22, 1),
-(325, '2019-04-06 06:30:02', 'Hoy esta/n cumpliendo años 1 persona/s', 0, 27, 1),
-(326, '2019-04-08 06:00:03', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(327, '2019-04-09 06:00:25', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(328, '2019-04-10 06:00:03', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(329, '2019-04-11 06:05:44', 'El dia de hoy 36 llego/aron tarde...', 1, 7, 4),
-(330, '2019-04-12 06:01:10', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(331, '2019-04-15 06:00:53', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4),
-(332, '2019-04-16 06:00:44', 'El dia de hoy 3 llego/aron tarde...', 1, 7, 4),
-(333, '2019-04-17 06:00:02', 'El dia de hoy 8 llego/aron tarde...', 1, 7, 4),
-(334, '2019-04-22 06:06:41', 'El dia de hoy 38 llego/aron tarde...', 1, 7, 4),
-(335, '2019-04-22 07:25:45', '1 nuevo/s Empleado/s', 1, 7, 5),
-(336, '2019-04-22 07:25:45', '1 nuevo/s Empleado/s', 0, 22, 5),
-(337, '2019-04-22 07:25:45', '1 nuevo/s Empleado/s', 1, 24, 5),
-(338, '2019-04-22 07:25:45', '1 nuevo/s Empleado/s', 0, 25, 5),
-(339, '2019-04-23 06:00:12', 'El dia de hoy 38 llego/aron tarde...', 1, 7, 4),
-(340, '2019-04-24 06:00:04', 'El dia de hoy 37 llego/aron tarde...', 1, 7, 4),
-(341, '2019-04-25 06:00:05', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(342, '2019-04-26 06:00:04', 'El dia de hoy 25 llego/aron tarde...', 1, 7, 4),
-(343, '2019-04-27 06:02:50', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(344, '2019-04-29 06:00:01', 'El dia de hoy 5 llego/aron tarde...', 1, 7, 4),
-(345, '2019-04-30 06:00:04', 'El dia de hoy 8 llego/aron tarde...', 1, 7, 4),
-(346, '2019-05-02 06:30:36', 'El dia de hoy 38 llego/aron tarde...', 1, 7, 4),
-(347, '2019-05-02 07:35:30', '2 nuevo/s Empleado/s', 1, 7, 5),
-(348, '2019-05-02 07:35:30', '2 nuevo/s Empleado/s', 0, 22, 5),
-(349, '2019-05-02 07:35:30', '2 nuevo/s Empleado/s', 1, 24, 5),
-(350, '2019-05-02 07:35:30', '2 nuevo/s Empleado/s', 0, 25, 5),
-(351, '2019-05-03 10:52:37', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(352, '2019-05-04 11:12:43', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(353, '2019-05-07 08:08:08', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(354, '2019-05-14 07:10:07', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(355, '2019-05-15 08:43:30', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
-(356, '2019-05-16 14:12:38', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
-(357, '2019-05-17 12:46:04', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
-(358, '2019-05-20 06:30:15', 'El dia de hoy 0 llego/aron tarde...', 1, 7, 4),
-(359, '2019-05-21 06:51:19', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(360, '2019-05-22 06:49:04', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(361, '2019-05-23 07:17:17', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(362, '2019-05-24 06:53:37', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(363, '2019-05-25 10:13:16', 'El dia de hoy 2 llego/aron tarde...', 1, 7, 4),
-(364, '2019-05-27 06:00:16', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(365, '2019-05-28 08:32:33', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
-(366, '2019-05-29 06:15:27', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4);
+(1, '2019-05-29 11:11:57', 'El dia de hoy 1 llego/aron tarde...', 1, 7, 4),
+(2, '2019-05-30 06:00:03', 'El dia de hoy 39 llego/aron tarde...', 1, 7, 4),
+(3, '2019-05-31 06:00:15', 'El dia de hoy 4 llego/aron tarde...', 1, 7, 4);
 
 -- --------------------------------------------------------
 
@@ -14221,7 +14386,7 @@ INSERT INTO `otros` (`idOtros`, `talla_camisa`, `talla_pantalon`, `talla_zapatos
 (28, 'M', '14', '37', '', 0, 0, 0, '6'),
 (29, 'S', '8', '39', '', 0, 0, 0, NULL),
 (30, 'L', '10', '38', '', 0, 0, 0, NULL),
-(31, 'XL', '34', '38', '', 0, 0, 0, '4'),
+(31, 'XL', '34', '38', '', 0, 0, 0, ''),
 (32, 'M', '10', '38', '', 0, 0, 0, NULL),
 (33, 'M', '30', '39', '', 0, 0, 0, '29'),
 (34, 'M', '32', '42', '', 0, 0, 0, '5'),
@@ -14248,8 +14413,8 @@ INSERT INTO `otros` (`idOtros`, `talla_camisa`, `talla_pantalon`, `talla_zapatos
 (55, 'L', '32', '40', '', 0, 0, 0, '21'),
 (56, 'M', '30', '39', '', 0, 0, 0, '38'),
 (57, 'XL', '36', '42', '', 1, 0, 0, NULL),
-(58, 'M', '32', '41', '', 1, 0, 0, NULL),
-(59, 'XL', '32', '40', '', 0, 0, 0, '39'),
+(58, 'M', '32', '41', '', 1, 0, 0, ''),
+(59, 'XL', '32', '40', '', 0, 0, 0, '4'),
 (60, 'M', '16', '37', '', 0, 0, 1, NULL),
 (61, 'L', '30', '40', '', 0, 0, 0, NULL),
 (62, 'M', '32', '40', '', 0, 0, 1, NULL),
@@ -14269,14 +14434,14 @@ INSERT INTO `otros` (`idOtros`, `talla_camisa`, `talla_pantalon`, `talla_zapatos
 (76, 'XL', '32', '41', '', 0, 1, 0, NULL),
 (77, 'S', '30', '42', '', 1, 0, 0, '47'),
 (78, 'M', '10', '37', 'NO', 0, 0, 0, NULL),
-(79, 'S', '8', '37', '', 1, 0, 0, NULL),
+(79, 'S', '8', '37', '', 1, 0, 0, ''),
 (80, 'M', '14', '37', '', 0, 0, 1, '3'),
 (81, 'M', '6', '37', 'NO', 1, 0, 1, NULL),
 (82, 'L', '38', '38', '', 0, 0, 0, '5'),
 (83, 'XL', '30', '43', '', 0, 1, 1, NULL),
 (84, 'L', '32', '40', '', 0, 0, 0, NULL),
 (85, 'S', '30', '39', '', 1, 0, 1, NULL),
-(86, 'S', '32', '37', '', 0, 0, 0, NULL),
+(86, 'S', '32', '37', '', 0, 0, 0, ''),
 (87, 'M', '30', '37', '', 0, 0, 0, NULL),
 (88, 'L', '36', '41', 'NO', 0, 0, 1, NULL),
 (89, 'M', '32', '38', '', 1, 0, 0, NULL),
@@ -14305,8 +14470,11 @@ INSERT INTO `otros` (`idOtros`, `talla_camisa`, `talla_pantalon`, `talla_zapatos
 (112, 'M', '34', '39', '', 0, 0, 0, NULL),
 (113, 'L', '28', '39', '', 0, 0, 0, NULL),
 (114, 'XL', '30', '40', '', 0, 0, 0, '19'),
-(115, 'M', '10', '35', '', 0, 0, 0, NULL),
-(116, 'M', '14', '38', '', 0, 0, 0, '');
+(115, 'M', '10', '35', '', 0, 0, 0, ''),
+(116, 'M', '14', '38', '', 0, 0, 0, ''),
+(117, 'M', '32', '40', '', 0, 0, 0, ''),
+(118, 'L', '12', '38', '', 0, 1, 0, ''),
+(119, 'M', '12', '36', '', 0, 0, 0, '39');
 
 -- --------------------------------------------------------
 
@@ -17558,7 +17726,289 @@ INSERT INTO `pedido` (`idPedido`, `documento`, `fecha_pedido`, `total`, `estado`
 (3254, '1020479554', '2019-05-03 07:01:33', '2000', 1),
 (3255, '43288005', '2019-05-03 07:15:17', '5500', 1),
 (3256, '1037587834', '2019-05-03 07:15:32', '16600', 1),
-(3257, '1001545147', '2019-05-03 07:20:38', '1000', 1);
+(3257, '1001545147', '2019-05-03 07:20:38', '1000', 1),
+(3258, '1020479554', '2019-05-06 06:11:13', '7900', 1),
+(3259, '1152450553', '2019-05-06 06:11:46', '15100', 1),
+(3260, '43975208', '2019-05-06 06:45:01', '4800', 1),
+(3261, '1046913982', '2019-05-06 06:50:20', '18900', 1),
+(3262, '1077453248', '2019-05-06 06:57:02', '5000', 1),
+(3263, '43288005', '2019-05-06 07:11:43', '2000', 1),
+(3264, '1037587834', '2019-05-06 07:14:56', '1500', 1),
+(3265, '1095791547', '2019-05-06 07:39:42', '3500', 1),
+(3266, '71267825', '2019-05-07 06:33:17', '2000', 1),
+(3267, '43605625', '2019-05-07 06:48:52', '4800', 1),
+(3268, '1017187557', '2019-05-07 06:49:44', '2000', 1),
+(3269, '8433778', '2019-05-07 06:52:38', '2000', 1),
+(3270, '1020479554', '2019-05-07 07:15:52', '2100', 1),
+(3271, '1036598684', '2019-05-07 07:21:11', '2000', 1),
+(3272, '43975208', '2019-05-07 07:38:55', '2800', 1),
+(3274, '32353491', '2019-05-08 06:37:31', '2500', 1),
+(3275, '1017125039', '2019-05-08 06:51:50', '8800', 1),
+(3276, '760579', '2019-05-08 06:53:08', '9000', 1),
+(3277, '1046913982', '2019-05-08 07:39:44', '9100', 1),
+(3278, '1077453248', '2019-05-08 06:54:11', '5500', 1),
+(3279, '1020479554', '2019-05-08 07:01:19', '5900', 1),
+(3280, '98699433', '2019-05-08 07:30:15', '7900', 1),
+(3281, '1017239142', '2019-05-08 07:34:14', '2500', 1),
+(3282, '1017187557', '2019-05-08 07:37:10', '5200', 1),
+(3283, '43596807', '2019-05-08 07:39:08', '12600', 1),
+(3284, '43161988', '2019-05-08 07:39:56', '4300', 1),
+(3285, '1096238261', '2019-05-09 06:02:30', '2000', 1),
+(3286, '1017225857', '2019-05-09 06:11:11', '12600', 1),
+(3287, '98699433', '2019-05-09 06:49:31', '14900', 1),
+(3288, '98772784', '2019-05-09 06:53:22', '2800', 1),
+(3289, '1017156424', '2019-05-09 06:56:07', '7900', 1),
+(3290, '1037587834', '2019-05-09 06:58:05', '10000', 1),
+(3291, '71268332', '2019-05-09 07:11:36', '14000', 1),
+(3292, '43288005', '2019-05-09 07:14:39', '1500', 1),
+(3293, '1035915735', '2019-05-09 07:18:46', '12600', 1),
+(3294, '1152210828', '2019-05-09 07:21:06', '2000', 1),
+(3295, '43596807', '2019-05-09 07:29:06', '1200', 1),
+(3296, '1152450553', '2019-05-09 07:33:10', '2000', 1),
+(3297, '1020479554', '2019-05-09 07:42:30', '2100', 1),
+(3298, '43161988', '2019-05-09 07:44:59', '2000', 1),
+(3299, '43265824', '2019-05-10 06:08:46', '2000', 1),
+(3300, '1036629003', '2019-05-10 06:28:25', '3000', 1),
+(3301, '1152450553', '2019-05-10 06:34:59', '14600', 1),
+(3302, '8433778', '2019-05-10 06:40:20', '2000', 1),
+(3303, '23917651', '2019-05-10 06:43:08', '2400', 1),
+(3304, '98699433', '2019-05-10 06:53:12', '12600', 1),
+(3305, '43189198', '2019-05-10 06:56:02', '12600', 1),
+(3306, '43288005', '2019-05-10 06:57:26', '1500', 1),
+(3307, '1020457057', '2019-05-10 06:59:44', '3200', 1),
+(3308, '1152210828', '2019-05-10 07:02:48', '3900', 1),
+(3309, '1020479554', '2019-05-10 07:05:59', '2100', 1),
+(3310, '1039447684', '2019-05-10 07:24:02', '12600', 1),
+(3311, '54253320', '2019-05-10 07:25:26', '4200', 1),
+(3312, '1039049115', '2019-05-10 07:26:27', '2800', 1),
+(3313, '1017239142', '2019-05-10 07:38:02', '1400', 1),
+(3314, '43161988', '2019-05-10 07:38:57', '12600', 1),
+(3315, '1077453248', '2019-05-13 06:08:53', '3500', 1),
+(3316, '1020457057', '2019-05-13 06:26:37', '3700', 1),
+(3317, '1017156424', '2019-05-13 06:33:51', '6100', 1),
+(3318, '1152210828', '2019-05-13 06:40:11', '2000', 1),
+(3319, '98772784', '2019-05-13 06:50:52', '2800', 1),
+(3320, '1039049115', '2019-05-13 06:56:23', '3500', 1),
+(3321, '43265824', '2019-05-13 06:57:24', '1200', 1),
+(3322, '1020479554', '2019-05-13 06:58:34', '5900', 1),
+(3323, '1007657685', '2019-05-13 07:06:27', '7900', 1),
+(3324, '1095791547', '2019-05-13 07:06:52', '3500', 1),
+(3325, '43271378', '2019-05-13 07:07:28', '12600', 1),
+(3326, '8433778', '2019-05-13 07:15:58', '2500', 1),
+(3327, '1036598684', '2019-05-13 07:18:37', '4000', 1),
+(3328, '1017125039', '2019-05-13 07:20:19', '10000', 1),
+(3329, '32353491', '2019-05-13 07:23:27', '3200', 1),
+(3330, '1035915735', '2019-05-13 07:25:04', '14200', 1),
+(3331, '1017171421', '2019-05-13 07:29:30', '12600', 1),
+(3332, '1017239142', '2019-05-13 07:36:34', '1400', 1),
+(3333, '1036629003', '2019-05-13 07:40:16', '6000', 1),
+(3334, '1039447684', '2019-05-13 07:44:42', '2500', 1),
+(3335, '1020479554', '2019-05-14 06:22:05', '5900', 1),
+(3336, '1017156424', '2019-05-14 06:33:29', '8900', 1),
+(3337, '1001545147', '2019-05-14 06:39:41', '1000', 1),
+(3338, '43265824', '2019-05-14 06:52:09', '12900', 1),
+(3339, '8433778', '2019-05-14 06:53:55', '2000', 1),
+(3340, '1077453248', '2019-05-14 07:19:20', '8800', 1),
+(3341, '43975208', '2019-05-14 07:09:22', '2800', 1),
+(3342, '71267825', '2019-05-14 07:10:40', '5900', 1),
+(3343, '32353491', '2019-05-14 07:17:31', '7900', 1),
+(3344, '1020457057', '2019-05-14 07:17:46', '5900', 1),
+(3345, '1039049115', '2019-05-14 07:20:00', '2800', 1),
+(3346, '1046913982', '2019-05-14 07:23:45', '13600', 1),
+(3347, '1095791547', '2019-05-14 07:28:55', '2000', 1),
+(3348, '43161988', '2019-05-14 07:34:30', '4000', 1),
+(3349, '1152450553', '2019-05-14 07:44:39', '2000', 1),
+(3350, '43605625', '2019-05-15 06:51:24', '12600', 1),
+(3351, '1036629003', '2019-05-15 06:51:32', '6900', 1),
+(3352, '43271378', '2019-05-15 06:52:03', '12600', 1),
+(3353, '1020479554', '2019-05-15 06:52:42', '5900', 1),
+(3354, '1077453248', '2019-05-15 06:53:01', '4800', 1),
+(3355, '8433778', '2019-05-15 06:54:15', '2000', 1),
+(3356, '43288005', '2019-05-15 07:07:18', '2000', 1),
+(3357, '1017187557', '2019-05-15 07:07:47', '18400', 1),
+(3358, '1017156424', '2019-05-15 07:11:51', '10300', 1),
+(3359, '43161988', '2019-05-15 07:15:47', '4300', 1),
+(3360, '1017171421', '2019-05-15 07:22:36', '12600', 1),
+(3361, '1020446405', '2019-05-15 07:24:54', '12600', 1),
+(3362, '1039049115', '2019-05-15 07:25:49', '2800', 1),
+(3363, '1017125039', '2019-05-15 07:30:38', '6300', 1),
+(3364, '1017239142', '2019-05-15 07:34:48', '1400', 1),
+(3365, '43596807', '2019-05-15 07:38:41', '12600', 1),
+(3366, '1020479554', '2019-05-16 06:13:17', '5900', 1),
+(3367, '8433778', '2019-05-16 06:16:21', '2000', 1),
+(3368, '1007657685', '2019-05-16 06:17:12', '7900', 1),
+(3369, '1096238261', '2019-05-16 06:29:04', '12600', 1),
+(3370, '760579', '2019-05-16 06:30:37', '2600', 1),
+(3371, '1037606721', '2019-05-16 06:52:24', '2000', 1),
+(3372, '1095791547', '2019-05-16 06:52:26', '11400', 1),
+(3373, '98699433', '2019-05-16 07:12:28', '6800', 1),
+(3374, '15489896', '2019-05-16 07:13:06', '7900', 1),
+(3375, '1020457057', '2019-05-16 07:14:35', '3500', 1),
+(3376, '1017219391', '2019-05-16 07:20:59', '2800', 1),
+(3377, '1152450553', '2019-05-16 07:22:32', '14600', 1),
+(3378, '1036622270', '2019-05-16 07:23:47', '2400', 1),
+(3379, '71269842', '2019-05-16 07:31:32', '7900', 1),
+(3380, '43288005', '2019-05-16 07:34:31', '2000', 1),
+(3381, '43265824', '2019-05-17 06:03:47', '5000', 1),
+(3382, '98772784', '2019-05-17 06:26:18', '2800', 1),
+(3383, '1095791547', '2019-05-17 06:28:56', '10400', 1),
+(3384, '1037587834', '2019-05-17 06:35:51', '16600', 1),
+(3385, '71267825', '2019-05-17 06:36:49', '5900', 1),
+(3386, '1077453248', '2019-05-17 06:37:21', '8400', 1),
+(3387, '1017187557', '2019-05-17 06:43:15', '4700', 1),
+(3388, '43605625', '2019-05-17 06:44:12', '4700', 1),
+(3389, '23917651', '2019-05-17 06:46:27', '1000', 1),
+(3390, '1017156424', '2019-05-17 06:50:00', '6800', 1),
+(3391, '1036629003', '2019-05-17 06:52:12', '5000', 1),
+(3392, '1001545147', '2019-05-17 06:53:59', '1000', 1),
+(3393, '43975208', '2019-05-17 06:56:41', '2800', 1),
+(3394, '43161988', '2019-05-17 07:10:33', '14400', 1),
+(3395, '71269842', '2019-05-17 07:14:28', '7900', 1),
+(3396, '8433778', '2019-05-17 07:23:22', '2000', 1),
+(3397, '1096238261', '2019-05-17 07:26:45', '8000', 1),
+(3398, '32353491', '2019-05-17 07:41:54', '5900', 1),
+(3399, '43975208', '2019-05-20 06:48:21', '12000', 1),
+(3400, '1037587834', '2019-05-20 06:52:16', '2700', 1),
+(3401, '1017187557', '2019-05-20 06:52:19', '10900', 1),
+(3402, '43605625', '2019-05-20 06:53:09', '2500', 1),
+(3403, '8433778', '2019-05-20 06:54:35', '2000', 1),
+(3404, '1020457057', '2019-05-20 06:58:47', '3500', 1),
+(3405, '1036629003', '2019-05-20 07:00:03', '6800', 1),
+(3406, '1001545147', '2019-05-20 07:01:58', '1000', 1),
+(3407, '1152450553', '2019-05-20 07:41:16', '14600', 1),
+(3408, '1095791547', '2019-05-20 07:41:31', '2000', 1),
+(3409, '1152210828', '2019-05-20 07:42:06', '2500', 1),
+(3410, '1020479554', '2019-05-21 06:22:38', '5900', 1),
+(3411, '1095791547', '2019-05-21 06:26:40', '3500', 1),
+(3412, '8433778', '2019-05-21 06:31:27', '2000', 1),
+(3413, '1037587834', '2019-05-21 06:39:32', '12600', 1),
+(3414, '71267825', '2019-05-21 06:48:15', '2000', 1),
+(3415, '1036629003', '2019-05-21 07:00:26', '10300', 1),
+(3416, '1020457057', '2019-05-21 07:02:09', '1500', 1),
+(3417, '71269842', '2019-05-21 07:14:43', '7900', 1),
+(3418, '43265824', '2019-05-21 07:17:26', '7900', 1),
+(3419, '1152450553', '2019-05-21 07:19:46', '12600', 1),
+(3420, '1046913982', '2019-05-21 07:21:35', '5900', 1),
+(3421, '43975208', '2019-05-21 07:24:14', '2400', 1),
+(3422, '1017125039', '2019-05-21 07:24:46', '9700', 1),
+(3423, '1039049115', '2019-05-21 07:25:47', '4000', 1),
+(3424, '1017239142', '2019-05-21 07:39:45', '1400', 1),
+(3425, '1007657685', '2019-05-22 06:05:46', '3700', 1),
+(3426, '43265824', '2019-05-22 06:07:22', '3500', 1),
+(3427, '1037587834', '2019-05-22 06:28:59', '2000', 1),
+(3428, '1077453248', '2019-05-22 06:30:46', '5000', 1),
+(3429, '8433778', '2019-05-22 06:49:49', '2000', 1),
+(3430, '1020457057', '2019-05-22 07:01:51', '3700', 1),
+(3431, '1001545147', '2019-05-22 07:06:53', '1000', 1),
+(3432, '71269842', '2019-05-22 07:07:37', '7900', 1),
+(3433, '1095791547', '2019-05-22 07:24:49', '2000', 1),
+(3434, '43596807', '2019-05-22 07:26:57', '12600', 1),
+(3435, '1036598684', '2019-05-23 06:09:33', '7900', 1),
+(3436, '32353491', '2019-05-23 06:11:32', '11400', 1),
+(3437, '1077453248', '2019-05-23 06:15:18', '5000', 1),
+(3438, '1037587834', '2019-05-23 06:37:15', '7900', 1),
+(3439, '1020479554', '2019-05-23 06:52:19', '10000', 1),
+(3440, '98699433', '2019-05-23 06:53:35', '14700', 1),
+(3441, '98772784', '2019-05-23 07:02:03', '2800', 1),
+(3442, '1007657685', '2019-05-24 06:07:46', '7900', 1),
+(3443, '8433778', '2019-05-24 06:08:46', '2000', 1),
+(3444, '1020479554', '2019-05-24 06:18:42', '5900', 1),
+(3445, '1017187557', '2019-05-24 06:31:47', '3000', 1),
+(3446, '43288005', '2019-05-24 06:35:13', '6800', 1),
+(3447, '1039049115', '2019-05-24 06:54:54', '3200', 1),
+(3448, '1152697088', '2019-05-24 07:10:35', '12600', 1),
+(3449, '32353491', '2019-05-24 07:23:45', '3700', 1),
+(3450, '43596807', '2019-05-24 07:31:41', '1200', 1),
+(3451, '1017239142', '2019-05-24 07:41:52', '2300', 1),
+(3452, '98699433', '2019-05-24 07:44:57', '12600', 1),
+(3453, '1077453248', '2019-05-27 06:16:33', '4500', 1),
+(3454, '1001545147', '2019-05-27 06:30:22', '2000', 1),
+(3455, '1046913982', '2019-05-27 06:40:34', '10800', 1),
+(3456, '1036629003', '2019-05-27 06:39:08', '10700', 1),
+(3457, '1020479554', '2019-05-27 06:39:14', '2100', 1),
+(3458, '1020457057', '2019-05-27 06:43:38', '4600', 1),
+(3459, '1017156424', '2019-05-27 06:49:48', '4000', 1),
+(3460, '1039049115', '2019-05-27 06:52:59', '4600', 1),
+(3461, '71269842', '2019-05-27 07:14:55', '7900', 1),
+(3462, '1152210828', '2019-05-27 07:15:18', '1600', 1),
+(3463, '1152450553', '2019-05-27 07:19:04', '14600', 1),
+(3464, '43605625', '2019-05-27 07:20:18', '3800', 1),
+(3465, '1037587834', '2019-05-27 07:21:56', '8500', 1),
+(3466, '1017239142', '2019-05-27 07:39:42', '12600', 1),
+(3467, '98699433', '2019-05-27 07:40:03', '14900', 1),
+(3468, '1017125039', '2019-05-27 07:42:22', '7300', 1),
+(3469, '1017171421', '2019-05-27 07:42:44', '12600', 1),
+(3470, '43605625', '2019-05-28 06:05:58', '14100', 1),
+(3471, '8433778', '2019-05-28 06:17:03', '2000', 1),
+(3472, '43265824', '2019-05-28 06:31:32', '5100', 1),
+(3473, '1020479554', '2019-05-28 07:30:58', '5900', 1),
+(3474, '1017156424', '2019-05-28 06:41:29', '4000', 1),
+(3475, '98772784', '2019-05-28 06:57:18', '3200', 1),
+(3476, '1036598684', '2019-05-28 07:06:36', '4000', 1),
+(3477, '43271378', '2019-05-28 07:07:38', '14600', 1),
+(3478, '1152450553', '2019-05-28 07:13:24', '7300', 1),
+(3479, '1020457057', '2019-05-28 07:14:27', '2400', 1),
+(3480, '71269842', '2019-05-28 07:14:55', '2000', 1),
+(3481, '1017225857', '2019-05-28 07:15:05', '2000', 1),
+(3482, '1039049115', '2019-05-28 07:28:35', '5200', 1),
+(3483, '32353491', '2019-05-28 07:30:29', '3700', 1),
+(3484, '1017125039', '2019-05-28 07:33:02', '6200', 1),
+(3485, '1017239142', '2019-05-28 07:35:59', '1600', 1),
+(3486, '1037587834', '2019-05-29 06:27:21', '4600', 1),
+(3487, '43189198', '2019-05-29 06:28:57', '12600', 1),
+(3488, '1077453248', '2019-05-29 06:29:27', '11600', 1),
+(3489, '98699433', '2019-05-29 06:40:56', '13000', 1),
+(3490, '98772784', '2019-05-29 06:45:24', '3200', 1),
+(3491, '21424773', '2019-05-29 07:00:57', '2000', 1),
+(3492, '1216714539', '2019-05-29 07:03:36', '12600', 1),
+(3493, '1046913982', '2019-05-29 07:07:04', '2500', 1),
+(3494, '1020479554', '2019-05-29 07:07:40', '2100', 1),
+(3495, '1020457057', '2019-05-29 07:08:50', '5400', 1),
+(3496, '1036629003', '2019-05-29 07:10:57', '11900', 1),
+(3497, '1017225857', '2019-05-29 07:11:41', '2000', 1),
+(3498, '43161988', '2019-05-29 07:20:16', '2100', 1),
+(3499, '1020446405', '2019-05-29 07:20:49', '12600', 1),
+(3500, '1039049115', '2019-05-29 07:20:55', '7200', 1),
+(3501, '1017156424', '2019-05-29 07:25:10', '3500', 1),
+(3502, '43271378', '2019-05-29 07:37:10', '12600', 1),
+(3503, '1017125039', '2019-05-29 07:38:20', '2000', 1),
+(3504, '1095791547', '2019-05-30 06:33:08', '2500', 1),
+(3505, '98699433', '2019-05-30 06:37:26', '11900', 1),
+(3506, '1001545147', '2019-05-30 06:38:37', '1000', 1),
+(3507, '1017225857', '2019-05-30 06:39:24', '2000', 1),
+(3508, '1020479554', '2019-05-30 06:45:11', '10000', 1),
+(3509, '1036651097', '2019-05-30 06:47:45', '4800', 1),
+(3510, '1039049115', '2019-05-30 06:48:54', '4000', 1),
+(3511, '1017125039', '2019-05-30 06:49:35', '4000', 1),
+(3513, '1037587834', '2019-05-30 07:05:40', '12600', 1),
+(3514, '71267825', '2019-05-30 07:06:56', '4100', 1),
+(3515, '1036629003', '2019-05-30 07:12:16', '11700', 1),
+(3516, '71269842', '2019-05-30 07:12:37', '2000', 1),
+(3517, '1046913982', '2019-05-30 07:25:06', '2000', 1),
+(3518, '43596807', '2019-05-30 07:25:47', '12600', 1),
+(3519, '43161988', '2019-05-30 07:33:42', '14700', 1),
+(3520, '1020457057', '2019-05-30 07:33:52', '1500', 1),
+(3521, '1017239142', '2019-05-30 07:36:19', '1600', 1),
+(3522, '43271378', '2019-05-30 07:38:01', '12600', 1),
+(3523, '1128267430', '2019-05-30 07:41:21', '12600', 1),
+(3524, '1007657685', '2019-05-30 06:37:50', '7900', 1),
+(3525, '1077453248', '2019-05-31 06:12:53', '5700', 1),
+(3526, '1152210828', '2019-05-31 06:44:06', '2500', 1),
+(3527, '1007657685', '2019-05-31 06:46:49', '5000', 1),
+(3528, '1020479554', '2019-05-31 06:53:41', '12700', 1),
+(3529, '1095791547', '2019-05-31 06:55:27', '4500', 1),
+(3530, '1152450553', '2019-05-31 06:56:51', '6200', 1),
+(3531, '1017156424', '2019-05-31 06:57:10', '8300', 1),
+(3533, '1020457057', '2019-05-31 06:58:38', '19800', 1),
+(3534, '1036629003', '2019-05-31 06:59:55', '3600', 1),
+(3535, '43265824', '2019-05-31 07:02:07', '4000', 1),
+(3536, '1152697088', '2019-05-31 07:04:28', '5000', 1),
+(3537, '1017125039', '2019-05-31 07:14:18', '4000', 1),
+(3538, '1017187557', '2019-05-31 07:18:30', '6300', 1),
+(3539, '71267825', '2019-05-31 07:29:00', '5900', 1),
+(3540, '54253320', '2019-05-31 07:32:10', '4500', 1),
+(3541, '71269842', '2019-05-31 07:35:39', '7900', 1),
+(3542, '98699433', '2019-05-31 07:40:28', '14900', 1);
 
 -- --------------------------------------------------------
 
@@ -17587,7 +18037,8 @@ CREATE TABLE `permiso` (
 
 INSERT INTO `permiso` (`idPermiso`, `documento`, `fecha_solicitud`, `fecha_permiso`, `idConcepto`, `descripcion`, `desde`, `hasta`, `numero_horas`, `estado`, `idHorario_permiso`, `idUsuario`) VALUES
 (3, '1216727816', '2019-05-24 12:20:34', '2019-05-24', 1, '', '12:20:00', '16:30:00', '04:10:00', 3, 1, 7),
-(4, '1216727816', '2019-05-28 15:52:18', '2019-05-28', 1, '', '15:50:00', '18:00:00', '02:10:00', 3, 1, 7);
+(4, '1216727816', '2019-05-28 15:52:18', '2019-05-28', 1, '', '15:50:00', '18:00:00', '02:10:00', 3, 1, 7),
+(12, '42702332', '2019-05-30 07:22:37', '2019-06-04', 3, '', '06:00:00', NULL, NULL, 0, 2, 0);
 
 -- --------------------------------------------------------
 
@@ -17669,7 +18120,7 @@ INSERT INTO `personal` (`idPersonal`, `direccion`, `barrio`, `comuna`, `idMunici
 (51, 'CR;89;#92C;119;-;', 'Robledo', '7', 1, '3', 'Yilmar valoyes', '3103828191', '3', 1, '1.67', '57', ''),
 (52, 'CL;39;#89;09;IN;', 'Santa Monica ', '12', 1, '4', 'Maria celina estrada', '3206652235', '1', 3, '1,70', '60', ''),
 (53, 'CL;9A;SUR;#79A;-;', 'Rodeo Alto', '', 1, '3', 'Ana maria cadavid', '3017456565', '4', 3, '1,72', '69', ''),
-(54, 'CR;43;A;#;-;SUR', 'Sabaneta ', '', 9, '', 'Maria andrea paez', '3017786185', '4', 3, '1,66', '66', ''),
+(54, 'CR;43;A;#63 sur ;-;120', 'Sabaneta ', '', 9, '', 'Maria andrea paez', '3017786185', '4', 3, '1,66', '66', ''),
 (55, 'CL;96SUR;#50;43;-;', 'Inmaculada', '', 7, '2', 'Yamile Agudelo', '3104989842', '4', 1, '1,72', '80', 'Deejey'),
 (56, 'CL;68A;#30;55;-;', 'Manrique', '8', 1, '2', 'Viviana Cartagena', '3135890674', '4', 2, '1,68', '54', 'Ver TV, Estudiar la biblia'),
 (57, 'CR;55;#30B;47;IN;', 'La Florida', '3', 2, '3', 'Carolina Buitrago', '3002475597', '3', 3, '1,72', '94', ''),
@@ -17731,7 +18182,10 @@ INSERT INTO `personal` (`idPersonal`, `direccion`, `barrio`, `comuna`, `idMunici
 (113, '-;;;;-;', 'Santa Elena', '', 1, '2', 'Gloria Selene Bernal', '5381802', '1', 1, '1.84', '59', ''),
 (114, 'CL;57A;31;33;AP;304', 'Boston', '8', 1, '2', 'Sirley Fonnegra', '3004753774', '3', 3, '1.75', '65', ''),
 (115, 'CL;37a;84A;24;CA;2 piso', 'Simon Bolivar la Ame', '12', 1, '5', 'Miguel Antonio Escobar ', '3127593024', '2', 1, '1.50', '63', ''),
-(116, 'CR;45a;85;141;AP;3 piso', 'Las Esmeraldas', '', 1, '3', 'Maira Valencia', '3138704597', '9', 3, '1.62', '757', 'Escribe ');
+(116, 'CR;45a;85;141;AP;3 piso', 'Las Esmeraldas', '', 1, '3', 'Maira Valencia', '3138704597', '9', 3, '1.62', '757', 'Escribe '),
+(117, 'CR;85a;47dd;49;-;302', 'Santa Lucia', '12', 1, '3', 'Sara Ramirez Londoño', '3193612340', '4', 3, '1.79', '66', ''),
+(118, 'CR;8 ;167d;62;AP;312', 'Santa Teresa (bogotá', '', 1, '4', 'Maurcio Galvis', '3174875823', '4', 3, '1.60', '75', ''),
+(119, 'CR;63a;56a ;35;AP;201', 'El Paraiso', '', 2, '2', 'Brayan Lopera', '3195413992', '4', 3, '1.65', '67', '');
 
 -- --------------------------------------------------------
 
@@ -18218,7 +18672,36 @@ INSERT INTO `personas_vive` (`idPersonas_vive`, `nombreC`, `idParentezco`, `celu
 (780, '', 4, '', '0000-00-00', 0, 116, '0'),
 (781, '', 6, '', '0000-00-00', 0, 116, '0'),
 (782, '', 7, '', '0000-00-00', 0, 116, '1'),
-(783, '', 5, '', '0000-00-00', 0, 116, '0');
+(783, '', 5, '', '0000-00-00', 0, 116, '0'),
+(784, '', 7, '', '0000-00-00', 0, 117, '0'),
+(785, '', 4, '', '0000-00-00', 0, 117, '0'),
+(786, 'Sara Ramirez Londoño', 3, '3193612340', '0000-00-00', 0, 117, '1'),
+(787, '', 6, '', '0000-00-00', 0, 117, '0'),
+(788, '', 5, '', '0000-00-00', 0, 117, '0'),
+(789, 'Estefania Zuluaga jaramillo', 8, '', '2006-01-10', 0, 117, '1'),
+(790, 'Simón Galvis Otero', 8, '', '2018-05-20', 1, 118, '1'),
+(791, '', 4, '', '0000-00-00', 0, 118, '0'),
+(792, '', 5, '', '0000-00-00', 0, 118, '0'),
+(793, 'Maurcio Galvis', 3, '3174875823', '0000-00-00', 0, 118, '1'),
+(794, '', 6, '', '0000-00-00', 0, 118, '0'),
+(795, '', 7, '', '0000-00-00', 0, 118, '0'),
+(796, 'Joseline Andrea Lopera Mesa', 8, '', '2017-09-13', 1, 119, '1'),
+(797, '', 4, '', '0000-00-00', 0, 119, '0'),
+(798, '', 7, '', '0000-00-00', 0, 119, '0'),
+(799, 'Brayan Lopera', 3, '3195413992', '0000-00-00', 0, 119, '1'),
+(800, '', 6, '', '0000-00-00', 0, 119, '0'),
+(801, '', 5, '', '0000-00-00', 0, 119, '0'),
+(802, '', 6, '', '0000-00-00', 0, 79, '0'),
+(803, '', 7, '', '0000-00-00', 0, 79, '0'),
+(804, '', 4, '', '0000-00-00', 0, 79, '0'),
+(805, '', 5, '', '0000-00-00', 0, 79, '0'),
+(806, '', 4, '', '0000-00-00', 0, 58, '0'),
+(807, '', 6, '', '0000-00-00', 0, 58, '0'),
+(808, '', 7, '', '0000-00-00', 0, 58, '0'),
+(809, '', 4, '', '0000-00-00', 0, 86, '0'),
+(810, '', 6, '', '0000-00-00', 0, 86, '0'),
+(811, '', 7, '', '0000-00-00', 0, 86, '0'),
+(812, '', 5, '', '0000-00-00', 0, 86, '0');
 
 -- --------------------------------------------------------
 
@@ -18271,38 +18754,38 @@ INSERT INTO `producto` (`idProducto`, `nombre`, `precio`, `estado`, `idProveedor
 (30, 'JUGO DE LULO EN AGUA', '2000', 1, 1),
 (31, 'MILO', '2000', 1, 1),
 (32, 'YOGURTH', '800', 1, 1),
-(33, 'PALITO DE QUESO (ó Croasán o Pastel de Queso)', '1400', 1, 3),
-(34, 'CROASÁN (ó Palito de Queso ó Pastel de Queso)', '1400', 1, 3),
-(35, 'PASTEL DE QUESO (ó Palito de Queso ó Croasán)', '1400', 1, 3),
-(36, 'BUÑUELO', '600', 1, 3),
-(37, 'PASTEL DE POLLO HOJALDRADO', '2000', 1, 3),
-(38, 'PASTEL DE POLLO FRITO', '2500', 1, 3),
-(39, 'EMPANADA DE CARNE (ó Papa Rellena)', '2200', 1, 3),
-(40, 'PAPA RELLENA (ó Empanada de Carne)', '2200', 1, 3),
-(41, 'PANDEBONO (ó Pandequeso ó Almojabana)', '1300', 1, 3),
-(42, 'PANDEQUESO (ó Pandebono ó Almojabana)', '1300', 1, 3),
-(43, 'ALMOJABANA (ó Pandebono ó Pandequeso)', '1300', 1, 3),
-(44, 'AVENA (ó Milo Caliente)', '2500', 1, 3),
-(45, 'MILO CALIENTE (ó AVENA)', '2500', 1, 3),
-(46, 'PASTEL DE CARNE', '2800', 1, 3),
-(47, 'PASTEL RANCHERO', '2900', 1, 3),
-(48, 'HUEVOS CON TODO', '4000', 1, 3),
-(49, 'OMELETTE - TORTILLA DE HUEVO RELLENA', '6000', 1, 3),
-(50, 'CROASÁN DE JAMÓN Y QUESO', '1800', 1, 3),
-(51, 'CROASÁN RANCHERO', '1800', 1, 3),
-(52, 'CROASÁN SANDUCHE', '3500', 1, 3),
-(53, 'PANDEQUESO XXL', '2600', 1, 3),
-(54, 'PAN DE MAÍZ', '2500', 1, 3),
-(55, 'MILO FRÍO (DELEITATE)', '2500', 1, 3),
+(33, 'PALITO DE QUESO (ó Croasán o Pastel de Queso)', '1600', 1, 3),
+(34, 'CROASÁN (ó Palito de Queso ó Pastel de Queso)', '1600', 1, 3),
+(35, 'PASTEL DE QUESO (ó Palito de Queso ó Croasán)', '1600', 1, 3),
+(36, 'BUÑUELO', '700', 1, 3),
+(37, 'PASTEL DE POLLO HOJALDRADO', '2300', 1, 3),
+(38, 'PASTEL DE POLLO FRITO', '2900', 1, 3),
+(39, 'EMPANADA DE CARNE (ó Papa Rellena)', '2500', 1, 3),
+(40, 'PAPA RELLENA (ó Empanada de Carne)', '2500', 1, 3),
+(41, 'PANDEBONO (ó Pandequeso ó Almojabana)', '1500', 1, 3),
+(42, 'PANDEQUESO (ó Pandebono ó Almojabana)', '1500', 1, 3),
+(43, 'ALMOJABANA (ó Pandebono ó Pandequeso)', '1500', 1, 3),
+(44, 'AVENA', '2500', 1, 3),
+(45, 'MILO CALIENTE', '3000', 1, 3),
+(46, 'PASTEL DE CARNE', '3200', 1, 3),
+(47, 'PASTEL RANCHERO', '3300', 1, 3),
+(48, 'HUEVOS CON TODO', '4600', 1, 3),
+(49, 'OMELETTE - TORTILLA DE HUEVO RELLENA', '6000', 0, 3),
+(50, 'CROASÁN DE JAMÓN Y QUESO', '2100', 1, 3),
+(51, 'CROASÁN RANCHERO', '2100', 1, 3),
+(52, 'CROASÁN SANDUCHE', '3500', 0, 3),
+(53, 'PANDEQUESO XXL', '2600', 0, 3),
+(54, 'PAN DE MAÍZ', '3000', 1, 3),
+(55, 'MILO FRÍO (DELEITATE)', '3000', 1, 3),
 (56, 'JUGO DE NARANJA (DELEITATE)', '2600', 1, 3),
-(57, 'PASTEL DE AREQUIPE', '1400', 1, 3),
-(58, 'PASTEL DE GUAYABA', '1200', 1, 3),
-(59, 'PASTEL DE AREQUIPE Y QUESO', '1600', 1, 3),
-(60, 'MR TEA', '2000', 1, 3),
-(61, 'GASEOSA POSTOBÓN LITRO 1/2 (CUALQUIER SABOR)', '3500', 1, 3),
-(62, 'GASEOSA POSTOBÓN MEGA (CUALQUIER SABOR)', '6000', 1, 3),
-(63, 'GASEOSA COCA-COLA LITRO 1/2 (CUALQUIER SABOR)', '3500', 1, 3),
-(64, 'GASEOSA COCA-COLA MEGA (CUALQUIER SABOR)', '6000', 1, 3),
+(57, 'PASTEL DE AREQUIPE', '1600', 1, 3),
+(58, 'PASTEL DE GUAYABA', '1400', 1, 3),
+(59, 'PASTEL DE AREQUIPE Y QUESO', '1800', 1, 3),
+(60, 'MR TEA', '2500', 1, 3),
+(61, 'GASEOSA POSTOBÓN LITRO 1/2 (CUALQUIER SABOR)', '4000', 1, 3),
+(62, 'GASEOSA POSTOBÓN MEGA (CUALQUIER SABOR)', '7000', 1, 3),
+(63, 'GASEOSA COCA-COLA LITRO 1/2 (CUALQUIER SABOR)', '4000', 1, 3),
+(64, 'GASEOSA COCA-COLA MEGA (CUALQUIER SABOR)', '7000', 1, 3),
 (65, 'AREPA CON HUEVO REVUELTO', '2500', 1, 4),
 (66, 'AREPA CON HUEVO REVUELTO Y ALIÑOS', '2500', 1, 4),
 (67, 'AREPA CON HOGAO', '2000', 1, 4),
@@ -18491,7 +18974,7 @@ INSERT INTO `salarial` (`idSalarial`, `idPromedio_salario`, `idClasificacion_meg
 (55, 1, 0, '859916', '956.948'),
 (56, 1, 0, '954000', '1.111.032'),
 (57, 1, 0, '1484000', '1781032'),
-(58, 1, 0, '1200000', '1497032'),
+(58, 1, 0, '1200000', '1.497.032'),
 (59, 1, 0, '900000', '997.032'),
 (60, 1, 0, '859916', '956948'),
 (61, 1, 0, '828116', '985148'),
@@ -18512,14 +18995,14 @@ INSERT INTO `salarial` (`idSalarial`, `idPromedio_salario`, `idClasificacion_meg
 (76, 1, 0, '1000000', '1000000'),
 (77, 1, 0, '954000', '1.111.032'),
 (78, 1, 0, '781242', '781242'),
-(79, 1, 0, '900000', '997032'),
+(79, 1, 0, '900000', '997.032'),
 (80, 1, 0, '859916', '956.948'),
 (81, 1, 0, '781242', '781242'),
 (82, 1, 0, '828116', '925.148'),
 (83, 1, 0, '847000', '1144032'),
 (84, 1, 0, '1500000', '1597032'),
 (85, 1, 0, '1560000', '1907032'),
-(86, 1, 0, '1560000', '1907032'),
+(86, 1, 0, '1560000', '1.907.032'),
 (87, 4, 0, '2500000', '2500000'),
 (88, 4, 0, '3000000', '3800000'),
 (89, 3, 0, '1560000', '1907032'),
@@ -18549,7 +19032,10 @@ INSERT INTO `salarial` (`idSalarial`, `idPromedio_salario`, `idClasificacion_meg
 (113, 1, 0, '828116', '925148'),
 (114, 1, 0, '828116', '925.148'),
 (115, 0, 0, '1000000', '1.097.032'),
-(116, 2, 0, '1200000', '1.297.032');
+(116, 2, 0, '1200000', '1.297.032'),
+(117, 2, 0, '1500000', '1.897.032'),
+(118, 2, 0, '2800000', '3.400.000'),
+(119, 1, 1, '828116', '925.148');
 
 -- --------------------------------------------------------
 
@@ -18591,7 +19077,7 @@ INSERT INTO `salud` (`idSalud`, `fuma`, `alcohol`, `descripccion_emergencia`) VA
 (20, '', 'RARA VEZ', 'TEMBLOR ESCENCIAL'),
 (21, '', 'RARA VEZ', ''),
 (22, '', 'QUINCENAL', ''),
-(23, '', 'RARA VEZ', 'Renitis'),
+(23, '', 'RARA VEZ', 'Rinitis'),
 (24, '', 'RARA VEZ', ''),
 (25, '0', 'RARA VEZ', ''),
 (26, '0', 'RARA VEZ', ''),
@@ -18616,7 +19102,7 @@ INSERT INTO `salud` (`idSalud`, `fuma`, `alcohol`, `descripccion_emergencia`) VA
 (45, '0', 'RARA VEZ', ''),
 (46, '', 'RARA VEZ', ''),
 (47, '0', 'RARA VEZ', ''),
-(48, '', 'RARA VEZ', 'Hipertencia'),
+(48, '', 'RARA VEZ', 'Hipertensión'),
 (49, '0', 'RARA VEZ', ''),
 (50, '', 'RARA VEZ', ''),
 (51, '', 'RARA VEZ', ''),
@@ -18626,7 +19112,7 @@ INSERT INTO `salud` (`idSalud`, `fuma`, `alcohol`, `descripccion_emergencia`) VA
 (55, '', 'RARA VEZ', ''),
 (56, '', 'RARA VEZ', ''),
 (57, '0', 'RARA VEZ', ''),
-(58, '0', 'RARA VEZ', 'Renitis'),
+(58, '', 'RARA VEZ', 'Rinitis'),
 (59, '', 'RARA VEZ', ''),
 (60, '0', 'RARA VEZ', 'Migraña, Renitis'),
 (61, '1', 'RARA VEZ', 'Admidalitis'),
@@ -18647,14 +19133,14 @@ INSERT INTO `salud` (`idSalud`, `fuma`, `alcohol`, `descripccion_emergencia`) VA
 (76, '0', 'RARA VEZ', ''),
 (77, '', 'RARA VEZ', ''),
 (78, '0', 'RARA VEZ', 'Migraña clasica'),
-(79, '0', 'RARA VEZ', ''),
+(79, '', 'RARA VEZ', ''),
 (80, '', 'RARA VEZ', ''),
 (81, '0', '', 'Gastritis'),
 (82, '', 'RARA VEZ', 'Migraña clasica'),
 (83, '0', 'RARA VEZ', 'Sindrome de colon irritable'),
 (84, '0', '', ''),
 (85, '0', 'RARA VEZ', ''),
-(86, '0', 'RARA VEZ', 'Migraña, Renitis'),
+(86, '', 'RARA VEZ', 'Migraña, Rinitis'),
 (87, '0', 'RARA VEZ', ''),
 (88, '0', 'RARA VEZ', ''),
 (89, '0', 'RARA VEZ', ''),
@@ -18684,7 +19170,10 @@ INSERT INTO `salud` (`idSalud`, `fuma`, `alcohol`, `descripccion_emergencia`) VA
 (113, '0', '', ''),
 (114, '', 'RARA VEZ', ''),
 (115, '', '0', 'Hipoglucemia, Disautonomia(desmayo): en caso de esto colocar los pies en tren de lembur y cuando reaccione darle un baso de agua y una cucharada de sal.,toma medicamento como: levotiroxina 75mg: control tiroides, Alérgica al tramadol.'),
-(116, '', 'RARA VEZ', '');
+(116, '', 'RARA VEZ', ''),
+(117, '', 'RARA VEZ', ''),
+(118, '', '0', 'Toma medicamento para la presión (amlodipino), le aplican medicamento cada 15 días biológico (control de Artritis). '),
+(119, '', '0', '');
 
 -- --------------------------------------------------------
 
@@ -18721,7 +19210,7 @@ INSERT INTO `secundaria_basica` (`idSecundaria_basica`, `idEstado_civil`, `fecha
 (10, 5, '1987-04-25', 'Medellin', '6011163', '3194038630', 5, 15, 4),
 (11, 2, '1989-12-24', 'Medellin', '3083201', '3003179487', 1, 5, 4),
 (12, 1, '1993-12-18', 'Medellin', '', '3023498890', 1, 15, 7),
-(13, 1, '1988-04-25', 'Caldas', '2785768', '3008389692', 1, 15, 4),
+(13, 1, '1988-04-25', 'Caldas', '2785768', '3008760495', 1, 15, 4),
 (14, 2, '1990-08-21', 'Medellin', '5367241', '3136555216', 1, 15, 4),
 (15, 1, '1994-01-20', 'Montebello ATQ', '', '3128488495', 1, 3, 4),
 (16, 1, '1997-06-16', 'San carlos ANT', '', '3137559850', 1, 15, 4),
@@ -18736,7 +19225,7 @@ INSERT INTO `secundaria_basica` (`idSecundaria_basica`, `idEstado_civil`, `fecha
 (25, 2, '1986-09-24', 'Medellin', '3417282', '3217256729', 7, 15, 4),
 (26, 2, '1986-09-16', 'Medellin', '5062355', '3013913749', 5, 15, 4),
 (27, 1, '1988-07-03', 'Alejandria', '4617955', '3184519696', 5, 3, 4),
-(28, 1, '1998-02-02', 'Fredonia ANT', '', '3106912014', 5, 7, 4),
+(28, 1, '1998-02-02', 'Fredonia ANT', '', '3186153109', 5, 7, 4),
 (29, 1, '1995-10-30', 'Betania ANT', '', '3126916744', 2, 15, 4),
 (30, 1, '1994-11-22', 'Medellin', '5842737', '3012750931', 1, 5, 4),
 (31, 1, '1995-11-09', 'Medellin', '4382393', '3116548744', 1, 15, 6),
@@ -18762,7 +19251,7 @@ INSERT INTO `secundaria_basica` (`idSecundaria_basica`, `idEstado_civil`, `fecha
 (51, 1, '1966-01-28', 'San alejandro ANT', '4772838', '3146714453', 1, 15, 4),
 (52, 1, '1982-10-12', 'Ituango', '4433643', '3148436336', 1, 15, 4),
 (53, 2, '1983-02-23', 'Medellin', '2971944', '3017448026', 1, 15, 4),
-(54, 2, '1989-11-01', 'Venezuela', '484469', '3014718448', 5, 15, 1),
+(54, 2, '1989-11-01', 'Venezuela', '4884469', '3014718448', 5, 15, 1),
 (55, 1, '1981-03-09', 'Medellin', '2794663', '3116023982', 7, 15, 4),
 (56, 2, '1979-06-27', 'Medellin', '2840162', '3008357312', 3, 15, 1),
 (57, 1, '1982-12-01', 'Medellin', '4519016', '3012723726', 1, 15, 4),
@@ -18824,7 +19313,10 @@ INSERT INTO `secundaria_basica` (`idSecundaria_basica`, `idEstado_civil`, `fecha
 (113, 1, '2000-01-24', 'Medellin', '5381802', '3017176163', 1, 15, 4),
 (114, 1, '2001-01-04', 'Porce', '', '3003954845', 1, 14, 4),
 (115, 1, '1992-03-05', 'Itagui', '2976468', '3168664410', 5, 15, 4),
-(116, 1, '1995-06-13', 'Venezuela ', '', '3215943380', 1, 15, 4);
+(116, 1, '1995-06-13', 'Venezuela ', '', '3215943380', 1, 15, 4),
+(117, 4, '1983-03-15', 'Medellín', '', '3175912689', 5, 15, 1),
+(118, 2, '1981-09-23', 'Cartagena', '', '3164614276', 5, 15, 3),
+(119, 4, '0000-00-00', 'Bogotá', '', '3022142750', 1, 15, 4);
 
 -- --------------------------------------------------------
 
@@ -18861,18 +19353,6 @@ CREATE TABLE `tiempo_extra` (
   `idAsistencia` int(11) NOT NULL,
   `hora_fin_tiempo_extra` varchar(8) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Volcado de datos para la tabla `tiempo_extra`
---
-
-INSERT INTO `tiempo_extra` (`idtiempo_extra`, `idAsistencia`, `hora_fin_tiempo_extra`) VALUES
-(1, 1, '22:00:00'),
-(2, 18, '22:00:00'),
-(3, 34, '22:00:00'),
-(4, 50, '22:00:00'),
-(5, 66, '22:00:00'),
-(6, 82, '22:00:00');
 
 -- --------------------------------------------------------
 
@@ -19077,11 +19557,11 @@ INSERT INTO `usuario` (`idUsuario`, `nombre`, `contraseña`, `email`, `idTipo_us
 (21, 'Jhoana Marulanda', 'MTAzNzU4NzgzNA==', '-', 6, 0),
 (22, 'GestionHumana', 'NzQyNA==', 'gestionhumana@colcircuitos.com;auxiliargestionhumana@colcircuitos.com', 5, 1),
 (23, 'Contabilidad', 'Q29sLnVzZXI=', '-', 3, 1),
-(24, 'Yazmin', 'MTAxNzE1NjQyNA==', 'yazmin1987@gmail.com', 6, 1),
-(25, 'Gloria', 'NDM5NzUyMDg=', 'gloria.jaramillo@colcircuitos.com', 6, 1),
-(26, 'Sebastian Gallego', 'MTAyMDQ3OTU1NA==', 'gallegosebastian11042014@gmail.com', 6, 0),
+(24, 'Alejandro Duarte', 'NzYwNTc5', 'Alejandro.duarte@colcircuitos.com', 6, 1),
+(25, 'Lina Marcela', 'MTAzNjU5ODY4NA==', 'lmgm1230@gmail.com', 6, 1),
+(26, 'Jhoana Marulanda', 'MTAzNzU4NzgzNA==', 'produccion1@colcircuitos.com', 6, 1),
 (27, 'Geraldyn', 'MTAzNzk0OTY5Ng==', 'auxiliargestionhumana@colcircuitos.com', 5, 0),
-(28, 'Viviana Echavarria', 'NDM1ODMzOTg=', '-', 7, 1);
+(28, 'Viviana Echavarria', 'NDM1ODMzOTg=', '-', 6, 1);
 
 --
 -- Índices para tablas volcadas
@@ -19533,7 +20013,7 @@ ALTER TABLE `actividad`
 -- AUTO_INCREMENT de la tabla `actividades_timpo_libre`
 --
 ALTER TABLE `actividades_timpo_libre`
-  MODIFY `idActividades_timpo_libre` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=713;
+  MODIFY `idActividades_timpo_libre` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=726;
 
 --
 -- AUTO_INCREMENT de la tabla `afp`
@@ -19551,13 +20031,13 @@ ALTER TABLE `area_trabajo`
 -- AUTO_INCREMENT de la tabla `asistencia`
 --
 ALTER TABLE `asistencia`
-  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=109;
+  MODIFY `idAsistencia` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT de la tabla `auxilio`
 --
 ALTER TABLE `auxilio`
-  MODIFY `idAuxilio` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=140;
+  MODIFY `idAuxilio` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=145;
 
 --
 -- AUTO_INCREMENT de la tabla `cargo`
@@ -19599,7 +20079,7 @@ ALTER TABLE `dias_festivos`
 -- AUTO_INCREMENT de la tabla `empleado_horario`
 --
 ALTER TABLE `empleado_horario`
-  MODIFY `idEmpleado_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=84;
+  MODIFY `idEmpleado_horario` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
 
 --
 -- AUTO_INCREMENT de la tabla `empresa`
@@ -19611,7 +20091,7 @@ ALTER TABLE `empresa`
 -- AUTO_INCREMENT de la tabla `envio_pedido`
 --
 ALTER TABLE `envio_pedido`
-  MODIFY `idEnvio_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=903;
+  MODIFY `idEnvio_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1023;
 
 --
 -- AUTO_INCREMENT de la tabla `eps`
@@ -19635,13 +20115,13 @@ ALTER TABLE `estado_civil`
 -- AUTO_INCREMENT de la tabla `estado_empresarial`
 --
 ALTER TABLE `estado_empresarial`
-  MODIFY `idEstado_empresarial` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=187;
+  MODIFY `idEstado_empresarial` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=190;
 
 --
 -- AUTO_INCREMENT de la tabla `estudios`
 --
 ALTER TABLE `estudios`
-  MODIFY `idEstudios` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
+  MODIFY `idEstudios` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
 
 --
 -- AUTO_INCREMENT de la tabla `evento_laboral`
@@ -19659,7 +20139,7 @@ ALTER TABLE `examenes_medicos`
 -- AUTO_INCREMENT de la tabla `ficha_sd`
 --
 ALTER TABLE `ficha_sd`
-  MODIFY `idFicha_SD` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
+  MODIFY `idFicha_SD` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- AUTO_INCREMENT de la tabla `grado_escolaridad`
@@ -19671,7 +20151,7 @@ ALTER TABLE `grado_escolaridad`
 -- AUTO_INCREMENT de la tabla `horario_permiso`
 --
 ALTER TABLE `horario_permiso`
-  MODIFY `idHorario_permiso` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `idHorario_permiso` tinyint(4) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `horario_trabajo`
@@ -19689,13 +20169,13 @@ ALTER TABLE `hora_salida_tiempo_extra`
 -- AUTO_INCREMENT de la tabla `h_laboral`
 --
 ALTER TABLE `h_laboral`
-  MODIFY `idH_laboral` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `idH_laboral` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `incapacidad`
 --
 ALTER TABLE `incapacidad`
-  MODIFY `idIncapacidad` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
+  MODIFY `idIncapacidad` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT de la tabla `indicador_rotacion`
@@ -19707,13 +20187,13 @@ ALTER TABLE `indicador_rotacion`
 -- AUTO_INCREMENT de la tabla `laboral`
 --
 ALTER TABLE `laboral`
-  MODIFY `idLaboral` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
+  MODIFY `idLaboral` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
 
 --
 -- AUTO_INCREMENT de la tabla `lineas_pedido`
 --
 ALTER TABLE `lineas_pedido`
-  MODIFY `idLineas_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5424;
+  MODIFY `idLineas_pedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5869;
 
 --
 -- AUTO_INCREMENT de la tabla `momento`
@@ -19737,13 +20217,13 @@ ALTER TABLE `municipio`
 -- AUTO_INCREMENT de la tabla `notificacion`
 --
 ALTER TABLE `notificacion`
-  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=367;
+  MODIFY `idNotificacion` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT de la tabla `otros`
 --
 ALTER TABLE `otros`
-  MODIFY `idOtros` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
+  MODIFY `idOtros` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- AUTO_INCREMENT de la tabla `parentezco`
@@ -19755,25 +20235,25 @@ ALTER TABLE `parentezco`
 -- AUTO_INCREMENT de la tabla `pedido`
 --
 ALTER TABLE `pedido`
-  MODIFY `idPedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3258;
+  MODIFY `idPedido` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3543;
 
 --
 -- AUTO_INCREMENT de la tabla `permiso`
 --
 ALTER TABLE `permiso`
-  MODIFY `idPermiso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `idPermiso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT de la tabla `personal`
 --
 ALTER TABLE `personal`
-  MODIFY `idPersonal` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
+  MODIFY `idPersonal` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
 -- AUTO_INCREMENT de la tabla `personas_vive`
 --
 ALTER TABLE `personas_vive`
-  MODIFY `idPersonas_vive` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=784;
+  MODIFY `idPersonas_vive` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=813;
 
 --
 -- AUTO_INCREMENT de la tabla `producto`
@@ -19804,263 +20284,6 @@ ALTER TABLE `restriccion`
 --
 ALTER TABLE `rol`
   MODIFY `idRol` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
-
---
--- AUTO_INCREMENT de la tabla `salarial`
---
-ALTER TABLE `salarial`
-  MODIFY `idSalarial` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
-
---
--- AUTO_INCREMENT de la tabla `salud`
---
-ALTER TABLE `salud`
-  MODIFY `idSalud` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
-
---
--- AUTO_INCREMENT de la tabla `secundaria_basica`
---
-ALTER TABLE `secundaria_basica`
-  MODIFY `idSecundaria_basica` smallint(6) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
-
---
--- AUTO_INCREMENT de la tabla `tablet_piso`
---
-ALTER TABLE `tablet_piso`
-  MODIFY `idtablet_piso` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
-
---
--- AUTO_INCREMENT de la tabla `tiempo_extra`
---
-ALTER TABLE `tiempo_extra`
-  MODIFY `idtiempo_extra` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
-
---
--- AUTO_INCREMENT de la tabla `tiempo_teorico_semanal`
---
-ALTER TABLE `tiempo_teorico_semanal`
-  MODIFY `idtiempo_teorico_semanal` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
-
---
--- AUTO_INCREMENT de la tabla `tipo_auxilio`
---
-ALTER TABLE `tipo_auxilio`
-  MODIFY `idTipo_auxilio` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT de la tabla `tipo_contrato`
---
-ALTER TABLE `tipo_contrato`
-  MODIFY `idTipo_contrato` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
-
---
--- AUTO_INCREMENT de la tabla `tipo_evento`
---
-ALTER TABLE `tipo_evento`
-  MODIFY `idTipo_evento` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT de la tabla `tipo_notificacion`
---
-ALTER TABLE `tipo_notificacion`
-  MODIFY `idTipo_notificacion` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
--- AUTO_INCREMENT de la tabla `tipo_sangre`
---
-ALTER TABLE `tipo_sangre`
-  MODIFY `idTipo_sangre` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
-
---
--- AUTO_INCREMENT de la tabla `tipo_usuario`
---
-ALTER TABLE `tipo_usuario`
-  MODIFY `idTipo_usuario` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT de la tabla `tipo_vivienda`
---
-ALTER TABLE `tipo_vivienda`
-  MODIFY `idTipo_vivienda` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
-
---
--- AUTO_INCREMENT de la tabla `usuario`
---
-ALTER TABLE `usuario`
-  MODIFY `idUsuario` tinyint(4) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
-
---
--- Restricciones para tablas volcadas
---
-
---
--- Filtros para la tabla `actividades_timpo_libre`
---
-ALTER TABLE `actividades_timpo_libre`
-  ADD CONSTRAINT `fk_Actividades_timpo_libre_Personal1` FOREIGN KEY (`idPersonal`) REFERENCES `personal` (`idPersonal`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Actividades_timpo_libre_table11` FOREIGN KEY (`idActividades`) REFERENCES `actividad` (`idActividad`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `asistencia`
---
-ALTER TABLE `asistencia`
-  ADD CONSTRAINT `fk_Asistencia_Empleado` FOREIGN KEY (`documento`) REFERENCES `empleado` (`documento`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Asistencia_Estado_asistencia1` FOREIGN KEY (`idEstado_asistencia`) REFERENCES `estado_asistencia` (`idEstado_asistencia`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Asistencia_Tipo_evento1` FOREIGN KEY (`idTipo_evento`) REFERENCES `tipo_evento` (`idTipo_evento`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_asistencia_configuracion` FOREIGN KEY (`idConfiguracion`) REFERENCES `configuracion` (`idConfiguracion`);
-
---
--- Filtros para la tabla `auxilio`
---
-ALTER TABLE `auxilio`
-  ADD CONSTRAINT `fk_Auxilio_Salarial1` FOREIGN KEY (`idSalarial`) REFERENCES `salarial` (`idSalarial`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Auxilio_Tipo_auxilio1` FOREIGN KEY (`idTipo_auxilio`) REFERENCES `tipo_auxilio` (`idTipo_auxilio`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `empleado`
---
-ALTER TABLE `empleado`
-  ADD CONSTRAINT `fk_Empleado_Empresa1` FOREIGN KEY (`idEmpresa`) REFERENCES `empresa` (`idEmpresa`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_rol_empelado` FOREIGN KEY (`idRol`) REFERENCES `rol` (`idRol`);
-
---
--- Filtros para la tabla `empleado_horario`
---
-ALTER TABLE `empleado_horario`
-  ADD CONSTRAINT `fk_configuracion_horario` FOREIGN KEY (`idConfiguracion`) REFERENCES `configuracion` (`idConfiguracion`),
-  ADD CONSTRAINT `fk_empleado_horario` FOREIGN KEY (`documento`) REFERENCES `empleado` (`documento`);
-
---
--- Filtros para la tabla `envio_pedido`
---
-ALTER TABLE `envio_pedido`
-  ADD CONSTRAINT `fk_envio_proveedor` FOREIGN KEY (`idProveedor`) REFERENCES `proveedor` (`idProveedor`);
-
---
--- Filtros para la tabla `estado_empresarial`
---
-ALTER TABLE `estado_empresarial`
-  ADD CONSTRAINT `fk_Estado_empresarial_Ficha_SD1` FOREIGN KEY (`idFicha_SD`) REFERENCES `ficha_sd` (`idFicha_SD`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_estado_empresa` FOREIGN KEY (`idEmpresa`) REFERENCES `empresa` (`idEmpresa`);
-
---
--- Filtros para la tabla `estudios`
---
-ALTER TABLE `estudios`
-  ADD CONSTRAINT `fk_Estudios_Grado_escolaridad1` FOREIGN KEY (`idGrado_escolaridad`) REFERENCES `grado_escolaridad` (`idGrado_escolaridad`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `examenes_medicos`
---
-ALTER TABLE `examenes_medicos`
-  ADD CONSTRAINT `fk_empleado_examen` FOREIGN KEY (`documento`) REFERENCES `empleado` (`documento`);
-
---
--- Filtros para la tabla `ficha_sd`
---
-ALTER TABLE `ficha_sd`
-  ADD CONSTRAINT `fk_Ficha_SD_Empleado1` FOREIGN KEY (`documento`) REFERENCES `empleado` (`documento`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Ficha_SD_Estudios1` FOREIGN KEY (`idEstudios`) REFERENCES `estudios` (`idEstudios`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Ficha_SD_Laboral1` FOREIGN KEY (`idLaboral`) REFERENCES `laboral` (`idLaboral`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Ficha_SD_Otros1` FOREIGN KEY (`idOtros`) REFERENCES `otros` (`idOtros`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Ficha_SD_Personal1` FOREIGN KEY (`idPersonal`) REFERENCES `personal` (`idPersonal`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Ficha_SD_Salarial1` FOREIGN KEY (`idSalarial`) REFERENCES `salarial` (`idSalarial`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Ficha_SD_Salud1` FOREIGN KEY (`idSalud`) REFERENCES `salud` (`idSalud`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Ficha_SD_Secundaria_basica1` FOREIGN KEY (`idSecundaria_basica`) REFERENCES `secundaria_basica` (`idSecundaria_basica`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `h_laboral`
---
-ALTER TABLE `h_laboral`
-  ADD CONSTRAINT `fk_H_laboral_Asistencia` FOREIGN KEY (`idAsistencia`) REFERENCES `asistencia` (`idAsistencia`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_H_laboral_Evento_laboral1` FOREIGN KEY (`idEvento_laboral`) REFERENCES `evento_laboral` (`idEvento_laboral`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `incapacidad`
---
-ALTER TABLE `incapacidad`
-  ADD CONSTRAINT `fk_Incapacidad_Diagnostico1` FOREIGN KEY (`Diagnostico_idDiagnostico`) REFERENCES `diagnostico` (`idDiagnostico`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Incapacidad_Empleado1` FOREIGN KEY (`documento`) REFERENCES `empleado` (`documento`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `laboral`
---
-ALTER TABLE `laboral`
-  ADD CONSTRAINT `fk_Laboral_Area_trabajo1` FOREIGN KEY (`idArea_trabajo`) REFERENCES `area_trabajo` (`idArea_trabajo`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Laboral_Cargo1` FOREIGN KEY (`idCargo`) REFERENCES `cargo` (`idCargo`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Laboral_Horario_trabajo1` FOREIGN KEY (`idHorario_trabajo`) REFERENCES `horario_trabajo` (`idHorario_trabajo`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Laboral_Tipo_contrato1` FOREIGN KEY (`idTipo_contrato`) REFERENCES `tipo_contrato` (`idTipo_contrato`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_clasificacion_laboral` FOREIGN KEY (`idClasificacion_contable`) REFERENCES `clasificacion_contable` (`idClasificacion_contable`);
-
---
--- Filtros para la tabla `lineas_pedido`
---
-ALTER TABLE `lineas_pedido`
-  ADD CONSTRAINT `fk_Lineas_pedido_Pedido1` FOREIGN KEY (`idPedido`) REFERENCES `pedido` (`idPedido`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Lineas_pedido_Producto1` FOREIGN KEY (`idProducto`) REFERENCES `producto` (`idProducto`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_momento_lineas` FOREIGN KEY (`idMomento`) REFERENCES `momento` (`idmomento`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `notificacion`
---
-ALTER TABLE `notificacion`
-  ADD CONSTRAINT `fk_Notificacion_Tipo_notificacion1` FOREIGN KEY (`idTipo_notificacion`) REFERENCES `tipo_notificacion` (`idTipo_notificacion`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Notificacion_Usuario1` FOREIGN KEY (`idUsuario`) REFERENCES `usuario` (`idUsuario`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `pedido`
---
-ALTER TABLE `pedido`
-  ADD CONSTRAINT `fk_Pedido_Empleado1` FOREIGN KEY (`documento`) REFERENCES `empleado` (`documento`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `permiso`
---
-ALTER TABLE `permiso`
-  ADD CONSTRAINT `fk_Permiso_Concepto1` FOREIGN KEY (`idConcepto`) REFERENCES `concepto` (`idConcepto`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_empleado_permiso` FOREIGN KEY (`documento`) REFERENCES `empleado` (`documento`),
-  ADD CONSTRAINT `fk_horario_permiso_permiso` FOREIGN KEY (`idHorario_permiso`) REFERENCES `horario_permiso` (`idHorario_permiso`);
-
---
--- Filtros para la tabla `personal`
---
-ALTER TABLE `personal`
-  ADD CONSTRAINT `fk_Personal_Municipio1` FOREIGN KEY (`idMunicipio`) REFERENCES `municipio` (`idMunicipio`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Personal_Tipo_vivienda1` FOREIGN KEY (`idTipo_vivienda`) REFERENCES `tipo_vivienda` (`idTipo_vivienda`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `personas_vive`
---
-ALTER TABLE `personas_vive`
-  ADD CONSTRAINT `fk_Personas_vive_Parentezco1` FOREIGN KEY (`idParentezco`) REFERENCES `parentezco` (`idParentezco`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Personas_vive_Personal1` FOREIGN KEY (`idPersonal`) REFERENCES `personal` (`idPersonal`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `producto`
---
-ALTER TABLE `producto`
-  ADD CONSTRAINT `fk_Producto_Proveedor1` FOREIGN KEY (`idProveedor`) REFERENCES `proveedor` (`idProveedor`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `secundaria_basica`
---
-ALTER TABLE `secundaria_basica`
-  ADD CONSTRAINT `fk_Secundaria_basica_AFP1` FOREIGN KEY (`idAFP`) REFERENCES `afp` (`idAFP`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Secundaria_basica_EPS1` FOREIGN KEY (`idEPS`) REFERENCES `eps` (`idEPS`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Secundaria_basica_Estado_civil1` FOREIGN KEY (`idEstado_civil`) REFERENCES `estado_civil` (`idEstado_civil`) ON DELETE NO ACTION ON UPDATE NO ACTION,
-  ADD CONSTRAINT `fk_Secundaria_basica_Tipo_sangre1` FOREIGN KEY (`idTipo_sangre`) REFERENCES `tipo_sangre` (`idTipo_sangre`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `tiempo_extra`
---
-ALTER TABLE `tiempo_extra`
-  ADD CONSTRAINT `fk_tiempo_extra_Asistencia1` FOREIGN KEY (`idAsistencia`) REFERENCES `asistencia` (`idAsistencia`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Filtros para la tabla `usuario`
---
-ALTER TABLE `usuario`
-  ADD CONSTRAINT `fk_Usuario_Tipo_usuario1` FOREIGN KEY (`idTipo_usuario`) REFERENCES `tipo_usuario` (`idTipo_usuario`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
