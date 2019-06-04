@@ -3,8 +3,11 @@
   $conectar= conexion();
   // ...
   $dia="$fechaActual[mday]";
+  $dia = ($dia < 9? '0'.$dia:$dia);
   $mes="$fechaActual[mon]";
+  $mes = ($mes < 9? '0'.$mes:$mes);
   $año="$fechaActual[year]";
+
   /*Consultar hora de envio*/
   // ...
   /*Consultar personar que llegaron tarda al evento laboral en el día en curso*/
@@ -12,7 +15,7 @@
   // ...
   $tabla="";
   // ...
-  $tabla= generarCuerpoMensaje($query,$tabla,1);//Consultar Cumpleaños -
+  $tabla= generarCuerpoMensaje($query, $tabla, 1);//Consultar Cumpleaños -
   // Cerrar conexion
   cerrarConexion($conectar);
   // -------------------------------------------------------------------------------------------------------
@@ -102,7 +105,7 @@
         //   echo "Correo enviado";
         // }else{
         //   echo "No envio";
-        // }
+        // }        
         $mail->Send();
         // echo $tabla;
       }  
@@ -112,18 +115,18 @@
 // Funciones...
 // ...
 function conexion(){//Iniciar la conexion con la base de datos
-	$conexion= new mysqli("localhost","root","qblrENqllNIMvqHL","sgh") or die('No se pudo conectar: '.mysql_error());
-	/*Verificar conexion*/
-	if ($conexion->connect_errno) {
-		printf("Error al conectar: %s\n",$conexion->connect_error);
-		exit();
-	}
-	return 	$conexion;
+  $conexion= new mysqli("localhost","root","qblrENqllNIMvqHL","sgn") or die('No se pudo conectar: '.mysql_error());
+  /*Verificar conexion*/
+  if ($conexion->connect_errno) {
+    printf("Error al conectar: %s\n",$conexion->connect_error);
+    exit();
+  }
+  return  $conexion;
 }
 // Cerrar la conexion
 function cerrarConexion($conexion)
 {
-	$conexion->close();
+  $conexion->close();
 }
 //
 
@@ -132,6 +135,7 @@ function generarCuerpoMensaje($empleados,$mensaje,$idTipoN)
   $cont=0;
   // ...
   foreach ($empleados as $empleado) {
+
     // ...
     if ($cont==0) {
       $mensaje.="<table BORDER CELLPADDING=10 CELLSPACING=0>
